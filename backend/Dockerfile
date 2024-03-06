@@ -5,7 +5,7 @@ FROM python:${PYTHON_VERSION}
 ENV PYTHONDONTWRITEBYTECODE 1
 ENV PYTHONUNBUFFERED 1
 
-WORKDIR /app/backend
+WORKDIR /app
 
 COPY requirements.txt /app/
 RUN set -ex && \
@@ -13,10 +13,10 @@ RUN set -ex && \
     pip install -r /app/requirements.txt && \
     rm -rf /root/.cache/
 
-COPY backend /app/backend/
+COPY . /app/
 
-RUN python manage.py collectstatic --noinput
+# RUN python manage.py collectstatic --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "backend.wsgi"]
+CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "backend.wsgi:application"]
