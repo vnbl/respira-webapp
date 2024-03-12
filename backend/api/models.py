@@ -9,3 +9,14 @@ class Car(models.Model):
 
     def __str__(self):
         return f"{self.year} {self.make} {self.model}"
+    
+
+class Station(models.Model):
+    name = models.CharField(max_length = 100)
+    station_id = models.IntegerField()
+    latitude = models.CharField(max_length = 100)
+    longitude = models.CharField(max_length = 100)
+    aqi = models.IntegerField()
+
+    def __str__(self):
+        return f"{self.station_id} {self.name} {self.aqi}"
