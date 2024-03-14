@@ -14,9 +14,10 @@ RUN set -ex && \
     rm -rf /root/.cache/
 
 COPY . /app/
-
 # RUN python manage.py collectstatic --noinput
 
+# Run Django migrations
+RUN python manage.py migrate --noinput
 
 EXPOSE 8000
 
