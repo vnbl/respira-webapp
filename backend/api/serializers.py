@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Car, Station, StationValues, Area, AreaValues
+from .models import Car, Station, StationReadings
 
 class CarSerializer(serializers.ModelSerializer):
     class Meta:
@@ -11,17 +11,8 @@ class StationSerializer(serializers.ModelSerializer):
         model = Station
         fields = '__all__'
 
-class StationValuesSerializer(serializers.ModelSerializer):
+class StationReadingsSerializer(serializers.ModelSerializer):
     class Meta:
-        model = StationValues
+        model = StationReadings
         fields = '__all__'
 
-class AreaSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Area
-        fields = '__all__'
-
-class AreaValuesSerializer(serializers.ModelSerializer):
-    class Meta:
-        model: AreaValues
-        fields = '__all__'
