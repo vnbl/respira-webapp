@@ -3,12 +3,8 @@ from rest_framework.viewsets import ModelViewSet
 from rest_framework.response import Response
 from rest_framework.decorators import action
 
-from .models import Car, Station, StationReadings
-from .serializers import CarSerializer, StationSerializer, StationReadingsSerializer
-
-class CarViewset(ModelViewSet):
-    queryset = Car.objects.all()
-    serializer_class = CarSerializer
+from .models import Station, StationReadings
+from .serializers import StationSerializer, StationReadingsSerializer
 
 class StationViewset(ModelViewSet):
     queryset = Station.objects.all()
