@@ -1,12 +1,15 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import StationViewset, StationReadingsViewset
+from rest_framework_nested import routers
+
+from .views import StationViewset, ForecastViewset, HistoricalViewset
 
 router = DefaultRouter()
-router.register('stations', StationViewset, basename = 'stations')
-router.register('station_values', StationReadingsViewset, basename = 'station_values')
+router.register(r'stations', StationViewset, basename='stations')
+router.register(r'forecast', ForecastViewset, basename='regions')
+router.register(r'historical', HistoricalViewset, basename='historical')
 
 urlpatterns = [
-    path('', include(router.urls)),
+    path(r'', include(router.urls)),
 ]
