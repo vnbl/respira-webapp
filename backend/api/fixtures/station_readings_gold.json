@@ -1,0 +1,26 @@
+[
+    {
+        "model": "api.StationReadingsGold",
+        "pk": 1,
+        "fields": {
+            "station": 1,
+            "date_localtime": "2024-09-06 14:30:00",
+            "pm1": 12.5,
+            "pm2_5": 35.4,
+            "pm10": 45.2,
+            "pm2_5_avg_6h": 32.0,
+            "pm2_5_max_6h": 40.0,
+            "pm2_5_skew_6h": 1.2,
+            "pm2_5_std_6h": 2.3,
+            "aqi_pm2_5": 85.0,
+            "aqi_pm10": 110.0,
+            "aqi_level": 2,
+            "aqi_pm2_5_max_24h": 90.5,
+            "aqi_pm2_5_skew_24h": 0.8,
+            "aqi_pm2_5_std_24h": 3.5,
+            "temperature": 25.4,
+            "humidity": 65.2,
+            "pressure": 1012.3
+        }
+    }
+]

@@ -1,0 +1,178 @@
+[
+    {
+        "model": "api.InferenceResults",
+        "pk": 1,
+        "fields": {
+            "inference_run": 1,
+            "station": 1,
+            "forecast_6h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 85},
+                {"timestamp": "2024-09-06 15:00:00", "value": 90},
+                {"timestamp": "2024-09-06 16:00:00", "value": 92},
+                {"timestamp": "2024-09-06 17:00:00", "value": 88},
+                {"timestamp": "2024-09-06 18:00:00", "value": 86},
+                {"timestamp": "2024-09-06 19:00:00", "value": 84}
+            ],
+            "forecast_12h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 85},
+                {"timestamp": "2024-09-06 15:00:00", "value": 86},
+                {"timestamp": "2024-09-06 16:00:00", "value": 87},
+                {"timestamp": "2024-09-06 17:00:00", "value": 88},
+                {"timestamp": "2024-09-06 18:00:00", "value": 88},
+                {"timestamp": "2024-09-06 19:00:00", "value": 87},
+                {"timestamp": "2024-09-06 20:00:00", "value": 86},
+                {"timestamp": "2024-09-06 21:00:00", "value": 85},
+                {"timestamp": "2024-09-06 22:00:00", "value": 84},
+                {"timestamp": "2024-09-06 23:00:00", "value": 83},
+                {"timestamp": "2024-09-07 00:00:00", "value": 82},
+                {"timestamp": "2024-09-07 01:00:00", "value": 81}
+            ],
+            "aqi_input": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 85},
+                {"timestamp": "2024-09-06 15:00:00", "value": 110},
+                {"timestamp": "2024-09-06 16:00:00", "value": 115},
+                {"timestamp": "2024-09-06 17:00:00", "value": 112},
+                {"timestamp": "2024-09-06 18:00:00", "value": 108},
+                {"timestamp": "2024-09-06 19:00:00", "value": 104},
+                {"timestamp": "2024-09-06 20:00:00", "value": 102},
+                {"timestamp": "2024-09-06 21:00:00", "value": 100},
+                {"timestamp": "2024-09-06 22:00:00", "value": 98},
+                {"timestamp": "2024-09-06 23:00:00", "value": 96},
+                {"timestamp": "2024-09-07 00:00:00", "value": 95},
+                {"timestamp": "2024-09-07 01:00:00", "value": 93}
+            ]
+        }
+    },
+    {
+        "model": "api.InferenceResults",
+        "pk": 2,
+        "fields": {
+            "inference_run": 1,
+            "station": 2,
+            "forecast_6h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 70},
+                {"timestamp": "2024-09-06 15:00:00", "value": 75},
+                {"timestamp": "2024-09-06 16:00:00", "value": 78},
+                {"timestamp": "2024-09-06 17:00:00", "value": 76},
+                {"timestamp": "2024-09-06 18:00:00", "value": 74},
+                {"timestamp": "2024-09-06 19:00:00", "value": 72}
+            ],
+            "forecast_12h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 70},
+                {"timestamp": "2024-09-06 15:00:00", "value": 72},
+                {"timestamp": "2024-09-06 16:00:00", "value": 74},
+                {"timestamp": "2024-09-06 17:00:00", "value": 75},
+                {"timestamp": "2024-09-06 18:00:00", "value": 73},
+                {"timestamp": "2024-09-06 19:00:00", "value": 71},
+                {"timestamp": "2024-09-06 20:00:00", "value": 69},
+                {"timestamp": "2024-09-06 21:00:00", "value": 68},
+                {"timestamp": "2024-09-06 22:00:00", "value": 67},
+                {"timestamp": "2024-09-06 23:00:00", "value": 66},
+                {"timestamp": "2024-09-07 00:00:00", "value": 65},
+                {"timestamp": "2024-09-07 01:00:00", "value": 64}
+            ],
+            "aqi_input": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 70},
+                {"timestamp": "2024-09-06 15:00:00", "value": 90},
+                {"timestamp": "2024-09-06 16:00:00", "value": 95},
+                {"timestamp": "2024-09-06 17:00:00", "value": 92},
+                {"timestamp": "2024-09-06 18:00:00", "value": 88},
+                {"timestamp": "2024-09-06 19:00:00", "value": 85},
+                {"timestamp": "2024-09-06 20:00:00", "value": 82},
+                {"timestamp": "2024-09-06 21:00:00", "value": 80},
+                {"timestamp": "2024-09-06 22:00:00", "value": 78},
+                {"timestamp": "2024-09-06 23:00:00", "value": 76},
+                {"timestamp": "2024-09-07 00:00:00", "value": 74},
+                {"timestamp": "2024-09-07 01:00:00", "value": 72}
+            ]
+        }
+    },
+    {
+        "model": "api.InferenceResults",
+        "pk": 3,
+        "fields": {
+            "inference_run": 1,
+            "station": 3,
+            "forecast_6h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 50},
+                {"timestamp": "2024-09-06 15:00:00", "value": 52},
+                {"timestamp": "2024-09-06 16:00:00", "value": 54},
+                {"timestamp": "2024-09-06 17:00:00", "value": 55},
+                {"timestamp": "2024-09-06 18:00:00", "value": 53},
+                {"timestamp": "2024-09-06 19:00:00", "value": 51}
+            ],
+            "forecast_12h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 50},
+                {"timestamp": "2024-09-06 15:00:00", "value": 52},
+                {"timestamp": "2024-09-06 16:00:00", "value": 54},
+                {"timestamp": "2024-09-06 17:00:00", "value": 55},
+                {"timestamp": "2024-09-06 18:00:00", "value": 54},
+                {"timestamp": "2024-09-06 19:00:00", "value": 53},
+                {"timestamp": "2024-09-06 20:00:00", "value": 52},
+                {"timestamp": "2024-09-06 21:00:00", "value": 51},
+                {"timestamp": "2024-09-06 22:00:00", "value": 50},
+                {"timestamp": "2024-09-06 23:00:00", "value": 49},
+                {"timestamp": "2024-09-07 00:00:00", "value": 48},
+                {"timestamp": "2024-09-07 01:00:00", "value": 47}
+            ],
+            "aqi_input": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 50},
+                {"timestamp": "2024-09-06 15:00:00", "value": 70},
+                {"timestamp": "2024-09-06 16:00:00", "value": 75},
+                {"timestamp": "2024-09-06 17:00:00", "value": 72},
+                {"timestamp": "2024-09-06 18:00:00", "value": 68},
+                {"timestamp": "2024-09-06 19:00:00", "value": 65},
+                {"timestamp": "2024-09-06 20:00:00", "value": 62},
+                {"timestamp": "2024-09-06 21:00:00", "value": 60},
+                {"timestamp": "2024-09-06 22:00:00", "value": 58},
+                {"timestamp": "2024-09-06 23:00:00", "value": 56},
+                {"timestamp": "2024-09-07 00:00:00", "value": 54},
+                {"timestamp": "2024-09-07 01:00:00", "value": 52}
+            ]
+        }
+    },
+    {
+        "model": "api.InferenceResults",
+        "pk": 4,
+        "fields": {
+            "inference_run": 1,
+            "station": 4,
+            "forecast_6h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 40},
+                {"timestamp": "2024-09-06 15:00:00", "value": 42},
+                {"timestamp": "2024-09-06 16:00:00", "value": 44},
+                {"timestamp": "2024-09-06 17:00:00", "value": 45},
+                {"timestamp": "2024-09-06 18:00:00", "value": 43},
+                {"timestamp": "2024-09-06 19:00:00", "value": 41}
+            ],
+            "forecast_12h": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 40},
+                {"timestamp": "2024-09-06 15:00:00", "value": 42},
+                {"timestamp": "2024-09-06 16:00:00", "value": 44},
+                {"timestamp": "2024-09-06 17:00:00", "value": 45},
+                {"timestamp": "2024-09-06 18:00:00", "value": 44},
+                {"timestamp": "2024-09-06 19:00:00", "value": 43},
+                {"timestamp": "2024-09-06 20:00:00", "value": 42},
+                {"timestamp": "2024-09-06 21:00:00", "value": 41},
+                {"timestamp": "2024-09-06 22:00:00", "value": 40},
+                {"timestamp": "2024-09-06 23:00:00", "value": 39},
+                {"timestamp": "2024-09-07 00:00:00", "value": 38},
+                {"timestamp": "2024-09-07 01:00:00", "value": 37}
+            ],
+            "aqi_input": [
+                {"timestamp": "2024-09-06 14:00:00", "value": 40},
+                {"timestamp": "2024-09-06 15:00:00", "value": 60},
+                {"timestamp": "2024-09-06 16:00:00", "value": 65},
+                {"timestamp": "2024-09-06 17:00:00", "value": 62},
+                {"timestamp": "2024-09-06 18:00:00", "value": 58},
+                {"timestamp": "2024-09-06 19:00:00", "value": 55},
+                {"timestamp": "2024-09-06 20:00:00", "value": 52},
+                {"timestamp": "2024-09-06 21:00:00", "value": 50},
+                {"timestamp": "2024-09-06 22:00:00", "value": 48},
+                {"timestamp": "2024-09-06 23:00:00", "value": 46},
+                {"timestamp": "2024-09-07 00:00:00", "value": 44},
+                {"timestamp": "2024-09-07 01:00:00", "value": 42}
+            ]
+        }
+    }
+]

@@ -1,0 +1,9 @@
+[
+    {
+        "model": "api.InferenceRuns",
+        "pk": 1,
+        "fields": {
+            "run_date": "2024-09-06 14:30:00"
+       }
+    }
+]
