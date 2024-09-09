@@ -1,9 +1,8 @@
-import json
 from datetime import timedelta
 
 from django.utils import timezone
 from django.db.models import Avg
-from django.db.models.functions import TruncDate, TruncHour
+from django.db.models.functions import TruncDate
 
 from rest_framework.decorators import action
 from rest_framework.response import Response
@@ -35,6 +34,18 @@ class StationViewset(ModelViewSet):
         
         aqi = StationReadingsGold.objects.filter(station_id=station.id).order_by('-date_localtime').first().aqi_pm2_5
         
+        # StationReadingsGold.objects.filter(
+        #     station_id=station.id,
+        #     date_localtime__gte=thirty_days_ago
+        # ).order_by('-date_localtime')
+        
+        # filter(date_localtime__gte=seven_days_ago) \
+        #                         .annotate(day=TruncDate('date_localtime')) \
+        #                         .values('day') \
+        #                         .annotate(avg_value=Avg(field)) \
+        #                         .order_by('day')
+
+
         # get the latest inference result by id
         inference_result = InferenceResults.objects.filter(station_id=station.id).order_by('-id').first()
         
@@ -61,42 +72,53 @@ class StationViewset(ModelViewSet):
     def history(self, request, *args, **kwargs):
         station = self.get_object()
 
-        # define time ranges
+        metric = request.query_params.get('metric', 'aqi_pm2_5')
+        
+        if metric == 'pm2_5':
+            field = 'pm2_5'
+            avg_field = 'pm2_5_avg'
+        
+        else:
+            field = 'aqi_pm2_5'
+            avg_field = 'aqi_pm2_5_avg'
+
+        # Define the time ranges
         one_day_ago = timezone.now() - timedelta(days=1)
         seven_days_ago = timezone.now() - timedelta(days=7)
         thirty_days_ago = timezone.now() - timedelta(days=30)
-        
-        # get the last 30 days
+
+        # Get the last 30 days
         history_readings = StationReadingsGold.objects.filter(
             station_id=station.id,
             date_localtime__gte=thirty_days_ago
         ).order_by('-date_localtime')
 
-        # filter: last 24 hours
+        # Filter: last 24 hours
         historical_1d = history_readings.filter(date_localtime__gte=one_day_ago) \
-                            .values('date_localtime', 'aqi_pm2_5') \
-                            .order_by('date_localtime')
+                                .values('date_localtime', field) \
+                                .order_by('date_localtime')
 
-        historical_1d = [{'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00'), 'value': entry['aqi_pm2_5_avg']} for entry in historical_1d]
+        historical_1d = [{'value': entry[field], 'timestamp': entry['date_localtime'].strftime('%Y-%m-%d %H:%M:%S')} for entry in historical_1d]
 
-        # filter: last 7 days (group by day and aggregate)
+        # Filter: last 7 days (group by day and aggregate)
         historical_7d = history_readings.filter(date_localtime__gte=seven_days_ago) \
-                            .annotate(day=TruncDate('date_localtime')) \
-                            .values('day') \
-                            .annotate(aqi_pm2_5_avg=Avg('aqi_pm2_5')) \
-                            .order_by('day')
+                                .annotate(day=TruncDate('date_localtime')) \
+                                .values('day') \
+                                .annotate(avg_value=Avg(field)) \
+                                .order_by('day')
 
-        historical_7d = [{'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00'), 'value': entry['aqi_pm2_5_avg']} for entry in historical_7d]
+        historical_7d = [{'value': entry['avg_value'], 'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00')} for entry in historical_7d]
 
-        # filter: last 30 days (group by day and aggregate)
+        # Filter: last 30 days (group by day and aggregate)
         historical_30d = history_readings \
-                .annotate(day=TruncDate('date_localtime')) \
-                .values('day') \
-                .annotate(aqi_pm2_5_avg=Avg('aqi_pm2_5')) \
-                .order_by('day')
+                    .annotate(day=TruncDate('date_localtime')) \
+                    .values('day') \
+                    .annotate(avg_value=Avg(field)) \
+                    .order_by('day')
 
-        historical_30d = [{'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00'), 'value': entry['aqi_pm2_5_avg']} for entry in historical_30d]
+        historical_30d = [{'value': entry['avg_value'], 'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00')} for entry in historical_30d]
 
+        # Prepare the data to return
         history_data = {
             'historical_1d': historical_1d,
             'historical_7d': historical_7d,
@@ -107,6 +129,6 @@ class StationViewset(ModelViewSet):
 
         if serializer.is_valid():
             return Response(serializer.data)
-        
+
         else:
             return Response(serializer.errors)
