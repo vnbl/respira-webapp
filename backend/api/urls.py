@@ -1,7 +1,9 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
-from .views import StationViewset, RegionViewset
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+
+from .views import StationViewset, RegionViewset, MapViewset
 
 router = DefaultRouter()
 
@@ -10,4 +12,7 @@ router.register(r'stations', StationViewset, basename='stations')
 
 urlpatterns = [
     path(r'', include(router.urls)),
+    path(r'map/', MapViewset.as_view(), name='map'),
+    path(r'schema/', SpectacularAPIView.as_view(), name='schema'),
+    path(r'schema/swagger-ui/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
 ]

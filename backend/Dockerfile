@@ -16,6 +16,9 @@ RUN set -ex && \
 COPY . /app/
 # RUN python manage.py collectstatic --noinput
 
+# Load initial data
+RUN python manage.py loaddata regions.json stations.json inference_runs.json inference_results.json station_readings_gold.json
+
 # Run Django migrations
 RUN python manage.py migrate --noinput
 
