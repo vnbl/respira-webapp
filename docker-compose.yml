@@ -1,0 +1,70 @@
+services:
+  db:
+    image: postgres:16.4-alpine3.20
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    ports:
+      - "${POSTGRES_PORT}:${POSTGRES_PORT}"
+    networks:
+      - backend_nw
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: always
+    environment:
+      BACKEND_SECRET_KEY: ${BACKEND_SECRET_KEY}
+      BACKEND_PORT: ${BACKEND_PORT}
+      BACKEND_POSTGRES_USER: ${POSTGRES_USER}
+      BACKEND_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      BACKEND_POSTGRES_DB: ${POSTGRES_DB}
+      BACKEND_POSTGRES_HOST: db
+      BACKEND_POSTGRES_PORT: ${POSTGRES_PORT}
+    networks:
+      - backend_nw
+      - proxy_nw
+    volumes:
+      - static_volume:/static
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:${BACKEND_PORT}/api/health/ | grep -q 200"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+  proxy:
+    build: ./proxy
+    restart: always
+    environment:
+      BACKEND_HOST: backend
+      BACKEND_PORT: ${BACKEND_PORT}
+      PROXY_PORT: ${PROXY_PORT}
+    ports:
+      - "${PROXY_PORT}:${PROXY_PORT}"
+    networks:
+      - proxy_nw
+    volumes:
+      - static_volume:/static
+    depends_on:
+      backend:
+        condition: service_healthy
+
+volumes:
+  postgres_data:
+  static_volume:
+
+networks:
+  backend_nw:
+  proxy_nw:

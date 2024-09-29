@@ -1,0 +1,122 @@
+[
+    {
+        "model": "api.Stations",
+        "pk": 1,
+        "fields": {
+            "name": "Campus de la UNA",
+            "region": 1,
+            "latitude": -25.33360102213910,
+            "longitude": -57.5139365997165,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 2,
+        "fields": {
+            "name": "Zona Multiplaza",
+            "region": 1,
+            "latitude": -25.32014521770180,
+            "longitude": -57.56050041876730,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 3,
+        "fields": {
+            "name": "Acceso Sur",
+            "region": 1,
+            "latitude": -25.34024024382230,
+            "longitude": -57.58431466296320,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 4,
+        "fields": {
+            "name": "Primero de Marzo y Perón",
+            "region": 1,
+            "latitude": -25.32836979255080,
+            "longitude": -57.62706899084150,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 5,
+        "fields": {
+            "name": "Villa Morra",
+            "region": 1,
+            "latitude": -25.29511316679420,
+            "longitude": -57.57708610966800,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 6,
+        "fields": {
+            "name": "Barrio Jara",
+            "region": 1,
+            "latitude": -25.28833455406130,
+            "longitude": -57.60329900309440,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 7,
+        "fields": {
+            "name": "San Roque",
+            "region": 1,
+            "latitude": -25.28936695307490,
+            "longitude": -57.62515967711810,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 8,
+        "fields": {
+            "name": "Centro de Asunción",
+            "region": 1,
+            "latitude": -25.28640403412280,
+            "longitude": -57.64701121486720,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 9,
+        "fields": {
+            "name": "Ñu Guasu",
+            "region": 1,
+            "latitude": -25.26458493433890,
+            "longitude": -57.54793468862770,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    },
+    {
+        "model": "api.Stations",
+        "pk": 10,
+        "fields": {
+            "name": "Botánico",
+            "region": 1,
+            "latitude": -25.24647398851810,
+            "longitude": -57.54928501322870,
+            "is_station_on": false,
+            "is_pattern_station": false
+        }
+    }
+]

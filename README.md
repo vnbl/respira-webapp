@@ -1,21 +1,28 @@
 # Mozilla Aire
 
 ## Project Structure
-```
-backend (django rest)
-    * contains endpoints for retrieving data (coordinates and values) to be displayed in frontend map
-frontend (react)
-    * displays tables and maps with data from the backend
-    * allows users to download data
-database (mysql)
-    * stores historical air quality observations
 
-TBD:
-    * host model in backend? spin up inference endpoint separately?
-```
+* `backend` (`django-rest`)
+* `frontend` (`react`)
+* `database` (`postgres`)
+* `proxy` (`nginx`)
+
 
 ## Deployment with `docker`
+Create `.env` file:
+```
+POSTGRES_DB="<db>"
+POSTGRES_USER="<user>"
+POSTGRES_PASSWORD="<password>"
+POSTGRES_HOST="<default:localhost>"
+POSTGRES_PORT="<default:5432>"
+BACKEND_SECRET_KEY="<django-insecure-...>"
+BACKEND_HOST="<default:localhost>"
+BACKEND_PORT="<default:8000>"
+PROXY_PORT="<default:80>"
+```
+Build containers, run them:
 ```
 docker compose build
-docker compose up
+docker compose -d up
 ```

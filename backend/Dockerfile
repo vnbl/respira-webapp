@@ -1,24 +1,27 @@
-ARG PYTHON_VERSION=3.8-slim-buster
+ARG PYTHON_VERSION=3.10-slim-buster
 
 FROM python:${PYTHON_VERSION}
 
-ENV PYTHONDONTWRITEBYTECODE 1
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+RUN apt-get update -y && \
+    apt-get upgrade -y && \
+    apt-get install curl -y
 
 WORKDIR /app
 
 COPY requirements.txt /app/
+
 RUN set -ex && \
     pip install --upgrade pip && \
     pip install -r /app/requirements.txt && \
     rm -rf /root/.cache/
 
 COPY . /app/
-# RUN python manage.py collectstatic --noinput
-
-# Run Django migrations
-RUN python manage.py migrate --noinput
 
 EXPOSE 8000
 
-CMD ["gunicorn", "--bind", ":8000", "--workers", "2", "backend.wsgi:application"]
+RUN chmod +x /app/entrypoint.sh
+
+CMD ["/bin/sh", "-c", "/app/entrypoint.sh"]
