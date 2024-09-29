@@ -10,14 +10,90 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.viewsets import ModelViewSet
 
-from .models import Stations, StationReadingsGold, InferenceRuns, InferenceResults
-from .serializers import StationSerializer, ForecastSerializer, HistorySerializer
+from .models import Stations, Regions, RegionReadings, StationReadingsGold, InferenceRuns, InferenceResults
+from .serializers import StationSerializer, RegionSerializer, ForecastSerializer, HistorySerializer
 
+
+class HealthCheckView(APIView):
+    http_method_names = ['get']
+
+    def get(self, request, *args, **kwargs):
+        return Response({"status": "ok"}, status=status.HTTP_200_OK)
+
+
+class MapViewset(APIView):
+    http_method_names = ['get']
+
+    def get(self, request, *args, **kwargs):
+        entity = request.query_params.get('entity')
+        entity_id = request.query_params.get('id')
+
+        if not entity or not entity_id:
+            return Response({
+                "error": "Both 'entity' and 'id' are required."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        if entity not in ['region', 'station']:
+            return Response({
+                "error": "'entity' must be either 'region' or 'station'."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        try:
+            entity_id = int(entity_id)
+        except ValueError:
+            return Response({
+                "error": "'id' must be an integer."
+            }, status=status.HTTP_400_BAD_REQUEST)
+
+        # average the aqi of all the stations in the region and their forecast
+        if entity == 'region':
+            latest_readings = StationReadingsGold.objects.filter(station_id=OuterRef('station_id')).order_by('-timestamp')
+            result = StationReadingsGold.objects.filter(station__region_id=entity_id).annotate(
+                latest_aqi=Subquery(latest_readings.values('aqi')[:1])
+            ).aggregate(average_aqi=Avg('latest_aqi'))
+
+        # get the station and its forecast
+        elif entity == 'station':
+            latest_readings = StationReadingsGold.objects.filter(station_id=entity_id).order_by('-timestamp').first()
+            result = {"station_id": entity_id, "latest_aqi": latest_readings.aqi if latest_readings else None}
+
+        return Response(result, status=status.HTTP_200_OK)
+    
 
 class RegionViewset(ModelViewSet):
-    queryset = Stations.objects.filter(region_id=1)
-    serializer_class = StationSerializer
+    queryset = Regions.objects.filter(id=1)
+    serializer_class = RegionSerializer
     http_method_names = ['get']
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        
+        return Response(serializer.data)
+    
+    @action(detail=True, methods=['get'])
+    def forecast(self, request, *args, **kwargs):
+        # GET CORRECT FORECAST, 6H AND 12H
+        region_readings = RegionReadings.objects.filter(region_id=self.get_object().id)
+        serializer = StationSerializer(region_readings, many=True)
+
+        if serializer.is_valid():
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
+
+    @action(detail=True, methods=['get'])
+    def history(self, request, *args, **kwargs):
+        # ADD DATE FILTER
+        region_readings = RegionReadings.objects.filter(region_id=self.get_object().id)
+        serializer = StationSerializer(region_readings, many=True)
+
+        if serializer.is_valid():
+            return Response(serializer.data)
+        else:
+            return Response(serializer.errors)
+
 
 class StationViewset(ModelViewSet):
     queryset = Stations.objects.all()
@@ -132,43 +208,3 @@ class StationViewset(ModelViewSet):
 
         else:
             return Response(serializer.errors)
-
-
-# GET /api/map/?entity=station&id=1
-class MapViewset(APIView):
-    http_method_names = ['get']
-
-    def get(self, request, *args, **kwargs):
-        entity = request.query_params.get('entity')
-        entity_id = request.query_params.get('id')
-
-        if not entity or not entity_id:
-            return Response({
-                "error": "Both 'entity' and 'id' are required."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        if entity not in ['region', 'station']:
-            return Response({
-                "error": "'entity' must be either 'region' or 'station'."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        try:
-            entity_id = int(entity_id)
-        except ValueError:
-            return Response({
-                "error": "'id' must be an integer."
-            }, status=status.HTTP_400_BAD_REQUEST)
-
-        # average the aqi of all the stations in the region and their forecast
-        if entity == 'region':
-            latest_readings = StationReadingsGold.objects.filter(station_id=OuterRef('station_id')).order_by('-timestamp')
-            result = StationReadingsGold.objects.filter(station__region_id=entity_id).annotate(
-                latest_aqi=Subquery(latest_readings.values('aqi')[:1])
-            ).aggregate(average_aqi=Avg('latest_aqi'))
-
-        # get the station and its forecast
-        elif entity == 'station':
-            latest_readings = StationReadingsGold.objects.filter(station_id=entity_id).order_by('-timestamp').first()
-            result = {"station_id": entity_id, "latest_aqi": latest_readings.aqi if latest_readings else None}
-
-        return Response(result, status=status.HTTP_200_OK)

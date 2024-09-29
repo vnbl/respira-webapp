@@ -7,6 +7,7 @@ class RegionSerializer(serializers.ModelSerializer):
         model = Regions
         fields = ['id', 'name', 'region_code', 'bbox', 'has_weather_data', 'has_pattern_station']
 
+
 class StationSerializer(serializers.ModelSerializer):
     region = RegionSerializer()
     
@@ -30,4 +31,3 @@ class HistorySerializer(serializers.Serializer):
     historical_1d = serializers.JSONField()
     historical_7d = serializers.JSONField()
     historical_30d = serializers.JSONField()
-

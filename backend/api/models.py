@@ -34,6 +34,30 @@ class Stations(models.Model):
         return (self.latitude, self.longitude)
 
 
+class RegionReadings(models.Model):
+    region = models.ForeignKey('Regions', on_delete=models.DO_NOTHING)
+    date_localtime = models.DateTimeField()
+    pm1 = models.FloatField(blank=True, null=True)
+    pm2_5 = models.FloatField(blank=True, null=True)
+    pm10 = models.FloatField(blank=True, null=True)
+    pm2_5_avg_6h = models.FloatField(blank=True, null=True)
+    pm2_5_max_6h = models.FloatField(blank=True, null=True)
+    pm2_5_skew_6h = models.FloatField(blank=True, null=True)
+    pm2_5_std_6h = models.FloatField(blank=True, null=True)
+    aqi_pm2_5 = models.FloatField(blank=True, null=True)
+    aqi_pm10 = models.FloatField(blank=True, null=True)
+    aqi_level = models.IntegerField(blank=True, null=True)
+    aqi_pm2_5_max_24h = models.FloatField(blank=True, null=True)
+    aqi_pm2_5_skew_24h = models.FloatField(blank=True, null=True)
+    aqi_pm2_5_std_24h = models.FloatField(blank=True, null=True)
+    temperature = models.FloatField(blank=True, null=True)
+    humidity = models.FloatField(blank=True, null=True)
+    pressure = models.FloatField(blank=True, null=True)
+
+    class Meta:
+        db_table = 'region_readings'
+
+
 class StationReadingsGold(models.Model):
     station = models.ForeignKey('Stations', on_delete=models.DO_NOTHING)
     date_localtime = models.DateTimeField()
