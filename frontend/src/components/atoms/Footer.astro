@@ -1,0 +1,23 @@
+---
+import { Image } from "astro:assets"
+import {FOOTER_IMAGES} from "../../data/images"
+---
+
+<div class="bg-black  h-auto w-full flex md:flex-row flex-col-reverse md:p-36 p-12">
+    <div class="flex flex-col w-full md:mr-44">
+        <p class="text-white text-xl font-bold">Una colaboración de</p>
+        <div class="grid md:divide-x text-white md:grid-cols-4 mt-8 max-w-sm">
+            {FOOTER_IMAGES.map((image) => (
+                <div class="first:pl-0 md:px-4 even:col-span-2 first:justify-start md:justify-center flex">
+                    <Image alt={image.alt} src={image.path} class={image.class}/>
+                </div>
+            ))}
+        </div>
+        <p class="text-white md:mt-4">Escribinos a fiunamail@fiuna.com.py</p>
+        <p class="text-white md:mt-4">Seguinos en</p>
+
+    </div>
+    <div class="flex flex-col w-full">
+        <p class="text-white text-xl font-bold">Menu here</p>
+    </div>
+</div>

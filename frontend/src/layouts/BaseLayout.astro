@@ -1,0 +1,35 @@
+---
+import Navbar from "../components/Navbar.astro";
+const BASE_URL = import.meta.env.BASE_URL;
+---
+
+<html lang="en" class="md:overflow-hidden">
+  <head>
+    <meta charset="utf-8" />
+    <link rel="icon" type="image/svg+xml" href={BASE_URL + "/favicon.svg"} />
+    <meta name="viewport" content="width=device-width" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
+      rel="stylesheet"
+    />
+
+    <meta name="generator" content={Astro.generator} />
+    <title>Respira</title>
+  </head>
+  <body class="bg-base h-full">
+    <Navbar />
+    <div class="overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300">
+      <span id="top"/>
+      <slot />
+    </div>
+  </body>
+</html>
+
+<!-- 
+    Notes
+    - estacion con link backend -> dinamico del backend inclusive el dropdown
+    - 
+
+ -->
