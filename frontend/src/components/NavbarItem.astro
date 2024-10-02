@@ -1,0 +1,19 @@
+---
+import Typography from "./atoms/Typography.astro";
+
+const { title, subtitle, route } = Astro.props;
+console.log(title, subtitle);
+console.log(import.meta.env.BASE_URL)
+
+---
+
+<a href={import.meta.env.BASE_URL+route}>
+    <li class="place-content-center cursor-default">
+        <Typography
+        variant="nav"
+            customClass="m-auto select-none"
+        >
+            {title}
+        </Typography>
+    </li>
+</a>

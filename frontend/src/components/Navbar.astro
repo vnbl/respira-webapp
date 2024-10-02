@@ -1,0 +1,59 @@
+---
+import { Image } from "astro:assets";
+
+import Button from "./atoms/Button.astro";
+import NavbarItem from "./NavbarItem.astro";
+import FullLogo from "../assets/logo.svg";
+import IconLogo from "../assets/icon.svg";
+import Close from "../assets/utils/close-icon.svg";
+import {
+  Astronav,
+  MenuIcon,
+  MenuItems,
+  OpenIcon,
+  CloseIcon,
+} from "astro-navbar";
+import { menu } from "../data/menu";
+---
+
+<div
+  class="lg:flex justify-between p-5 gap-5 bg-base drop-shadow-lg z-40 min-h-20 fixed w-full lg:px-10 px-6"
+>
+  <Astronav closeOnClick>
+    <div class="flex lg:w-auto justify-between items-center">
+      <a href={import.meta.env.BASE_URL}>
+        <Image
+          class="h-8 w-auto"
+          alt="Respira"
+          src={FullLogo}
+          loading="eager"
+        />
+      </a>
+      <div class="block lg:hidden">
+        <MenuIcon class="w-4 h-4 text-gray-800">
+          <OpenIcon>
+            <Image src={IconLogo} alt="Open menu" />
+          </OpenIcon>
+          <CloseIcon>
+            <Image src={Close} alt="Open menu" />
+          </CloseIcon>
+        </MenuIcon>
+      </div>
+    </div>
+    <MenuItems class="hidden lg:flex w-full justify-center items-center">
+      <ul class="flex flex-col lg:flex-row lg:gap-8 gap-8 lg:m-0 m-8">
+        {
+          menu.map((option) => (
+            <NavbarItem title={option.title} route={option.route} />
+            // TODO: add dropdown
+          ))
+        }
+      </ul>
+    </MenuItems>
+    <div class="hidden lg:block min-w-30">
+      <a href={import.meta.env.BASE_URL}>
+        <Button text="MAPA" variant="void" />
+      </a>
+    </div>
+  </Astronav>
+</div>
