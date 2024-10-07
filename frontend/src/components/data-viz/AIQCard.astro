@@ -1,14 +1,14 @@
 ---
-import type { AIQCard } from "../../data/cards";
+import type { AQICard } from "../../data/cards";
 import Typography from "../atoms/Typography.astro";
 interface Props {
-    card: AIQCard;
+    card: AQICard;
     variant?: "full" | "abrev" | "other"
 }
 const { card, variant } = Astro.props;
 
 const getTextColor = (bg: string) => {
-    const darks = ["aiq-red-dark", "aiq-purple-dark", "aiq-vermellion-dark"]
+    const darks = ["aqi-red-dark", "aqi-purple-dark", "aqi-vermellion-dark"]
     if(darks.includes(bg)) {
         return "white"
     }
