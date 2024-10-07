@@ -9,6 +9,10 @@ import Fiuna from "../assets/logos/fiuna.svg"
 import Mozilla from "../assets/logos/mozilla.svg"
 import GirlsCode from "../assets/logos/girls_code.svg"
 
+import FiunaBlack from "../assets/logos/fiuna_black.svg"
+import MozillaBlack from "../assets/logos/mozilla_black.svg"
+import GirlsCodeBlack from "../assets/logos/girls_code_black.svg"
+
 import Epa from "../assets/logos/epa.svg"
 import Pho from "../assets/logos/pho.svg"
 import Who from "../assets/logos/who.svg"
@@ -62,6 +66,22 @@ export const FOOTER_IMAGES: Image[] = [
         path: GirlsCode,
     },
 ]
+
+export const ORGANIZATIONS: Image[] = [
+    {
+        alt: "Facultad de ingenieria Logo",
+        path: FiunaBlack,
+    },
+    {
+        alt: "Mozilla logo",
+        path: MozillaBlack,
+    },
+    {
+        alt: "Girls code logo",
+        path: GirlsCodeBlack,
+    },
+]
+
 
 export const EXTERNAL_RESOURCES_IMAGES : (Image & Link)[] = [
     {
