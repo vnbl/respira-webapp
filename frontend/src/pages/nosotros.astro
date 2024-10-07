@@ -148,16 +148,25 @@ import { TEAM } from "../data/team";
         </div>
     </section>
     <section class="flex flex-col py-8 px-16">
-        <Typography variant="h3" customClass="pt-2">Colaboradores</Typography>
-        <div class="grid grid-cols-1  md:grid-cols-4  gap-6 place-content-start py-8">
+        <Typography variant="h2" customClass="pt-2">Colaboradores</Typography>
+        <div
+            class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 place-content-start py-8"
+        >
             {
                 TEAM.map((team) => (
                     <div class="drop-shadow-md flex flex-col w-full h-full">
-                        <div class="bg-lightgray max-h-[30rem] max-w-[30rem] w-full h-full min-h-32 min-w-32 rounded-t-md" />
-                        <div class="bg-white  max-w-[30rem] w-full min-h-16 min-w-32 rounded-b-md p-2">
+                        <div class="bg-lightgray w-full h-full min-h-32 min-w-32 md:max-h-[15rem] rounded-t-md overflow-clip">
+                            <Image
+                                src={team.image.path}
+                                alt={team.name}
+                                class="object-fit"
+                                widths={[240, 540, 720, team.image.path.width]}
+                                sizes={`(max-width: 360px) 240px, (max-width: 720px) 400px, (max-width: 1600px) 600px, ${team.image.path.width}px`}
+                            />
+                        </div>
+                        <div class="bg-white md:max-h-[5rem] w-full md:min-h-[5rem] max-h-1/3 min-w-32 rounded-b-md p-2">
                             <Typography variant="h6">{team.name}</Typography>
-                            <Typography variant="p-sm">{team.titulo}</Typography>
-
+                            <Typography variant="p-sm">{team.title}</Typography>
                         </div>
                     </div>
                 ))
