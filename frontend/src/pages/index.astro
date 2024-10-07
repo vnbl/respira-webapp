@@ -2,9 +2,9 @@
 import Map from "../components/react/Map";
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Card from "../components/Card.astro";
-import AIQCard from "../components/data-viz/AIQCard.astro";
+import AQICard from "../components/data-viz/AQICard.astro";
 import Footer from "../components/atoms/Footer.astro"
-import { AIQ } from "../data/cards";
+import { AQI } from "../data/cards";
 import Link from "../components/atoms/Link.astro"
 import { Image } from "astro:assets";
 import { HOME_IMAGES } from "../data/images";
@@ -42,7 +42,7 @@ import Typography from "../components/atoms/Typography.astro";
             <Typography variant="h1" color="gray">Índice de calidad del aire (AQI)</p>
             <p class="mt-2"><Link href="https://www.airnow.gov/sites/default/files/2018-05/air-quality-guide_particle_SPA.pdf" text="Via fuente"/></p>
             <div class="flex flex-col space-y-3 h-full pt-8">
-                {AIQ.map((aiq) => <AIQCard card={aiq} variant="full" />)}
+                {AQI.map((aqi) => <AQICard card={aqi} variant="full" />)}
             </div>
         </div>
     </div>
