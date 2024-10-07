@@ -8,10 +8,11 @@ import Link from "../components/atoms/Link.astro";
 import Button from "../components/atoms/Button.astro";
 import MapImage from "../assets/map.png";
 import ChartImage from "../assets/chart.png";
-import Map2Image from "../assets/map2.svg";
+import Map2Image from "../assets/map2.png";
 import GithubIcon from "../assets/logos/github_icon.svg";
 import Github from "../assets/logos/github.svg";
 import { TEAM } from "../data/team";
+import { ORGANIZATIONS } from "../data/images";
 ---
 
 <BaseLayout>
@@ -42,9 +43,9 @@ import { TEAM } from "../data/team";
                 funcionalidad y utilidad.
             </Typography>
             <Link
-                text="test"
+                text="¿Cómo puedo protegerme de la contaminación?  "
                 customClass="text-gray"
-                href={import.meta.env.BASE_URL + "/datos"}
+                href={"https://www.airnow.gov/sites/default/files/2018-05/air-quality-guide_particle_SPA.pdf"}
             />
         </div>
         <Image alt="Map of Asuncion" src={MapImage} loading="eager" />
@@ -168,6 +169,23 @@ import { TEAM } from "../data/team";
                             <Typography variant="h6">{team.name}</Typography>
                             <Typography variant="p-sm">{team.title}</Typography>
                         </div>
+                    </div>
+                ))
+            }
+        </div>
+    </section>
+    <section class="flex flex-col py-8 px-16">
+        <Typography variant="h2" customClass="pt-2">Organizaciones</Typography>
+        <div class="grid md:divide-x text-black md:grid-cols-4 sm:grid-cols-1 mt-8  md:py-12 md:max-w-fit w-full gap-12">
+
+            {
+                ORGANIZATIONS.map((org) => (
+                    <div class="first:pl-0 md:last:pl-8 md:even:col-span-2 md:first:justify-start justify-center flex w-full">
+                        <Image
+                            alt={org.alt}
+                            src={org.path}
+                            class={org.class}
+                        />
                     </div>
                 ))
             }
