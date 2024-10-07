@@ -17,13 +17,13 @@ import { menu } from "../data/menu";
 ---
 
 <div
-  class="lg:flex justify-between p-5 gap-5 bg-base drop-shadow-lg z-40 min-h-20 fixed w-full lg:px-10 px-6"
+  class="lg:flex justify-between p-2 gap-5 bg-base drop-shadow-lg z-40 min-h-20 fixed w-full lg:px-10 px-6"
 >
   <Astronav closeOnClick>
     <div class="flex lg:w-auto justify-between items-center">
       <a href={import.meta.env.BASE_URL}>
         <Image
-          class="h-8 w-auto"
+          class="h-16 w-auto"
           alt="Respira"
           src={FullLogo}
           loading="eager"
@@ -50,7 +50,7 @@ import { menu } from "../data/menu";
         }
       </ul>
     </MenuItems>
-    <div class="hidden lg:block min-w-30">
+    <div class="hidden lg:block min-w-30 content-center">
       <a href={import.meta.env.BASE_URL}>
         <Button text="MAPA" variant="void" />
       </a>
