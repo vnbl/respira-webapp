@@ -25,5 +25,6 @@ docker compose build
 docker compose -d up
 ```
 
-## Architecture
-![image](https://github.com/user-attachments/assets/33a7b0a0-a36e-4c2b-b585-11133df08d08)
+## System Architecture
+![final_system_architecture](https://github.com/user-attachments/assets/38adc07b-9431-4aa8-b102-fef3cb6ee2e7)
+
