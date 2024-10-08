@@ -44,7 +44,7 @@ import { menu } from "../data/menu";
       <ul class="flex flex-col lg:flex-row lg:gap-8 gap-8 lg:m-0 m-8">
         {
           menu.map((option) => (
-            <NavbarItem title={option.title} route={option.route} />
+            <NavbarItem title={option.title} route={option.route} type={option.type}/>
             // TODO: add dropdown
           ))
         }

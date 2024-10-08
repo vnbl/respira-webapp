@@ -17,6 +17,8 @@ export default {
 			black: '#000',
 			gray: "#535353",
 			lightgray:"#A1A1A1",
+			cyan: '#8ADBE6',
+			["bg-gray"]: '#DBD3D0',
 			aqi: {
 				green: {
 					dark: '#AFFAAF',
