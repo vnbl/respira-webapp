@@ -2,12 +2,12 @@
 interface Props {
   text: string;
   variant: "color" | "void"
-  onclick?  : () => void
+  onclick?  : (() => void )| string
 }
 
-const { text, variant } = Astro.props;
+const { text, variant , onclick} = Astro.props;
 ---
 
-<button class={"font-bold py-2 px-6 rounded-md text-sm " + variant === "color" ? "bg-green text-white " : "border text-black font-semibold py-2 px-6 rounded-md text-sm"}>
-    {text.toUpperCase()}
+<button class={"font-bold py-2 px-6 rounded-md text-sm" + variant === "color" ? "bg-green text-white " : "border text-black font-semibold py-2 px-6 rounded-md text-sm"} onclick={onclick}>
+    <b>{text.toUpperCase()}</b>
 </button> 

@@ -3,6 +3,7 @@ export type MenuItem = {
     subtitle?: string;
     route: string | MenuItem[]
     id: string
+    type?: 'route' | 'modal'
 }
 
 const stations : MenuItem[] = [
@@ -20,9 +21,9 @@ const stations : MenuItem[] = [
 ]
 
 export const menu: MenuItem[] = [
-    {title: 'Recibir alertas', route: 'alertas', id:'alerts'},
-    {title: 'Contacto', route: 'contacto', id:'contact'},
-    {title: 'Sobre nosotros', route: '/nosotros/', id:'us'},
+    {title: 'Recibir alertas', route: '/alertas', id:'alerts', type: 'modal'},
+    {title: 'Contacto', route: '/contacto', id:'contact'},
+    {title: 'Sobre nosotros', route: '/nosotros', id:'us'},
     {title: 'Recursos', route: '/recursos', id:'research'},
     {title: 'Datos',route: stations, id:'data'}
-    ]
+]
