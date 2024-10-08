@@ -24,3 +24,6 @@ Build containers, run them:
 docker compose build
 docker compose -d up
 ```
+
+## Architecture
+![image](https://github.com/user-attachments/assets/33a7b0a0-a36e-4c2b-b585-11133df08d08)
