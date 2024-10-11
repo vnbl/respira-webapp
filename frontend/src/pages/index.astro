@@ -1,7 +1,7 @@
 ---
 import Map from "../components/react/Map";
 import BaseLayout from "../layouts/BaseLayout.astro";
-import Card from "../components/Card.astro";
+import Card from "../components/cards/Card.astro";
 import AQICard from "../components/data-viz/AQICard.astro";
 import Footer from "../components/atoms/Footer.astro"
 import { AQI } from "../data/cards";
@@ -10,13 +10,21 @@ import { Image } from "astro:assets";
 import { HOME_IMAGES } from "../data/images";
 import BackTop from "../components/atoms/BackTop.astro";
 import Typography from "../components/atoms/Typography.astro";
+
+import { backendHealthCheck } from "../utils";
+import {server} from "../mocks/browser"
+
+// Enable mocking of the API
+server.listen()
+
+await backendHealthCheck();
 ---
 
 <BaseLayout>
     <Map client:only />
     <Card />
     <div class="w-full flex flex-col md:flex-row p-8 md:p-12">
-        <div class="hidden md:w-1/2 md:mt-20 pt-8 space-y-4 md:pr-20 md:block">
+        <div class="hidden md:w-1/2 md:mt-64 pt-8 space-y-4 md:pr-20 md:block">
             <Typography variant="p">
                 La contaminación por partículas puede ocasionar problemas de
                 salud graves, como ataques de asma, ataques cardíacos, derrames
@@ -37,7 +45,7 @@ import Typography from "../components/atoms/Typography.astro";
                     <Image class={image.class} alt={image.alt} src={image.path}/>
                 ))}
             </div>
-            </div>
+        </div>
         <div class="md:w-1/2">
             <Typography variant="h1" color="gray">Índice de calidad del aire (AQI)</p>
             <p class="mt-2"><Link href="https://www.airnow.gov/sites/default/files/2018-05/air-quality-guide_particle_SPA.pdf" text="Via fuente"/></p>

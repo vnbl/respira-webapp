@@ -5,7 +5,7 @@ import Map, {
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 
-function debounce(fn:any, ms:number) {
+function debounce(fn: any, ms: number) {
   let timer: number | undefined
   return () => {
     clearTimeout(timer)
@@ -17,7 +17,7 @@ function debounce(fn:any, ms:number) {
 }
 
 const MapComponent = () => {
-  const [dimensions, setDimensions] = React.useState({ 
+  const [dimensions, setDimensions] = React.useState({
     height: window.innerHeight,
     width: window.innerWidth
   })
@@ -53,8 +53,8 @@ const MapComponent = () => {
       ]}
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
-      <GeolocateControl />
-      <NavigationControl />
+      <GeolocateControl position="bottom-right" />
+      <NavigationControl position="bottom-right" />
     </Map>
   );
 };

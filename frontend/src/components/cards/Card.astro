@@ -1,0 +1,46 @@
+---
+import Slider from "../data-viz/Slider.astro"
+import AQICard from "../data-viz/AQICard.astro"
+import { AQI } from "../../data/cards"
+import Typography from "../atoms/Typography.astro"
+import Button from "../atoms/Button.astro"
+import { isBackendAvailable } from "../../store/store"
+import { data, error, loading } from "../../store/map"
+import {getAQIIndex} from "../../utils"
+import Chart from "../react/BarChart";
+
+const aqi =  data.get() ? data.get().aqi || undefined : undefined
+console.log(data.get().forecast_6h.map(v => v.time))
+console.log(data.get().forecast_6h.map(v => v.aqi))
+---
+<div
+    class="bg-white min-h-[calc(100%-6rem)] md:w-1/3 md:absolute md:top-0 rounded-xl z-20 md:ml-8 md:mt-8 drop-shadow-lg flex flex-col p-8 space-y-4"
+>
+
+    {(!isBackendAvailable.get()  || error.get()) && <div class="w-full h-full content-center justify-center"><Typography variant="h6" customClass="text-center">⚠️  Error conectándose al backend</Typography></div>}
+    {
+        !loading.get() &&  data.get() && (
+        <Typography variant="h4" customClass="w-auto text-center">¿Cómo está el aire ahora?</Typography>
+                <Typography
+                    variant="h6"
+                    customClass="text-lg font-bold w-auto text-center"
+                >
+                    Media General
+                </Typography>
+                <div class="mt-4">
+                    <Slider />
+                    <div class="mt-6" />
+                    <AQICard card={AQI[getAQIIndex(aqi)]} />
+                </div>
+                <Typography variant="h4" customClass="w-auto text-center">
+                    Pronóstico
+                </Typography>
+                <Typography variant="h5">Próximas 6 hs</Typography>
+                    <Chart yData={data.get().forecast_6h.map(v => v.aqi)} xData={data.get().forecast_6h.map(v => v.time)} client:only />
+                <Typography variant="h5">Próximas 12 hs</Typography>
+                <Chart yData={data.get().forecast_12h.map(v => v.aqi)} xData={data.get().forecast_12h.map(v => v.time)} client:only />
+                <Button variant="color" text="Recomendaciones por Nivel"/>
+                <Typography variant="p" customClass="text-green text-center font-bold">Compartir</Typography>
+        )
+    }
+</div>
