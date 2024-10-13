@@ -20,6 +20,12 @@ class StationSerializer(serializers.ModelSerializer):
         return (self.latitude, self.longitude)
 
 
+class MapSerializer(serializers.Serializer):
+    aqi = serializers.IntegerField()
+    forecast_6h = serializers.JSONField()
+    forecast_12h = serializers.JSONField()
+
+
 class ForecastSerializer(serializers.Serializer):
     forecast_date = serializers.DateTimeField()
     aqi = serializers.JSONField()
