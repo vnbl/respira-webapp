@@ -65,15 +65,13 @@ class MapViewset(APIView):
             forecast_6h = InferenceResults.objects.filter(inference_run=latest_inference_run_id).values_list('forecast_6h', flat=True)
             forecast_6h_data = [item for sublist in forecast_6h for item in sublist]
             
-            df_6h = pd.DataFrame(forecast_6h_data)
-            result_forecast_6h = df_6h.groupby('timestamp', as_index=False)['value'].mean()
+            result_forecast_6h = pd.DataFrame(forecast_6h_data).groupby('timestamp', as_index=False)['value'].mean()
             
             # 12h forecast
             forecast_12h = InferenceResults.objects.filter(inference_run=latest_inference_run_id).values_list('forecast_12h', flat=True)
             forecast_12h_data = [item for sublist in forecast_12h for item in sublist]
 
-            df_12h = pd.DataFrame(forecast_12h_data)
-            result_forecast_12h = df_12h.groupby('timestamp', as_index=False)['value'].mean()
+            result_forecast_12h = pd.DataFrame(forecast_12h_data).groupby('timestamp', as_index=False)['value'].mean()
 
         # get station_readings
         elif entity == 'station':
@@ -121,38 +119,21 @@ class StationViewset(ModelViewSet):
     def forecast(self, request, *args, **kwargs):
         station = self.get_object()
         
-        yesterday = timezone.now() - timedelta(days=1)
+        last_inference_result = InferenceResults.objects.filter(station_id=station.id).order_by('-id').first()
+        inference_run_date = InferenceRuns.objects.filter(id=last_inference_result.id).first().run_date
 
-        aqi_series = StationReadingsGold.objects.filter(
-                station_id=station.id, 
-                date_localtime__gte=yesterday
-            ) \
-            .order_by('-date_localtime') \
-            .values('date_localtime', 'aqi_pm2_5')
+        historical = StationReadingsGold.objects.filter(
+            station_id=station.id,
+            date_utc__gte=inference_run_date
+        ).values('date_utc', 'aqi_level')
+
+        return Response({
+            "forecast_date": inference_run_date,
+            "aqi_level": pd.DataFrame(historical).to_dict(orient='records'),
+            "forecast_6h": pd.DataFrame(last_inference_result.forecast_6h).to_dict(orient='records'),
+            "forecast_12h": pd.DataFrame(last_inference_result.forecast_12h).to_dict(orient='records')
+        }, status=status.HTTP_200_OK)
         
-        aqi_series = [{'value': entry['aqi_pm2_5'], 'timestamp': entry['date_localtime'].strftime('%Y-%m-%d %H:%M:%S')} for entry in aqi_series]
-
-        # get the latest inference result by id
-        inference_result = InferenceResults.objects.filter(station_id=station.id).order_by('-id').first()
-        
-        # get the date of the inference run
-        inference_date = InferenceRuns.objects.filter(id=inference_result.inference_run_id).first().run_date
-        
-        forecast_data = {
-            'forecast_date': inference_date,
-            'aqi': aqi_series,
-            'forecast_6h': inference_result.forecast_6h,
-            'forecast_12h': inference_result.forecast_12h
-        }
-
-        serializer = ForecastSerializer(data=forecast_data)
-
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
-        
-        else:
-            return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
 
     @action(detail=True, methods=['get'])
     def history(self, request, *args, **kwargs):
