@@ -7,11 +7,11 @@ http {
     include mime.types;
 
     upstream backend_server {
-        server backend:${BACKEND_PORT};
+        server ${BACKEND_HOST}:${BACKEND_PORT};
     }
 
     server {
-        listen 80;
+        listen ${PROXY_PORT};
         server_name _;
 
         location /static/ {
