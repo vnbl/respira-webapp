@@ -1,5 +1,7 @@
 #!/bin/bash
 python manage.py collectstatic --noinput;
+python manage.py migrate api --fake-initial;
+python manage.py migrate;
 
 chmod -R o+r /static;
 chmod -R o+x /static;
