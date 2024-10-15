@@ -50,9 +50,8 @@ services:
     environment:
       BACKEND_HOST: backend
       BACKEND_PORT: ${BACKEND_PORT}
-      PROXY_PORT: ${PROXY_PORT}
     ports:
-      - "${PROXY_PORT}:${PROXY_PORT}"
+      - "${PROXY_PORT}:80"
     networks:
       - proxy_nw
     volumes:
