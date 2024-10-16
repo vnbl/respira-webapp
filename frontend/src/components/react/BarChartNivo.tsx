@@ -12,7 +12,7 @@ const customTooltip = ({
     value,
     color
   }) => (<div class="bg-black p-2 rounded flex flex-col text-white font-serif">
-                <p class="text-xs">Min: {value}</p>
+                <p class="text-xs">AQI: {value}</p>
         </div>)
 
 export const BarChart =  ({data}: any) => {
