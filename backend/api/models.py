@@ -83,8 +83,8 @@ class InferenceRuns(models.Model):
 class InferenceResults(models.Model):
     inference_run = models.ForeignKey('InferenceRuns', on_delete=models.DO_NOTHING)
     station = models.ForeignKey('Stations', on_delete=models.DO_NOTHING)
-    forecast_6h = models.JSONField(blank=True, null=True)
-    forecast_12h = models.JSONField(blank=True, null=True)
+    forecasts_6h = models.JSONField(blank=True, null=True)
+    forecasts_12h = models.JSONField(blank=True, null=True)
     aqi_input = models.JSONField(blank=True, null=True)
 
     class Meta:
