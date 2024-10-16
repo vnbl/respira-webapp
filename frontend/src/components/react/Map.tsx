@@ -2,38 +2,76 @@ import * as React from "react";
 import Map, {
   GeolocateControl,
   NavigationControl,
+  Marker,
+  Popup,
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
+import { useStore } from "@nanostores/react";
+import { stations, setSelectedStation } from "../../store/map";
+import Pin from "./Pin";
+
+import { AQI_COLORS } from "../../data/constants";
+import { getAQIIndex } from "../../utils";
+
+const getColorRange = (aqi) => AQI_COLORS[getAQIIndex(aqi)];
 
 function debounce(fn: any, ms: number) {
-  let timer: number | undefined
+  let timer: number | undefined;
   return () => {
-    clearTimeout(timer)
+    clearTimeout(timer);
     timer = setTimeout(() => {
-      timer = undefined
-      fn.apply(this, arguments)
-    }, ms)
+      timer = undefined;
+      fn.apply(this, arguments);
+    }, ms);
   };
 }
 
-const MapComponent = () => {
+const MapComponent = ({ data }) => {
   const [dimensions, setDimensions] = React.useState({
     height: window.innerHeight,
-    width: window.innerWidth
-  })
+    width: window.innerWidth,
+  });
+
   React.useEffect(() => {
     const debouncedHandleResize = debounce(function handleResize() {
       setDimensions({
         height: window.innerHeight,
-        width: window.innerWidth
-      })
-    }, 500)
-    window.addEventListener('resize', debouncedHandleResize)
+        width: window.innerWidth,
+      });
+    }, 500);
+    window.addEventListener("resize", debouncedHandleResize);
 
     return () => {
-      window.removeEventListener('resize', debouncedHandleResize)
-    }
-  })
+      window.removeEventListener("resize", debouncedHandleResize);
+    };
+  });
+
+  const [popupInfo, setPopupInfo] = React.useState(null);
+
+  const pins = React.useMemo(
+    () =>
+      data.map((station, index) => (
+        <Marker
+          key={`marker-${index}`}
+          longitude={station.coordinates[1]}
+          latitude={station.coordinates[0]}
+          anchor="center"
+          onClick={(e) => {
+            // If we let the click event propagates to the map, it will immediately close the popup
+            // with `closeOnClick: true`
+            e.originalEvent.stopPropagation();
+            setPopupInfo(station);
+            setSelectedStation(station);
+          }}
+        >
+          <Pin
+            fill={getColorRange(station.forecast_6h[0].value)}
+            value={station.forecast_6h[0].value}
+          />
+        </Marker>
+      )),
+    []
+  );
   return (
     <Map
       initialViewState={{
@@ -53,6 +91,22 @@ const MapComponent = () => {
       ]}
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
+      {pins}
+      {popupInfo && (
+        <Popup
+          anchor="top"
+          offset={20}
+          longitude={Number(popupInfo.coordinates[1])}
+          latitude={Number(popupInfo.coordinates[0])}
+          onClose={() => setPopupInfo(null)}
+        >
+          <div className="flex flex-col">
+            <p  className="font-bold font-sm">Estacion {popupInfo.id}</p>
+            <p className="font-bold font-xs">{popupInfo.name}</p>
+            <a>Ver estadisticas</a>
+          </div>
+        </Popup>
+      )}
       <GeolocateControl position="bottom-right" />
       <NavigationControl position="bottom-right" />
     </Map>

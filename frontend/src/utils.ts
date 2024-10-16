@@ -1,6 +1,6 @@
 import { isBackendAvailable } from './store/store';
 
-export const backendHealthCheck = async () => {
+export const backendHealthCheck= async () => {
     try {
         const response = await fetch(import.meta.env.BACKEND_URL + '/health');
         isBackendAvailable.set(true)

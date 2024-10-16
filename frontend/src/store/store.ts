@@ -1,5 +1,6 @@
 import { atom, computed, task } from 'nanostores';
 import { backendHealthCheck  } from '../utils';
+import { shared } from '@it-astro:request-nanostores';
 
 type STATION = {
     id: number,
@@ -9,7 +10,5 @@ type STATION = {
     
 }
 
-export const isBackendAvailable = computed( [], () => task(async () => {
-    return backendHealthCheck();
-}))
 
+export const isBackendAvailable = shared('isBackendAvailable', atom([]))
