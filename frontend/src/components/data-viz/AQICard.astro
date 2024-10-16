@@ -23,10 +23,10 @@ const getTextColor = (bg: string) => {
         </div>
         <div class="flex flex-col w-full justify-center">
             <div class="flex flex-row mb-2 flex-wrap">
-                <Typography variant="h5" color={getTextColor(card.color)} customClass=`grow`>{variant && variant === "full" ? card.title.toUpperCase() :  card.title}</Typography>
-                <Typography variant="h5" color={getTextColor(card.color)}>{card.range[0]}-{card.range[1]}</Typography>
+                <Typography variant="h5-2" color={getTextColor(card.color)} customClass={variant && variant === "full" ? " uppercase grow" : "grow"}>{card.title}</Typography>
+                <Typography variant="h5-2" color={getTextColor(card.color)}>{card.range[0]}-{card.range[1]}</Typography>
             </div>
-            <Typography variant="h6" color={getTextColor(card.color)} >{card.description}</Typography>
+            <Typography variant="p" color={getTextColor(card.color)} >{card.description}</Typography>
         </div>
     </div>
 </div>

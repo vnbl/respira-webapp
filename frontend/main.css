@@ -1,1 +1,5 @@
 @import url("https://fonts.googleapis.com/css2?family=Merriweather");   
+
+maplibregl-popup-content {
+  background: #4F4039;
+}
