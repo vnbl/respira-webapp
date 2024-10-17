@@ -1,0 +1,53 @@
+---
+import { Image } from "astro:assets";
+import LinkIcon from "../../assets/icons/link_icon.svg";
+import Typography from "./Typography.astro";
+interface Props {
+  text: string;
+  href: string;
+  variant?: "light" | "dark";
+  customClass?: string;
+}
+
+const { text, href, customClass, variant } = Astro.props;
+---
+
+{
+  variant === "light" ? (
+    <div class="flex flex-row items-center">
+      <>
+        <a
+          href={href}
+          target="_blank"
+          class={`font-semibold underline ${customClass}`}
+        >
+          {text}
+        </a>
+        <Image
+          class={`h-4 w-auto pl-2 fill-white`}
+          alt={text + "Link"}
+          src={LinkIcon}
+        />
+      </>
+    </div>
+  ) : (
+    <div class="flex flex-row items-center">
+      <>
+        <a
+          href={href}
+          target="_blank"
+          class={`font-semibold underline ${customClass}`}
+        >
+          <Typography variant="h6"> {text}</Typography>
+         
+        </a>
+        <Image
+          class={`h-4 w-auto pl-2 fill-white`}
+          alt={text + "Link"}
+          src={LinkIcon}
+          loading="eager"
+        />
+      </>
+    </div>
+  )
+}
