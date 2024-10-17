@@ -165,6 +165,6 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # CORS configuration 
-#  See https://github.com/adamchainz/django-cors-headers for details
+# See https://github.com/adamchainz/django-cors-headers for details
 
-CORS_ALLOWED_ORIGINS =  os.getenv('CORS_ALLOWED_ORIGINS').split(",")
+CORS_ALLOWED_ORIGINS =  os.getenv('BACKEND_CORS_ALLOWED_ORIGINS').split(",")
