@@ -1,0 +1,32 @@
+---
+import type { AQICard } from "../../data/cards";
+import Typography from "../atoms/Typography.astro";
+interface Props {
+    card: AQICard;
+    variant?: "full" | "abrev" | "other"
+}
+const { card, variant } = Astro.props;
+
+const getTextColor = (bg: string) => {
+    const darks = ["aqi-red-dark", "aqi-purple-dark", "aqi-vermellion-dark"]
+    if(darks.includes(bg)) {
+        return "white"
+    }
+    return "black"
+}
+---
+
+<div class=`bg-${card.color} w-full  rounded-xl p-10`>
+    <div class="flex flex-row w-full min-h-20">
+        <div class="flex flex-col align-center justify-center flex-1 mr-4">
+        <p class="text-5xl text-center font-emoji">{card.icon}</p>
+        </div>
+        <div class="flex flex-col w-full justify-center">
+            <div class="flex flex-row mb-2 flex-wrap">
+                <Typography variant="h5" color={getTextColor(card.color)} customClass=`grow`>{variant && variant === "full" ? card.title.toUpperCase() :  card.title}</Typography>
+                <Typography variant="h5" color={getTextColor(card.color)}>{card.range[0]}-{card.range[1]}</Typography>
+            </div>
+            <Typography variant="h6" color={getTextColor(card.color)} >{card.description}</Typography>
+        </div>
+    </div>
+</div>
