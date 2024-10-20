@@ -1,0 +1,51 @@
+---
+import Map from "../components/react/Map";
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Card from "../components/Card.astro";
+import AQICard from "../components/data-viz/AQICard.astro";
+import Footer from "../components/atoms/Footer.astro"
+import { AQI } from "../data/cards";
+import Link from "../components/atoms/Link.astro"
+import { Image } from "astro:assets";
+import { HOME_IMAGES } from "../data/images";
+import BackTop from "../components/atoms/BackTop.astro";
+import Typography from "../components/atoms/Typography.astro";
+---
+
+<BaseLayout>
+    <Map client:only />
+    <Card />
+    <div class="w-full flex flex-col md:flex-row p-8 md:p-12">
+        <div class="hidden md:w-1/2 md:mt-20 pt-8 space-y-4 md:pr-20 md:block">
+            <Typography variant="p">
+                La contaminación por partículas puede ocasionar problemas de
+                salud graves, como ataques de asma, ataques cardíacos, derrames
+                cerebrales y una muerte temprana.
+            </Typography>
+            <Typography variant="p">
+                La contaminación por
+                partículas puede ser un problema en cualquier momento del año.
+            </Typography>
+            <Typography variant="p">
+                ¡Puede reducir la exposición a la contaminación y aún hacer
+                ejercicio! Utilice los pronósticos diarios del Índice de Calidad
+                del Aire (AQI) de esta web para planear sus actividades al aire
+                libre.
+            </Typography>
+            <div class="flex flex-row w-full justify-between p-4 mt-16 px-14 mt-8">
+                {HOME_IMAGES.map(image => (
+                    <Image class={image.class} alt={image.alt} src={image.path}/>
+                ))}
+            </div>
+            </div>
+        <div class="md:w-1/2">
+            <Typography variant="h1" color="gray">Índice de calidad del aire (AQI)</p>
+            <p class="mt-2"><Link href="https://www.airnow.gov/sites/default/files/2018-05/air-quality-guide_particle_SPA.pdf" text="Via fuente"/></p>
+            <div class="flex flex-col space-y-3 h-full pt-8">
+                {AQI.map((aqi) => <AQICard card={aqi} variant="full" />)}
+            </div>
+        </div>
+    </div>
+    <BackTop />
+    <Footer />
+</BaseLayout>

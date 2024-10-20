@@ -28,6 +28,7 @@ SECRET_KEY = os.getenv('BACKEND_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '159.65.227.146', '.proyectorespira.net']
 
 # Application definition
@@ -63,6 +64,14 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
+]
+
+CORS_ORIGIN_ALLOW_ALL = False
+
+CORS_ORIGIN_WHITELIST = [
+    'http://proyectorespira.net',
+    'http://dev.proyectorespira.net'
 ]
 
 ROOT_URLCONF = 'backend.urls'

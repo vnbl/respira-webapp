@@ -9,7 +9,7 @@ http {
     include mime.types;
     server {
         listen 80;
-        server_name _;  # Use '_' as a catch-all server name
+        server_name proyectorespira.net .proyectorespira.net;
 
         location /static/ {
             alias /static/;
