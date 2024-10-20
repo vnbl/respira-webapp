@@ -28,7 +28,13 @@ SECRET_KEY = os.getenv('BACKEND_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '159.65.227.146', '.proyectorespira.net']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '159.65.227.146',
+    'proyectorespira.net',
+    '.proyectorespira.net',
+]
 
 # Application definition
 
