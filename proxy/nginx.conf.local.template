@@ -9,30 +9,13 @@ http {
     include mime.types;
     server {
         listen 80;
-        server_name proyectorespira.net .proyectorespira.net;
+        server_name _;  # Use '_' as a catch-all server name
 
         location /static/ {
             alias /static/;
             autoindex on;
             access_log off;
         }
-        
-        location /.well-known/acme-challenge/ {
-            root /var/www/certbot;
-        }
-
-        location / {
-            return 301 https://example.org$request_uri;
-        }
-    }
-    server {
-        listen 443 default_server ssl http2;
-        listen [::]:443 ssl http2;
-
-        server_name .proyectorespira.net;
-
-        ssl_certificate /etc/nginx/ssl/live/$CERT_NAME/fullchain.pem;
-        ssl_certificate_key /etc/nginx/ssl/live/$CERT_NAME/privkey.pem;
 
         location / {
             proxy_set_header Host $http_host;
