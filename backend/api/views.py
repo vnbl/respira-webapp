@@ -7,7 +7,8 @@ from django.db.models.functions import TruncDate
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics
+
 from rest_framework.viewsets import ModelViewSet
 
 import pandas as pd
@@ -15,15 +16,14 @@ import pandas as pd
 from .models import Stations, Regions, RegionReadings, StationReadingsGold, InferenceRuns, InferenceResults
 from .serializers import StationSerializer, RegionSerializer, MapSerializer, ForecastSerializer, HistorySerializer
 
-
-class HealthCheckView(APIView):
+class HealthCheckView(generics.GenericAPIView):
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
-class MapViewset(APIView):
+class MapViewset(generics.GenericAPIView):
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
