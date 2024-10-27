@@ -22,7 +22,7 @@ http {
         }
 
         location / {
-            return 301 https://www.proyectorespira.net/$request_uri;
+            return 301 https://dev.proyectorespira.net/$request_uri;
         }
     }
     server {
