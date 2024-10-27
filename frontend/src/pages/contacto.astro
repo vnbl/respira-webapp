@@ -1,0 +1,104 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Footer from "../components/atoms/Footer.astro";
+import BackTop from "../components/atoms/BackTop.astro";
+import TwitterCard from "../components/cards/TwitterCard.astro";
+import TelegramCard from "../components/cards/TelegramCard.astro";
+import Typography from "../components/atoms/Typography.astro";
+import Button from "../components/atoms/Button.astro";
+---
+
+<BaseLayout>
+    <section class="flex  flex-col md:flex-row px-16 p-20">
+        <div class="md:w-1/2">
+            <Typography variant="h2">Contactános</Typography>
+            <Typography variant="p"
+                >Estamos felices de que nos quieras enviar un saludo una
+                consulta por datos o algún mail en particular.
+            </Typography>
+            <form class="md:mr-8 gap-2 flex  flex-col my-8">
+                <div class="mb-4 flex flex-col md:flex-row gap-4">
+                    <div class="w-full">
+                        <label
+                            class="block text-gray-700 text-sm font-bold mb-2"
+                            for="username"
+                        >
+                            Nombre
+                        </label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="username"
+                            type="text"
+                            placeholder="Nombre"
+                        />
+                    </div>
+                    <div class="w-full">
+                        <label
+                            class="block text-gray-700 text-sm font-bold mb-2"
+                            for="lastname"
+                        >
+                            Apellido
+                        </label>
+                        <input
+                            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                            id="lastname"
+                            type="text"
+                            placeholder="Apellido"
+                        />
+                    </div>
+                </div>
+                <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="lastname"
+            >
+                Correo
+            </label>
+            <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="email"
+                type="text"
+                placeholder="Correo"
+            />
+            <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="lastname"
+        >
+            Motivo
+        </label>
+              <div class="relative">
+                <select class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500" id="grid-state">
+                  <option>Solicitar datos de la red</option>
+                  <option>Colaboración en investigación</option>
+                  <option>Información sobre pasantías (FIUNA)</option>
+                  <option>Qué hacer en caso de AQI muy altos</option>
+                  <option>Pedido sobre información de Salud </option>
+
+                </select>
+                <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                  <svg class="fill-current h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20"><path d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"/></svg>
+                </div>
+              </div>
+              <label
+                class="block text-gray-700 text-sm font-bold mb-2"
+                for="lastname"
+            >
+                Mensaje
+            </label>
+            <textarea
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
+                id="message"
+                type="text"
+                placeholder="Escribe tu mensaje..."
+                rows="8"
+            />
+            <Button text="Enviar" variant="color" />
+            </form>
+        </div>
+        <div class="flex flex-col md:w-1/2 gap-4 mt-[1/2]">
+            <TelegramCard />
+            <TwitterCard />
+        </div>
+    </section>
+    <BackTop />
+    <Footer />
+</BaseLayout>
