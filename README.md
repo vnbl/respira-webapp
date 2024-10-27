@@ -22,7 +22,13 @@ PROXY_PORT="<default:80>"
 Build containers, run them:
 ```
 docker compose build
-docker compose -d up
+docker compose up -d
+```
+
+## Deployment with ssl
+
+```
+
 ```
 
 ## System Architecture
