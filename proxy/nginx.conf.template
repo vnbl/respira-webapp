@@ -9,7 +9,7 @@ http {
     include mime.types;
     server {
         listen 80;
-        server_name proyectorespira.net .proyectorespira.net;
+        server_name dev.proyectorespira.net;
 
         location /static/ {
             alias /static/;
@@ -30,7 +30,7 @@ http {
         listen [::]:443 ssl;
         http2 on;
 
-        server_name .proyectorespira.net;
+        server_name dev.proyectorespira.net;
 
         ssl_certificate /etc/nginx/ssl/live/$CERT_NAME/fullchain.pem;
         ssl_certificate_key /etc/nginx/ssl/live/$CERT_NAME/privkey.pem;
