@@ -22,12 +22,13 @@ http {
         }
 
         location / {
-            return 301 https://example.org$request_uri;
+            return 301 https://www.proyectorespira.net/$request_uri;
         }
     }
     server {
-        listen 443 default_server ssl http2;
-        listen [::]:443 ssl http2;
+        listen 443 default_server ssl ;
+        listen [::]:443 ssl;
+        http2 on;
 
         server_name .proyectorespira.net;
 
