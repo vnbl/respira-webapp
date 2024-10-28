@@ -49,7 +49,7 @@ services:
     build: ./data_retriever
     restart: always
     environment: 
-      MAGE_DATA_DIR: ${MAGE_DATA_DIR} # in container
+      MAGE_DATA_DIR: ${MAGE_DATA_DIR} 
       PIPELINE_POSTGRES_USER: ${POSTGRES_USER}
       PIPELINE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
       PIPELINE_POSTGRES_DB: ${POSTGRES_DB}
@@ -62,7 +62,7 @@ services:
       PIPELINE_MYSQL_PORT: ${MYSQL_PORT}
     networks:
       - backend_nw
-      # - proxy_nw?
+      - pipeline_nw
     ports:
       - "${PIPELINE_PORT}:6789"
     depends_on:
@@ -76,10 +76,8 @@ services:
       start_period: 10s
     volumes:
       - ./data_retriever:/app
-      # backup .mage_data with already created secrets to server or store secrets in server's mage UI during deployment
-      # maybe instead of using ../mage_data we could add LOCAL_MAGE_DATA_DIR to data_retriever .env file?
-      - ../.mage_data:${MAGE_DATA_DIR} 
-  
+      - ${LOCAL_MAGE_DATA_DIR}:${MAGE_DATA_DIR} 
+
   proxy:
     build: 
       context: ./proxy
@@ -94,6 +92,7 @@ services:
       - 443:443
     networks:
       - proxy_nw
+      - pipeline_nw
     volumes:
       - static_volume:/static
       - ./certbot/www:/var/www/certbot/:ro
@@ -101,6 +100,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+  
   certbot:
     image: certbot/certbot:latest
     volumes:
