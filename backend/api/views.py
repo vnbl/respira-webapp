@@ -83,7 +83,7 @@ class MapViewset(generics.GenericAPIView):
                                         .order_by('-date_utc').first()
 
             if latest_station_reading:
-                latest_aqi = latest_station_reading.aqi_level
+                latest_aqi = latest_station_reading.aqi_pm2_5
             else:
                 return Response({
                     "error": "No readings found for this station."
@@ -127,17 +127,10 @@ class StationViewset(ModelViewSet):
         
         last_inference = InferenceResults.objects.filter(station=station.id).order_by('-inference_run_id').first()
         inference_run = InferenceRuns.objects.filter(id=last_inference.inference_run_id).first()
-        
-        historical = (
-            StationReadingsGold.objects.filter(station_id=station.id)
-            .order_by('date_utc')
-            .values('date_utc', 'aqi_level')
-            .first()
-        )
 
         return Response({
             "forecast_date": inference_run.run_date,
-            "aqi_level": historical['aqi_level'],
+            "aqi_level": pd.DataFrame(last_inference.aqi_input).to_dict(orient='records'),
             "forecast_6h": pd.DataFrame(last_inference.forecasts_6h).to_dict(orient='records'),
             "forecast_12h": pd.DataFrame(last_inference.forecasts_12h).to_dict(orient='records')
         }, status=status.HTTP_200_OK)
