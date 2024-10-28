@@ -6,6 +6,8 @@ import svgr from "vite-plugin-svgr"
 import node from "@astrojs/node";
 import { loadEnv } from "vite";
 const { SITE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
+import react from '@astrojs/react';
+import formDebug from "@astro-utils/forms/dist/integration.js";
 
 // https://astro.build/config
 export default defineConfig({
@@ -35,7 +37,7 @@ export default defineConfig({
   output: "hybrid",
   trailingSlash: "ignore",
   srcDir: "./src",
-  integrations: [react(), tailwind(), lottie()],
+  integrations: [react(), tailwind(), lottie(), formDebug],
   adapter: node({
     mode: "standalone",
   }),
