@@ -83,7 +83,7 @@ class MapViewset(generics.GenericAPIView):
                                         .order_by('-date_utc').first()
 
             if latest_station_reading:
-                latest_aqi = latest_station_reading.aqi_level
+                latest_aqi = latest_station_reading.aqi_pm2_5
             else:
                 return Response({
                     "error": "No readings found for this station."
