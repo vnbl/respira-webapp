@@ -81,21 +81,31 @@ services:
       - ../.mage_data:${MAGE_DATA_DIR} 
   
   proxy:
-    build: ./proxy
+    build: 
+      context: ./proxy
+      target: ${ENVIRONMENT}
     restart: always
     environment:
       BACKEND_HOST: backend
       BACKEND_PORT: ${BACKEND_PORT}
+      CERT_NAME: ${CERT_NAME}
     ports:
       - "${PROXY_PORT}:80"
+      - 443:443
     networks:
       - proxy_nw
     volumes:
       - static_volume:/static
+      - ./certbot/www:/var/www/certbot/:ro
+      - ./certbot/conf/:/etc/nginx/ssl/:ro
     depends_on:
       backend:
         condition: service_healthy
-
+  certbot:
+    image: certbot/certbot:latest
+    volumes:
+      - ./certbot/www/:/var/www/certbot/:rw
+      - ./certbot/conf/:/etc/letsencrypt/:rw
 volumes:
   postgres_data:
   static_volume:

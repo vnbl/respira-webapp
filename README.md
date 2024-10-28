@@ -8,6 +8,14 @@
 * `proxy` (`nginx`)
 
 
+## Running the project locally
+
+Since the project uses a proxy it's necessary to set the .env with
+```
+ENVIRONMENT="local"
+```
+otherwise the project will fail due to a missing SSL certificate.
+
 ## Deployment with `docker`
 Create `.env` file:
 ```
@@ -22,7 +30,36 @@ PROXY_PORT="<default:80>"
 Build containers, run them:
 ```
 docker compose build
-docker compose -d up
+docker compose up -d
+```
+
+## Deployment with ssl
+The deployment with ssl is done in two parts 
+
+First it's necessary to set up the acme challenge on the http port for that comment out the 443 ssl server and run
+
+```
+docker compose build
+docker compose up -d
+docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d dev.proyectorespira.org
+```
+if the dry-run completes successfully then execute
+
+```
+docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d dev.proyectorespira.org
+docker compose restart 
+```
+Uncomment the https server on the `nginx.conf.template` and run
+
+```
+docker compose build
+docker compose up -d
+```
+To renew the certifcate run 
+
+```
+docker compose run --rm certbot renew
+docker compose restart
 ```
 
 ## System Architecture

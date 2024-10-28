@@ -5,6 +5,10 @@ import Lung from "../assets/icons/lung_icon.svg";
 import Flower from  "../assets/icons/flower_icon.svg";
 import Medicine from  "../assets/icons/medicine_icon.svg";
 
+import Facebook from "../assets/icons/facebook_icon.svg";
+import Instagram from  "../assets/icons/instagram_icon.svg";
+import Telegram from  "../assets/icons/telegram_icon.svg";
+
 import Fiuna from "../assets/logos/fiuna.svg"
 import Mozilla from "../assets/logos/mozilla.svg"
 import GirlsCode from "../assets/logos/girls_code.svg"
@@ -17,6 +21,9 @@ import Epa from "../assets/logos/epa.svg"
 import Pho from "../assets/logos/pho.svg"
 import Who from "../assets/logos/who.svg"
 import AireLibre from "../assets/logos/aire_libre.svg"
+
+
+import {INSTAGRAM_URL, FACEBOOK_URL, TELEGRAM_URL} from "./constants"
 
 export type Image = {
     alt: string;
@@ -110,5 +117,24 @@ export const EXTERNAL_RESOURCES_IMAGES : (Image & Link)[] = [
         link: "https://airelib.re/"
     },
 
-
 ] 
+
+
+export const SOCIAL_MEDIA_IMAGES : (Omit<Image & Link, "text">)[] = [
+    {
+        alt: "Telegram Icon",
+        path: Telegram,
+        link: TELEGRAM_URL       
+    },
+    {
+        alt: "Instagram Icon",
+        path: Instagram,
+        link: INSTAGRAM_URL    
+    },
+    {
+        alt: "Facebook Icon",
+        path: Facebook,
+        link: FACEBOOK_URL     
+    },
+
+]
