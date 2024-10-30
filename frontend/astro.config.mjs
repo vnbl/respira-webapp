@@ -37,7 +37,7 @@ export default defineConfig({
   output: "hybrid",
   trailingSlash: "ignore",
   srcDir: "./src",
-  integrations: [react(), tailwind(), lottie(), formDebug],
+  integrations: [formDebug, react(), tailwind(), lottie()],
   adapter: node({
     mode: "standalone",
   }),

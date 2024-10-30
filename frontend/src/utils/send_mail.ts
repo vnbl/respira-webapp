@@ -2,17 +2,17 @@ import nodemailer from 'nodemailer';
 
 const sendMail = async () => {
   const transporter = nodemailer.createTransport({
-    host: 'smtp.resend.com',
+    host: import.meta.env.SMTP_HOST,
     secure: true,
     port: 465,
     auth: {
-      user: 'resend',
-      pass: import.meta.env.STMP_KEY,
+      user: import.meta.env.SMTP_USER,
+      pass: import.meta.env.SMTP_KEY,
     },
   });
 
   const info = await transporter.sendMail({
-    from: 'test@resend.dev',
+    from: import.meta.env.SMTP_SENDER,
     to: 'claraberendsen@gmail.com',
     subject: 'Hello World',
     html: '<strong>It works!</strong>',

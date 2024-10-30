@@ -1,6 +1,4 @@
 ---
-
-
 import {
   Bind,
   BindForm,
@@ -8,8 +6,9 @@ import {
   BInput,
   BSelect,
   BOption,
-  BTextarea
+  BTextarea,
 } from "@astro-utils/forms/forms.js";
+import { actions, getActionProps, FormData } from "astro:actions";
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Footer from "../components/atoms/Footer.astro";
@@ -18,26 +17,37 @@ import TwitterCard from "../components/cards/TwitterCard.astro";
 import TelegramCard from "../components/cards/TelegramCard.astro";
 import Typography from "../components/atoms/Typography.astro";
 import Button from "../components/atoms/Button.astro";
-import {sendMail} from "../utils/send_mail"
+import { sendMail } from "../utils/send_mail";
 
-type Form = {
-  name: string;
-  lastname?: string;
-  email: string;
-  motive: string;
-  message: string;
-};
+// type Form = {
+//   name: string;
+//   lastname?: string;
+//   email: string;
+//   motive: string;
+//   message: string;
+// };
 
-const form = Bind<Form>();
-function formSubmit(e) {
-  console.log(form);
+// const form = Bind<Form>();
 
-  sendMail();
-}
+// if (Astro.request.method === "POST") {
+//   try {
+//     const data = await Astro.request.formData();
+//     console.log("data", data);
+//     console.log("data", data.entries());
+
+//     // const name = data.get("username");
+//     // const email = data.get("email");
+//     // const password = data.get("password");
+//     // Do something with the data
+//   } catch (error) {
+//     if (error instanceof Error) {
+//       console.error(error.message);
+//     }
+//   }
+// }
 ---
 
 <BaseLayout>
-  <script>document.querySelector("form")?.addEventListener('submit',(e)=>e.preventDefault())</script>
   <section class="flex flex-col md:flex-row px-16 p-20">
     <div class="md:w-1/2">
       <Typography variant="h2">Contactános</Typography>
@@ -46,97 +56,100 @@ function formSubmit(e) {
         datos o algún mail en particular.
       </Typography>
       <div class="md:mr-8 gap-2 flex flex-col my-8">
-        <BindForm bind={form}>
-          <!-- {showSubmitText} -->
+        <form
+          class="md:mr-8 gap-2 flex flex-col my-8"
+          method="POST"
+          onSubmit={async (e) => {
+            e.preventDefault();
+            const formData = new FormData(e.target as HTMLFormElement);
+            const result = await actions.sendMail(formData);
+          }}
+        >
           <div class="mb-4 flex flex-col md:flex-row gap-4">
             <div class="w-full">
               <label
                 class="block text-gray-700 text-sm font-bold mb-2"
                 for="username"
-                aria-required="true"
               >
-                Nombre*
+                Nombre
               </label>
-              <BInput
-                type="text"
-                name="name"
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="username"
+                type="text"
                 placeholder="Nombre"
-                maxlength={40}
-                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                required
               />
             </div>
             <div class="w-full">
               <label
-                class="block text-gray-700 text-sm font-bold mb-2 font-sans"
+                class="block text-gray-700 text-sm font-bold mb-2"
                 for="lastname"
               >
                 Apellido
               </label>
-              <BInput
-                type="text"
-                name="lastname"
+              <input
+                class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="lastname"
+                type="text"
                 placeholder="Apellido"
-                class="shadow appearance-none border rounded-lg w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                maxlength={40}
               />
             </div>
           </div>
           <label
-            class="block text-gray-700 text-sm font-bold mb-2 font-sans"
-            for="email"
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="lastname"
           >
-            Correo*
+            Correo
           </label>
-          <BInput
-            type="email"
-            name="email"
+          <input
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="email"
-            placeholder="micorreo@gmail.com"
-            class="shadow appearance-none border rounded-lg font-sans w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            maxlength={120}
-            required
+            type="text"
+            placeholder="Correo"
           />
           <label
             class="block text-gray-700 text-sm font-bold mb-2"
-            for="motive"
+            for="lastname"
           >
-            Motivo*
+            Motivo
           </label>
-          <BSelect
-            id="motive"
-            name="motive"
-            required={true}
-            type="string"
-            class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+          <div class="relative">
+            <select
+              class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
+              id="grid-state"
+            >
+              <option>Solicitar datos de la red</option>
+              <option>Colaboración en investigación</option>
+              <option>Información sobre pasantías (FIUNA)</option>
+              <option>Qué hacer en caso de AQI muy altos</option>
+              <option>Pedido sobre información de Salud </option>
+            </select>
+            <div
+              class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700"
+            >
+              <svg
+                class="fill-current h-4 w-4"
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 20 20"
+                ><path
+                  d="M9.293 12.95l.707.707L15.657 8l-1.414-1.414L10 10.828 5.757 6.586 4.343 8z"
+                ></path></svg
+              >
+            </div>
+          </div>
+          <label
+            class="block text-gray-700 text-sm font-bold mb-2"
+            for="lastname"
           >
-            <BOption  selected />
-            <BOption>Solicitar datos de la red</BOption>
-            <BOption>Colaboración en investigación</BOption>
-            <BOption>Información sobre pasantías (FIUNA)</BOption>
-            <BOption>Qué hacer en caso de AQI muy altos</BOption>
-            <BOption>Pedido sobre información de Salud </BOption>
-          </BSelect>
-          <label class="block text-gray-700 text-sm font-bold mb-2" for="message">
-            Mensaje*
+            Mensaje
           </label>
-          <BTextarea
-            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline mb-8"
+          <textarea
+            class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="message"
             placeholder="Escribe tu mensaje..."
-            rows="8"
-            name="message"
-            required
-            aria-required="true" />
-          <BButton
-            onClick={formSubmit}
-            whenFormOK
-            as={Button}
-            props={{ text: "Enviar", variant: "color" }}>Submit</BButton
-          >
-        </BindForm>
+            rows="8"></textarea>
+          <Button text="Enviar" variant="color" />
+        </form>
       </div>
     </div>
     <div class="grid grid-row-4 md:w-1/2 gap-4 mt-[1/2] ">
