@@ -65,6 +65,7 @@ export const region = computed(isBackendAvailable, backendAvailable => task(asyn
 export const selectedStation = shared('selectedStation', atom<any>(undefined))
 
 export const setSelectedStation = (station) => {
+    console.log(station)
     selectedStation.set(station)
     console.log("setting station")
 }

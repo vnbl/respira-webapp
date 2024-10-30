@@ -41,19 +41,19 @@ const { variant, color, customClass = "" } = Astro.props;
 
 {
     variant === 'p' && (
-        <h6 class={`font-sans text-[1rem] text-${color || "black"} ` + customClass}><slot/></h6>
+        <p class={`font-sans text-[1rem] text-${color || "black"} ` + customClass}><slot/></p>
     )
 }
 
 {
     variant === 'label' && (
-        <h6 class={"font-sans text-[1rem] font-semibold italic " + customClass}><slot/></h6>
+        <p class={"font-sans text-[1rem] font-semibold italic " + customClass}><slot/></p>
     )
 }
 
 {
     variant === 'p-sm' && (
-        <h6 class={`font-sans text-[0.75rem] text-${color || "black"} ` + customClass}><slot/></h6>
+        <p class={`font-sans text-[0.75rem] text-${color || "black"} ` + customClass}><slot/></p>
     )
 }
 

@@ -1,19 +1,12 @@
 ---
 import type { AQICard } from "../../data/cards";
+import { getTextColor } from "../../utils";
 import Typography from "../atoms/Typography.astro";
 interface Props {
     card: AQICard;
     variant?: "full" | "abrev" | "other"
 }
 const { card, variant } = Astro.props;
-
-const getTextColor = (bg: string) => {
-    const darks = ["aqi-red-dark", "aqi-purple-dark", "aqi-vermellion-dark"]
-    if(darks.includes(bg)) {
-        return "white"
-    }
-    return "black"
-}
 ---
 
 <div class=`bg-${card.color} w-full  rounded-xl p-10`>

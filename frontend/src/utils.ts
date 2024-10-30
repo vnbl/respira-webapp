@@ -6,8 +6,7 @@ export const getAQIIndex = (aqi: number): number => {
     const ranges: [number, number][] = [[0, 50], [51, 100], [101, 150], [151, 200], [201, 300], [301, 400]];
     // If value is out of range the default color is the last one
     let AQIIndex = 5;
-
-    if(!aqi || aqi <0){
+    if(!aqi){
         throw SyntaxError("getAQIIndex: 'aqi' is not defined")
     }
     if(aqi<0){
@@ -23,3 +22,12 @@ export const getAQIIndex = (aqi: number): number => {
 }
 
 export const getColorRange = (aqi) => AQI_COLORS[getAQIIndex(aqi)];
+
+
+export const getTextColor = (bg: string) => {
+    const darks = ["aqi-red-dark", "aqi-purple-dark", "aqi-vermellion-dark"]
+    if(darks.includes(bg)) {
+        return "white"
+    }
+    return "black"
+}

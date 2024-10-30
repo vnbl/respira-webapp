@@ -100,6 +100,7 @@ const MapComponent = () => {
         [-67.0435297482847, -28.42576579802394],
         [-45.05865460568049, -17.608237804262302],
       ]}
+      onClick={() => setSelectedStation(undefined)}
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
       {pins}

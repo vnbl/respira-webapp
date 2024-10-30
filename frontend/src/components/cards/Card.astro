@@ -8,6 +8,7 @@ import { data, error, loading, region, selectedStation } from "../../store/map";
 import { getAQIIndex } from "../../utils";
 import { Card as ReactCard } from "../react/Card";
 
+console.log(selectedStation);
 ---
 
 <ReactCard client:only>
@@ -16,25 +17,23 @@ import { Card as ReactCard } from "../react/Card";
       >¿Cómo está el aire ahora?</Typography
     >
     <Typography variant="h6" customClass="text-lg font-bold w-auto text-center">
-      {!selectedStation.get() ? "Media General" : selectedStation.get().name }
-    </Typography>
-    <div class="mt-4">
-        <Slider value={region.get()?.aqi}/>
-        <div class="mt-6" slot="aqi_card">
-          <AQICard card={AQI[getAQIIndex(region.get()?.aqi || undefined)]} />
-        </div>
-      </div>
-    <Typography variant="h4" customClass="w-auto text-center">
-      Pronóstico
+      {!selectedStation.get() ? "Media General" : selectedStation.get().name}
     </Typography>
   </div>
   <div slot="header_forecast_six">
-    <Typography variant="h5-2" color="gray">Próximas 6 hs</Typography>
+    <Typography variant="h4" customClass="w-auto text-center mt-4">
+      Pronóstico
+    </Typography>
+    <Typography variant="h5-2" color="gray" customClass="mt-2"
+      >Próximas 6 hs</Typography
+    >
   </div>
   <div slot="header_forecast_twelve">
-    <Typography variant="h5-2" color="gray">Próximas 12 hs</Typography>
+    <Typography variant="h5-2" color="gray" customClass="mt-2"
+      >Próximas 12 hs</Typography
+    >
   </div>
-  <div slot="action">
+  <div slot="action" class="mt-8">
     <Button variant="color" text="Recomendaciones por Nivel" />
     <Typography variant="p" customClass="text-green text-center font-bold"
       >Compartir</Typography
