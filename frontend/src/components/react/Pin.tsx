@@ -6,7 +6,7 @@ const pinStyle = {
   stroke: "none",
 };
 
-function Pin({ size = 100, fill, value }) {
+const Pin = ({ size = 100, fill, value }) => {
   return (
     <svg height={size} viewBox="0 0 102 103" style={pinStyle}>
       <g filter="url(#filter0_d_247_35929)">
@@ -31,6 +31,6 @@ function Pin({ size = 100, fill, value }) {
       </g>
     </svg>
   );
-}
+};
 
 export default React.memo(Pin);

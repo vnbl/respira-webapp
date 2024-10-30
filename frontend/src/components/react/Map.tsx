@@ -7,13 +7,17 @@ import Map, {
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "@nanostores/react";
-import { stations, setSelectedStation } from "../../store/map";
+import {
+  stations,
+  setSelectedStation,
+  fetchStations,
+} from "../../store/map";
 import Pin from "./Pin";
 
 import { AQI_COLORS } from "../../data/constants";
-import { getAQIIndex } from "../../utils";
+import { getAQIIndex,getColorRange } from "../../utils";
+import { isBackendAvailable } from "../../store/store";
 
-const getColorRange = (aqi) => AQI_COLORS[getAQIIndex(aqi)];
 
 function debounce(fn: any, ms: number) {
   let timer: number | undefined;
@@ -26,7 +30,10 @@ function debounce(fn: any, ms: number) {
   };
 }
 
-const MapComponent = ({ data }) => {
+const MapComponent = () => {
+  const backendIsAvailable = useStore(isBackendAvailable);
+  const data = useStore(stations);
+
   const [dimensions, setDimensions] = React.useState({
     height: window.innerHeight,
     width: window.innerWidth,
@@ -50,28 +57,32 @@ const MapComponent = ({ data }) => {
 
   const pins = React.useMemo(
     () =>
-      data.map((station, index) => (
-        <Marker
-          key={`marker-${index}`}
-          longitude={station.coordinates[1]}
-          latitude={station.coordinates[0]}
-          anchor="center"
-          onClick={(e) => {
-            // If we let the click event propagates to the map, it will immediately close the popup
-            // with `closeOnClick: true`
-            e.originalEvent.stopPropagation();
-            setPopupInfo(station);
-            setSelectedStation(station);
-          }}
-        >
-          <Pin
-            fill={getColorRange(station.forecast_6h[0].value)}
-            value={station.forecast_6h[0].value}
-          />
-        </Marker>
-      )),
-    []
+      data
+        ? data.map((station, index) => (
+            <Marker
+              key={`marker-${index}`}
+              longitude={station.coordinates[1]}
+              latitude={station.coordinates[0]}
+              anchor="center"
+              onClick={(e) => {
+                // If we let the click event propagates to the map, it will immediately close the popup
+                // with `closeOnClick: true`
+                e.originalEvent.stopPropagation();
+                setPopupInfo(station);
+                setSelectedStation(station);
+              }}
+            >
+              <Pin
+                fill={getColorRange(station.forecast_6h[0].value)}
+                value={station.forecast_6h[0].value}
+              />
+            </Marker>
+          ))
+        : [],
+    [data]
   );
+
+  
   return (
     <Map
       initialViewState={{
@@ -101,7 +112,7 @@ const MapComponent = ({ data }) => {
           onClose={() => setPopupInfo(null)}
         >
           <div className="flex flex-col">
-            <p  className="font-bold font-sm">Estacion {popupInfo.id}</p>
+            <p className="font-bold font-sm">Estacion {popupInfo.id}</p>
             <p className="font-bold font-xs">{popupInfo.name}</p>
             <a>Ver estadisticas</a>
           </div>

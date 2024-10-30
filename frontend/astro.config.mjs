@@ -1,6 +1,8 @@
 import { defineConfig } from 'astro/config';
 import tailwind from "@astrojs/tailwind";
 import react from '@astrojs/react';
+import lottie from "astro-integration-lottie";
+
 
 import inoxToolsRequestNanostores from "@inox-tools/request-nanostores";
 
@@ -17,5 +19,5 @@ export default defineConfig({
   base: '/air-quality-asuncion',
   output: 'static',
   srcDir: './src',
-  integrations: [react(), tailwind(), inoxToolsRequestNanostores()]
+  integrations: [react(), tailwind(), inoxToolsRequestNanostores(), lottie()]
 });

@@ -38,9 +38,15 @@ dependencies:
   astro:
     specifier: ^4.5.2
     version: 4.5.2(typescript@5.4.2)
+  astro-integration-lottie:
+    specifier: ^0.3.1
+    version: 0.3.1(lottie-web@5.12.2)
   astro-navbar:
     specifier: ^2.3.1
     version: 2.3.1
+  lottie-web:
+    specifier: ^5.12.2
+    version: 5.12.2
   luxon:
     specifier: ^3.5.0
     version: 3.5.0
@@ -3510,6 +3516,14 @@ packages:
       recast: 0.23.9
     dev: false
 
+  /astro-integration-lottie@0.3.1(lottie-web@5.12.2):
+    resolution: {integrity: sha512-zmmVVlsDfvyA/4qAg+l6zrUB/4U99oS4SuVc/zuW1vYZ4pHjjYhW8JYwmCItT+AmE4l6mAkN/TvdXUQ92o4TSQ==}
+    peerDependencies:
+      lottie-web: ^5.10.0
+    dependencies:
+      lottie-web: 5.12.2
+    dev: false
+
   /astro-navbar@2.3.1:
     resolution: {integrity: sha512-lLvhWS03Qc3heMU23adFwEnBUJFlL6gxYi0xPvIyX1atb2oCov4kOS/MaWOPGnvj2nK63szebUzlG+NdIoUZzQ==}
     dev: false
@@ -6423,6 +6437,10 @@ packages:
     hasBin: true
     dependencies:
       js-tokens: 4.0.0
+    dev: false
+
+  /lottie-web@5.12.2:
+    resolution: {integrity: sha512-uvhvYPC8kGPjXT3MyKMrL3JitEAmDMp30lVkuq/590Mw9ok6pWcFCwXJveo0t5uqYw1UREQHofD+jVpdjBv8wg==}
     dev: false
 
   /lru-cache@10.4.3:
