@@ -44,41 +44,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-
-  pipeline:
-    build: ./data_retriever
-    restart: always
-    environment: 
-      MAGE_DATA_DIR: ${MAGE_DATA_DIR} # in container
-      PIPELINE_POSTGRES_USER: ${POSTGRES_USER}
-      PIPELINE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PIPELINE_POSTGRES_DB: ${POSTGRES_DB}
-      PIPELINE_POSTGRES_HOST: db
-      PIPELINE_POSTGRES_PORT: ${POSTGRES_PORT}
-      PIPELINE_MYSQL_USER: ${MYSQL_USER}
-      PIPELINE_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      PIPELINE_MYSQL_DB: ${MYSQL_DB}
-      PIPELINE_MYSQL_HOST: ${MYSQL_HOST}
-      PIPELINE_MYSQL_PORT: ${MYSQL_PORT}
-    networks:
-      - backend_nw
-      # - proxy_nw?
-    ports:
-      - "${PIPELINE_PORT}:6789"
-    depends_on:
-      db:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:${PIPELINE_PORT} | grep -q 200"]
-      interval: 1m30s
-      timeout: 30s
-      retries: 5
-      start_period: 10s
-    volumes:
-      - ./data_retriever:/app
-      # backup .mage_data with already created secrets to server or store secrets in server's mage UI during deployment
-      # maybe instead of using ../mage_data we could add LOCAL_MAGE_DATA_DIR to data_retriever .env file?
-      - ../.mage_data:${MAGE_DATA_DIR} 
+ 
   
   proxy:
     build: 
