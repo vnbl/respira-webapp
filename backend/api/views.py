@@ -111,6 +111,11 @@ class MapViewset(generics.GenericAPIView):
             forecast_6h = InferenceResults.objects.filter(inference_run=latest_inference_run_id, station_id=entity_id) \
                             .values_list('forecasts_6h', flat=True)
             forecast_6h_data = [item for sublist in forecast_6h for item in sublist]
+
+            if not forecast_6h_data:
+                return Response({
+                    "error": "No forecast data available for this station."
+                }, status=status.HTTP_404_NOT_FOUND)
             
             result_forecast_6h = pd.DataFrame(forecast_6h_data)
 
@@ -118,6 +123,11 @@ class MapViewset(generics.GenericAPIView):
             forecast_12h = InferenceResults.objects.filter(inference_run=latest_inference_run_id, station_id=entity_id) \
                             .values_list('forecasts_12h', flat=True)
             forecast_12h_data = [item for sublist in forecast_12h for item in sublist]
+
+            if not forecast_12h_data:
+                return Response({
+                    "error": "No 12-hour forecast data available for this station."
+                }, status=status.HTTP_404_NOT_FOUND)
 
             result_forecast_12h = pd.DataFrame(forecast_12h_data)
 
