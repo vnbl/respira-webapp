@@ -44,8 +44,40 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
- 
-  
+
+  pipeline:
+    build: ./data_retriever
+    restart: always
+    environment: 
+      MAGE_DATA_DIR: ${MAGE_DATA_DIR} 
+      PIPELINE_POSTGRES_USER: ${POSTGRES_USER}
+      PIPELINE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PIPELINE_POSTGRES_DB: ${POSTGRES_DB}
+      PIPELINE_POSTGRES_HOST: db
+      PIPELINE_POSTGRES_PORT: ${POSTGRES_PORT}
+      PIPELINE_MYSQL_USER: ${MYSQL_USER}
+      PIPELINE_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      PIPELINE_MYSQL_DB: ${MYSQL_DB}
+      PIPELINE_MYSQL_HOST: ${MYSQL_HOST}
+      PIPELINE_MYSQL_PORT: ${MYSQL_PORT}
+    networks:
+      - backend_nw
+      - pipeline_nw
+    ports:
+      - "${PIPELINE_PORT}:6789"
+    depends_on:
+      db:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:${PIPELINE_PORT} | grep -q 200"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+    volumes:
+      - ./data_retriever:/app
+      - ${LOCAL_MAGE_DATA_DIR}:${MAGE_DATA_DIR} 
+
   proxy:
     build: 
       context: ./proxy
@@ -60,6 +92,7 @@ services:
       - 443:443
     networks:
       - proxy_nw
+      - pipeline_nw
     volumes:
       - static_volume:/static
       - ./certbot/www:/var/www/certbot/:ro
@@ -67,6 +100,7 @@ services:
     depends_on:
       backend:
         condition: service_healthy
+  
   certbot:
     image: certbot/certbot:latest
     volumes:
