@@ -79,6 +79,24 @@ class MapViewset(generics.GenericAPIView):
 
         # get station_readings
         elif entity == 'station':
+
+            try:
+                station = Stations.objects.get(id=entity_id)
+            except Stations.DoesNotExist:
+                return Response({
+                    'error': 'Station ID does not exist in the database.'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            if station.is_pattern_station:
+                return Response({
+                    'error':'Station ID is a pattern station.'
+                }, status=status.HTTP_404_BAD_REQUEST)
+            
+            if not station.is_station_on:
+                return Response({
+                    'error':'Station ID has been manually shut down due to maintenance.'
+                }, status=status.HTTP_404_BAD_REQUEST)
+
             latest_station_reading = StationReadingsGold.objects.filter(station_id=entity_id) \
                                         .order_by('-date_utc').first()
 
