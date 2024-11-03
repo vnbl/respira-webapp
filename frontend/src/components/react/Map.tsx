@@ -11,6 +11,8 @@ import {
   stations,
   setSelectedStation,
   fetchStations,
+  type STATION,
+  type STATION_FORECAST,
 } from "../../store/map";
 import Pin from "./Pin";
 
@@ -20,12 +22,12 @@ import { isBackendAvailable } from "../../store/store";
 
 
 function debounce(fn: any, ms: number) {
-  let timer: number | undefined;
+  let timer: NodeJS.Timeout | undefined;
   return () => {
     clearTimeout(timer);
     timer = setTimeout(() => {
       timer = undefined;
-      fn.apply(this, arguments);
+      fn.apply(undefined, arguments);
     }, ms);
   };
 }
@@ -53,7 +55,7 @@ const MapComponent = () => {
     };
   });
 
-  const [popupInfo, setPopupInfo] = React.useState(null);
+  const [popupInfo, setPopupInfo] = React.useState<STATION | undefined>(undefined);
 
   const pins = React.useMemo(
     () =>
@@ -69,12 +71,12 @@ const MapComponent = () => {
                 // with `closeOnClick: true`
                 e.originalEvent.stopPropagation();
                 setPopupInfo(station);
-                setSelectedStation(station);
+                setSelectedStation(station.id);
               }}
             >
               <Pin
-                fill={getColorRange(station.forecast_6h[0].value)}
-                value={station.forecast_6h[0].value}
+                fill={getColorRange(station.aqi_pm2_5 || 0)}
+                value={station.aqi_pm2_5}
               />
             </Marker>
           ))
@@ -104,18 +106,18 @@ const MapComponent = () => {
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
       {pins}
-      {popupInfo && (
+      {popupInfo && ( 
         <Popup
-          anchor="top"
-          offset={20}
+          anchor="bottom-left"
+          offset={10}
           longitude={Number(popupInfo.coordinates[1])}
           latitude={Number(popupInfo.coordinates[0])}
-          onClose={() => setPopupInfo(null)}
+          onClose={() => setPopupInfo(undefined)}
         >
           <div className="flex flex-col">
-            <p className="font-bold font-sm">Estacion {popupInfo.id}</p>
-            <p className="font-bold font-xs">{popupInfo.name}</p>
-            <a>Ver estadisticas</a>
+            <p className="font-bold text-[16px] text-white">Estación {popupInfo.id}</p>
+            <p className="font-bold font-xs text-white">{popupInfo.name}</p>
+            <a><p className="text-green font-bold underline">Ver estadisticas</p></a>
           </div>
         </Popup>
       )}

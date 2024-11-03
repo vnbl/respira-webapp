@@ -23,9 +23,6 @@ dependencies:
   '@fontsource/twinkle-star':
     specifier: ^5.0.20
     version: 5.0.20
-  '@inox-tools/request-nanostores':
-    specifier: ^0.1.4
-    version: 0.1.4(astro@4.5.2)(nanostores@0.11.3)
   '@nanostores/query':
     specifier: ^0.3.4
     version: 0.3.4(nanostores@0.11.3)
@@ -35,6 +32,15 @@ dependencies:
   '@nivo/bar':
     specifier: ^0.87.0
     version: 0.87.0(react-dom@18.2.0)(react@18.2.0)
+  '@nivo/core':
+    specifier: ^0.87.0
+    version: 0.87.0(react-dom@18.2.0)(react@18.2.0)
+  '@nivo/tooltip':
+    specifier: ^0.87.0
+    version: 0.87.0(react-dom@18.2.0)(react@18.2.0)
+  '@react-spring/web':
+    specifier: ^9.7.5
+    version: 9.7.5(react-dom@18.2.0)(react@18.2.0)
   astro:
     specifier: ^4.5.2
     version: 4.5.2(typescript@5.4.2)
@@ -44,6 +50,15 @@ dependencies:
   astro-navbar:
     specifier: ^2.3.1
     version: 2.3.1
+  d3-scale:
+    specifier: ^4.0.2
+    version: 4.0.2
+  d3-shape:
+    specifier: ^3.2.0
+    version: 3.2.0
+  d3-time-format:
+    specifier: ^4.1.0
+    version: 4.1.0
   lottie-web:
     specifier: ^5.12.2
     version: 5.12.2
@@ -88,6 +103,15 @@ dependencies:
     version: 5.4.2
 
 devDependencies:
+  '@types/d3-scale':
+    specifier: ^4.0.8
+    version: 4.0.8
+  '@types/d3-shape':
+    specifier: ^3.1.6
+    version: 3.1.6
+  '@types/d3-time-format':
+    specifier: ^4.0.3
+    version: 4.0.3
   '@types/luxon':
     specifier: ^3.4.2
     version: 3.4.2
@@ -2071,35 +2095,6 @@ packages:
     dev: false
     optional: true
 
-  /@inox-tools/request-nanostores@0.1.4(astro@4.5.2)(nanostores@0.11.3):
-    resolution: {integrity: sha512-0O8vNwErp4yaJB4ProQY7pTBYc2kq78QVFozgliCHAyt5Td/7LrCJNCXuJFCswRhfWxuITLE96cuiaSf+Hyngg==}
-    peerDependencies:
-      astro: ^4
-      nanostores: ^0.11.3
-    dependencies:
-      '@inox-tools/request-state': 0.1.4(astro@4.5.2)
-      '@inox-tools/utils': 0.2.0
-      astro: 4.5.2(typescript@5.4.2)
-      astro-integration-kit: 0.16.1(astro@4.5.2)
-      nanostores: 0.11.3
-    dev: false
-
-  /@inox-tools/request-state@0.1.4(astro@4.5.2):
-    resolution: {integrity: sha512-EW4lj0Vs9on61ih87WiBFqY+kaEggw7CHbm/r2EEfWs3h9zKNhkmjAmUCopo2hLtkqLTcu652XBcYRg7JLNxzg==}
-    peerDependencies:
-      astro: ^4
-    dependencies:
-      '@inox-tools/utils': 0.2.0
-      astro: 4.5.2(typescript@5.4.2)
-      astro-integration-kit: 0.16.1(astro@4.5.2)
-      content-type: 1.0.5
-      devalue: 5.1.1
-    dev: false
-
-  /@inox-tools/utils@0.2.0:
-    resolution: {integrity: sha512-y6NVLSfK1YziAORdNoMSh+XqkZ95CDsG8rrGx1eOu3qgV9Do7Ipf82sW1d8TvbP58vJ5SnWUEO90riMcP2YjSA==}
-    dev: false
-
   /@inquirer/confirm@3.2.0:
     resolution: {integrity: sha512-oOIwPs0Dvq5220Z8lGL/6LHRTEr9TgLHmiI99Rj1PJ1p1czTys+olrgBqZk4E2qC0YTzeHprxSQmoHioVdJ7Lw==}
     engines: {node: '>=18'}
@@ -2917,7 +2912,6 @@ packages:
 
   /@types/d3-path@3.1.0:
     resolution: {integrity: sha512-P2dlU/q51fkOc/Gfl3Ul9kicV7l+ra934qBFXCFhrZMOL6du1TM0pm1ThYvENukyOn5h9v+yMJ9Fn5JK4QozrQ==}
-    dev: false
 
   /@types/d3-scale-chromatic@3.0.3:
     resolution: {integrity: sha512-laXM4+1o5ImZv3RpFAsTRn3TEkzqkytiOY0Dz0sq5cnd1dtNlk6sHLon4OvqaiJb28T0S/TdsBI3Sjsy+keJrw==}
@@ -2927,13 +2921,11 @@ packages:
     resolution: {integrity: sha512-gkK1VVTr5iNiYJ7vWDI+yUFFlszhNMtVeneJ6lUTKPjprsvLLI9/tgEGiXJOnlINJA8FyA88gfnQsHbybVZrYQ==}
     dependencies:
       '@types/d3-time': 3.0.3
-    dev: false
 
   /@types/d3-shape@3.1.6:
     resolution: {integrity: sha512-5KKk5aKGu2I+O6SONMYSNflgiP0WfZIQvVUMan50wHsLG1G94JlxEVnCpQARfTtzytuY0p/9PXXZb3I7giofIA==}
     dependencies:
       '@types/d3-path': 3.1.0
-    dev: false
 
   /@types/d3-time-format@2.3.4:
     resolution: {integrity: sha512-xdDXbpVO74EvadI3UDxjxTdR6QIxm1FKzEA/+F8tL4GWWUg/hgvBqf6chql64U5A9ZUGWo7pEu4eNlyLwbKdhg==}
@@ -2943,13 +2935,16 @@ packages:
     resolution: {integrity: sha512-or9DiDnYI1h38J9hxKEsw513+KVuFbEVhl7qdxcaudoiqWWepapUen+2vAriFGexr6W5+P4l9+HJrB39GG+oRg==}
     dev: false
 
+  /@types/d3-time-format@4.0.3:
+    resolution: {integrity: sha512-5xg9rC+wWL8kdDj153qZcsJ0FWiFt0J5RB6LYUNZjwSnesfblqrI/bJ1wBdJ8OQfncgbJG5+2F+qfqnqyzYxyg==}
+    dev: true
+
   /@types/d3-time@1.1.4:
     resolution: {integrity: sha512-JIvy2HjRInE+TXOmIGN5LCmeO0hkFZx5f9FZ7kiN+D+YTcc8pptsiLiuHsvwxwC7VVKmJ2ExHUgNlAiV7vQM9g==}
     dev: false
 
   /@types/d3-time@3.0.3:
     resolution: {integrity: sha512-2p6olUZ4w3s+07q3Tm2dbiMZy5pCDfYwtLXXHUnVzXgQlZ/OyPtUz6OL382BkOuGlLXqfT+wqv8Fw2v8/0geBw==}
-    dev: false
 
   /@types/debug@4.1.12:
     resolution: {integrity: sha512-vIChWdVG3LG1SMxEvI/AK+FWJthlrqlTu7fbrlywTkkaONwk/UAGaULXRlf8vkzFBLVm0zkMdCquhL5aOjhXPQ==}
@@ -3497,23 +3492,6 @@ packages:
   /assign-symbols@1.0.0:
     resolution: {integrity: sha512-Q+JC7Whu8HhmTdBph/Tq59IoRtoy6KAm5zzPv00WdujX82lbAL8K7WVjne7vdCsAmbF4AYaDOPyO3k0kl8qIrw==}
     engines: {node: '>=0.10.0'}
-    dev: false
-
-  /ast-types@0.16.1:
-    resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
-    engines: {node: '>=4'}
-    dependencies:
-      tslib: 2.7.0
-    dev: false
-
-  /astro-integration-kit@0.16.1(astro@4.5.2):
-    resolution: {integrity: sha512-N/iam0PAFrRT9azYZqscP1HowQhC77Dwlp912P0/72k+kwUVgO3m73F26XXukHYoZBsrHgrUrfsWBxuCH3kEUg==}
-    peerDependencies:
-      astro: ^4.12.0
-    dependencies:
-      astro: 4.5.2(typescript@5.4.2)
-      pathe: 1.1.2
-      recast: 0.23.9
     dev: false
 
   /astro-integration-lottie@0.3.1(lottie-web@5.12.2):
@@ -4132,11 +4110,6 @@ packages:
       typedarray: 0.0.6
     dev: false
 
-  /content-type@1.0.5:
-    resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
-    engines: {node: '>= 0.6'}
-    dev: false
-
   /convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
@@ -4345,7 +4318,7 @@ packages:
       d3-format: 1.4.5
       d3-interpolate: 3.0.1
       d3-time: 3.1.0
-      d3-time-format: 2.3.0
+      d3-time-format: 4.1.0
     dev: false
 
   /d3-shape@1.3.7:
@@ -4371,6 +4344,13 @@ packages:
     resolution: {integrity: sha512-UXJh6EKsHBTjopVqZBhFysQcoXSv/5yLONZvkQ5Kk3qbwiUYkdX17Xa1PT6U1ZWXGGfB1ey5L8dKMlFq2DO0Ag==}
     dependencies:
       d3-time: 1.1.0
+    dev: false
+
+  /d3-time-format@4.1.0:
+    resolution: {integrity: sha512-dJxPBlzC7NugB2PDLwo9Q8JiTR3M3e4/XANkreKSUxF8vvXKqm1Yfq4Q5dl8budlunRVlUUaDUgFt7eA8D6NLg==}
+    engines: {node: '>=12'}
+    dependencies:
+      d3-time: 3.1.0
     dev: false
 
   /d3-time@1.1.0:
@@ -4526,10 +4506,6 @@ packages:
 
   /devalue@4.3.3:
     resolution: {integrity: sha512-UH8EL6H2ifcY8TbD2QsxwCC/pr5xSwPvv85LrLXVihmHVC3T3YqTCIwnR5ak0yO1KYqlxrPVOA/JVZJYPy2ATg==}
-    dev: false
-
-  /devalue@5.1.1:
-    resolution: {integrity: sha512-maua5KUiapvEwiEAe+XnlZ3Rh0GD+qI1J/nb9vrJc3muPXvcF/8gXYTWF76+5DAqHyDUtOIImEuo0YKE9mshVw==}
     dev: false
 
   /devlop@1.1.0:
@@ -7457,10 +7433,6 @@ packages:
   /path-to-regexp@6.3.0:
     resolution: {integrity: sha512-Yhpw4T9C6hPpgPeA28us07OJeqZ5EzQTkbfwuhsUg0c237RomFoETJgmp2sa3F/41gfLE6G5cqcYwznmeEeOlQ==}
 
-  /pathe@1.1.2:
-    resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
-    dev: false
-
   /pbf@3.3.0:
     resolution: {integrity: sha512-XDF38WCH3z5OV/OVa8GKUNtLAyneuzbCisx7QUCF8Q6Nutx0WnJrQe5O+kOtBlLfRNUws98Y58Lblp+NJG5T4Q==}
     hasBin: true
@@ -7950,17 +7922,6 @@ packages:
     engines: {node: '>=8.10.0'}
     dependencies:
       picomatch: 2.3.1
-    dev: false
-
-  /recast@0.23.9:
-    resolution: {integrity: sha512-Hx/BGIbwj+Des3+xy5uAtAbdCyqK9y9wbBcDFDYanLS9JnMqf7OeF87HQwUimE87OEc72mr6tkKUKMBBL+hF9Q==}
-    engines: {node: '>= 4'}
-    dependencies:
-      ast-types: 0.16.1
-      esprima: 4.0.1
-      source-map: 0.6.1
-      tiny-invariant: 1.3.3
-      tslib: 2.7.0
     dev: false
 
   /regenerate-unicode-properties@10.2.0:
@@ -9066,10 +9027,6 @@ packages:
     dependencies:
       readable-stream: 2.3.8
       xtend: 4.0.2
-    dev: false
-
-  /tiny-invariant@1.3.3:
-    resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
     dev: false
 
   /tinycolor2@1.6.0:

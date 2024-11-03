@@ -12,8 +12,9 @@ import { Image } from "astro:assets";
 import { HOME_IMAGES } from "../data/images";
 import BackTop from "../components/atoms/BackTop.astro";
 import Typography from "../components/atoms/Typography.astro";
-import Slider from "../components/data-viz/Slider.astro";
-import { getAQIIndex } from "../utils";
+
+const { url } = Astro.request
+console.log(url)
 ---
 
 <BaseLayout>
@@ -28,9 +29,10 @@ import { getAQIIndex } from "../utils";
       />
     </div>
   </Map>
-  <Card />
-  <div class="w-full flex flex-col md:flex-row p-8 md:p-12">
-    <div class="hidden md:w-1/2 md:mt-64 pt-8 space-y-4 md:pr-20 md:block">
+  <div class="bg-black absolute top-10 right-10 h-10 rounded-lg"><p>Recomendaciones</p> </div> 
+  <div class="md:absolute top-0  w-full md:w-1/2 pointer-events-none">
+    <Card />
+    <div class="hidden px-10 mt-16 space-y-4 md:pr-20 md:block">
       <Typography variant="p">
         La contaminación por partículas puede ocasionar problemas de salud
         graves, como ataques de asma, ataques cardíacos, derrames cerebrales y
@@ -53,6 +55,9 @@ import { getAQIIndex } from "../utils";
         }
       </div>
     </div>
+  </div>
+  <div class="w-full flex flex-col md:flex-row p-8 md:p-12">
+    <div class="md:w-1/2 hidden md:block"/>
     <div class="md:w-1/2">
       <Typography variant="h1" color="gray"
         >Índice de calidad del aire (AQI)</Typography

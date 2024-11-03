@@ -4,20 +4,22 @@ import { useStore } from "@nanostores/react";
 import { region } from "../../store/map";
 import { BarChart as Chart } from "./BarChartNivo";
 import { Slider } from "./Slider";
-import {AQICard} from "./AQICardReactive"
+import { AQICard } from "./AQICardReactive";
 import { isBackendAvailable } from "../../store/store";
 import { selectedStation } from "../../store/map";
-import {AQI} from "../../data/cards";
-import { getAQIIndex } from '../../utils';
+import { AQI } from "../../data/cards";
+import { getAQIIndex } from "../../utils";
 
 export const Card = (props) => {
   const backendAvailable = useStore(isBackendAvailable);
   const station = useStore(selectedStation);
   const data = useStore(region);
-  console.log(data, station)
 
   return (
-    <div className="bg-white min-h-[calc(100%-6rem)] md:w-1/3 md:absolute md:top-0 rounded-xl z-20 md:ml-8 md:mt-8 drop-shadow-lg flex flex-col p-8 space-y-4">
+    <div
+      className={`bg-white w-full md:w-2/3 rounded-xl z-20 md:ml-8 md:mt-8 drop-shadow-lg flex flex-col p-8 space-y-6 pointer-events-auto`}
+      style={{ minHeight: "calc(100vh-10%)" }}
+    >
       {!backendAvailable && (
         <div className="w-full h-full content-center justify-center">
           <p className="font-bold text-lg text-center">
@@ -28,10 +30,15 @@ export const Card = (props) => {
       {backendAvailable && data && (
         <>
           {props.header}
-          <div className="mt-6">
-            <Slider value={station ? station.aqi_level : data.aqi} />
+          <h6 className="text-lg font-bold w-auto text-center font-serif">
+            {!station ? "Media General" : station.name}
+          </h6>
+          <div >
+            <Slider value={station ? station.aqi : data.aqi} />
             <div className="mt-6">
-              <AQICard card={AQI[getAQIIndex(station? station.aqi_level : data?.aqi || 0)]} />
+              <AQICard
+                card={AQI[getAQIIndex(station ? station.aqi : data?.aqi || 0)]}
+              />
             </div>
           </div>
           {props.header_forecast_six}

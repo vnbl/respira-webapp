@@ -3,15 +3,15 @@ import SliderPin from "../react/SliderPin";
 import { getAQIIndex, getColorRange } from "../../utils";
 
 
-const calculateOffset = (value) => {
+const calculateOffset = (value:number) => {
   const index = getAQIIndex(value);
   return index * (100 / 6) + 8;
 };
 
-export const Slider = ({ value }) => {
+export const Slider = ({ value }: {value: number}) => {
   return (
     <>
-      <div className={"flex flex-row fixed w-[86%] -mt-6"}>
+      <div className={"flex flex-row fixed w-[86%] -mt-5"}>
         <div
           style={{
             width: `calc(${calculateOffset(value)}% - 15px)`,

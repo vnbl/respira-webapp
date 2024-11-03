@@ -8,7 +8,6 @@ import { data, error, loading, region, selectedStation } from "../../store/map";
 import { getAQIIndex } from "../../utils";
 import { Card as ReactCard } from "../react/Card";
 
-console.log(selectedStation);
 ---
 
 <ReactCard client:only>
@@ -16,9 +15,6 @@ console.log(selectedStation);
     <Typography variant="h4" customClass="w-auto text-center"
       >¿Cómo está el aire ahora?</Typography
     >
-    <Typography variant="h6" customClass="text-lg font-bold w-auto text-center">
-      {!selectedStation.get() ? "Media General" : selectedStation.get().name}
-    </Typography>
   </div>
   <div slot="header_forecast_six">
     <Typography variant="h4" customClass="w-auto text-center mt-4">

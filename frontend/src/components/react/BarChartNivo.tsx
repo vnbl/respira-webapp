@@ -2,10 +2,14 @@ import React from "react";
 
 import { AQI_COLORS, AQI_RANGES } from "../../data/constants";
 import { getAQIIndex } from "../../utils";
-import { ResponsiveBar } from "@nivo/bar";
+import { ResponsiveBar, type BarCustomLayerProps} from "@nivo/bar";
 import moment from "moment";
+import { timeFormat } from "d3-time-format";
+import { scaleTime } from "d3-scale";
+import { BarItem } from "./BarItem";
 
-const getColorRange = (aqi) => AQI_COLORS[getAQIIndex(aqi)];
+
+const getColorRange = (aqi:number) => AQI_COLORS[getAQIIndex(aqi)];
 
 const customTooltip = ({ id, value, color }) => (
   <div className="bg-black p-2 rounded flex flex-col text-white font-serif">
@@ -14,32 +18,70 @@ const customTooltip = ({ id, value, color }) => (
 );
 
 export const BarChart = ({ data }: any) => {
-  console.log(data)
-  const maxValue = React.useMemo((d)=> {
-    return Math.max(...data.map(d=>d.value))
-  }, [data])
-  console.log(maxValue)
+  const maxValue = React.useMemo(
+    () => {
+      return Math.max(...data.map((d:any) => d.value));
+    },
+    [data]
+  );
+
+  const formatter = timeFormat("%I %p");
+  const timeScaleTicks: string[] = React.useMemo(() => {
+    const scale = scaleTime().domain([new Date(data[0].timestamp), new Date(data[data.length-1].timestamp)]);
+    const ticks = scale.ticks(data.length > 6 ? 6 : 10);
+    return ticks.map((tick) => formatter(tick));
+  }, data);
+  // const TopLine = ({series, slices}: BarCustomLayerProps<Number>) => {
+  //   return (
+  //     <g>
+  //       {rects.map((rect) => (
+  //         <rect
+  //           key={rect.id}
+  //           x={rect.x}
+  //           y={0}
+  //           width={rect.width}
+  //           height={rect.height}
+  //           style={{
+  //             fill: '#fafafa',
+  //           }}
+  //         />
+  //       ))}
+  //     </g>
+  //   )
+  // }
+
   return (
     <ResponsiveBar
       data={data}
-      valueScale={{ type: "symlog" }}
-      padding={0.1}
       motionConfig="wobbly"
       keys={["value"]}
       indexBy="timestamp"
+      padding={0.05}
+      barComponent={BarItem}
       enableGridY={false}
-      colors={(datum) => getColorRange(datum.value)}
+      colors={(datum) => getColorRange(datum.value || 0)}
       enableLabel={false}
+      margin={{ top: maxValue > 300 ? 30 : 15, right: 0, bottom: 25, left: 0 }}
       axisLeft={null}
       minValue={0}
-      maxValue={600}
+      maxValue={maxValue}
       enableTotals={true}
       totalsOffset={10}
       tooltip={(d) => customTooltip(d)}
+      valueScale={{
+        type: "symlog",
+        min: 0 ,
+        max: 400,
+      }}
+      valueFormat={(value) => Math.round(value).toString()}
       axisBottom={{
-        tickSize: 60,
+        tickSize: 5,
         tickPadding: 5,
         tickRotation: 0,
+        format: (val) => { 
+          const formatted = formatter(new Date(val));
+          return timeScaleTicks.includes(formatted) ? formatted: '' 
+        },
       }}
       theme={{
         text: {
