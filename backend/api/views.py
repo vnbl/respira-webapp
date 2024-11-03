@@ -149,6 +149,11 @@ class StationViewset(ModelViewSet):
     serializer_class = StationSerializer
     http_method_names = ['get']
 
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
     @action(detail=True, methods=['get'])
     def forecast(self, request, *args, **kwargs):
         station = self.get_object()
