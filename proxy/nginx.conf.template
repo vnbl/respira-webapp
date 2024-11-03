@@ -35,7 +35,7 @@ http {
         ssl_certificate /etc/nginx/ssl/live/$CERT_NAME/fullchain.pem;
         ssl_certificate_key /etc/nginx/ssl/live/$CERT_NAME/privkey.pem;
 
-        location / {
+        location /api/ {
             proxy_set_header Host $http_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
@@ -44,11 +44,14 @@ http {
         }
 
         location /pipeline/ {
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
             proxy_set_header Host $http_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
             proxy_set_header X-Forwarded-Proto $scheme;
-            proxy_pass http://pipeline:${PIPELINE_PORT}/; # Ensure to match the correct port
+            proxy_pass http://$PIPELINE_HOST:$PIPELINE_PORT;
         }
     }
 }
