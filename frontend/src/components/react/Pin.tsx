@@ -8,7 +8,7 @@ const pinStyle = {
 
 const Pin = ({ size = 100, fill, value }) => {
   return (
-    <svg height={size} viewBox="0 0 102 103" style={pinStyle}>
+    <svg height={size} width={100} viewBox="0 0 102 103" style={pinStyle}>
       <g filter="url(#filter0_d_247_35929)">
         <circle
           cx="51"

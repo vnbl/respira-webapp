@@ -4,21 +4,19 @@ import Map, {
   NavigationControl,
   Marker,
   Popup,
+  useMap
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "@nanostores/react";
 import {
   stations,
   setSelectedStation,
-  fetchStations,
   type STATION,
-  type STATION_FORECAST,
 } from "../../store/map";
 import Pin from "./Pin";
 
-import { AQI_COLORS } from "../../data/constants";
-import { getAQIIndex,getColorRange } from "../../utils";
-import { isBackendAvailable } from "../../store/store";
+import { getColorRange } from "../../utils";
+import { MapTooltip } from "./MapTooltip";
 
 
 function debounce(fn: any, ms: number) {
@@ -33,8 +31,8 @@ function debounce(fn: any, ms: number) {
 }
 
 const MapComponent = () => {
-  const backendIsAvailable = useStore(isBackendAvailable);
   const data = useStore(stations);
+  const {current: map} = useMap();
 
   const [dimensions, setDimensions] = React.useState({
     height: window.innerHeight,
@@ -105,7 +103,7 @@ const MapComponent = () => {
       onClick={() => setSelectedStation(undefined)}
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
-      {pins}
+      {data && pins}
       {popupInfo && ( 
         <Popup
           anchor="bottom-left"
@@ -123,6 +121,7 @@ const MapComponent = () => {
       )}
       <GeolocateControl position="bottom-right" />
       <NavigationControl position="bottom-right" />
+      <MapTooltip />
     </Map>
   );
 };

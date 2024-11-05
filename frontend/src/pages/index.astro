@@ -12,13 +12,11 @@ import { Image } from "astro:assets";
 import { HOME_IMAGES } from "../data/images";
 import BackTop from "../components/atoms/BackTop.astro";
 import Typography from "../components/atoms/Typography.astro";
-
-const { url } = Astro.request
-console.log(url)
+import {MapTooltip} from "../components/react/MapTooltip.tsx"
 ---
 
 <BaseLayout>
-  <Map client:only="react">
+  <Map client:only="react" >
     <div
       slot="fallback"
       class="w-full h-4/6 justify-center content-center flex"
@@ -29,7 +27,6 @@ console.log(url)
       />
     </div>
   </Map>
-  <div class="bg-black absolute top-10 right-10 h-10 rounded-lg"><p>Recomendaciones</p> </div> 
   <div class="md:absolute top-0  w-full md:w-1/2 pointer-events-none">
     <Card />
     <div class="hidden px-10 mt-16 space-y-4 md:pr-20 md:block">
