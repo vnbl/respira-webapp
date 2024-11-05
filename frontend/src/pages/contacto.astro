@@ -1,13 +1,6 @@
 ---
-import {
-  Bind,
-  BindForm,
-  BButton,
-  BInput,
-  BSelect,
-  BOption,
-  BTextarea,
-} from "@astro-utils/forms/forms.js";
+export const prerender = false
+
 import { actions, getActionProps, FormData } from "astro:actions";
 
 import BaseLayout from "../layouts/BaseLayout.astro";
@@ -47,6 +40,20 @@ import { sendMail } from "../utils/send_mail";
 // }
 ---
 
+<script>
+  import { actions } from 'astro:actions';
+  import { navigate } from 'astro:transitions/client';
+
+  const form = document.querySelector('form');
+  form?.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const formData = new FormData(form);
+    console.log(formData  )
+    const { error } = await actions.sendMail(formData);
+    // if (!error) navigate('/confirmation');
+  })
+</script>
+
 <BaseLayout>
   <section class="flex flex-col md:flex-row px-16 p-20">
     <div class="md:w-1/2">
@@ -58,26 +65,22 @@ import { sendMail } from "../utils/send_mail";
       <div class="md:mr-8 gap-2 flex flex-col my-8">
         <form
           class="md:mr-8 gap-2 flex flex-col my-8"
-          method="POST"
-          onSubmit={async (e) => {
-            e.preventDefault();
-            const formData = new FormData(e.target as HTMLFormElement);
-            const result = await actions.sendMail(formData);
-          }}
         >
           <div class="mb-4 flex flex-col md:flex-row gap-4">
             <div class="w-full">
               <label
                 class="block text-gray-700 text-sm font-bold mb-2"
-                for="username"
+                for="name"
               >
-                Nombre
+                Nombre*
               </label>
               <input
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-                id="username"
+                id="name"
+                name="name"
                 type="text"
                 placeholder="Nombre"
+                required
               />
             </div>
             <div class="w-full">
@@ -91,6 +94,7 @@ import { sendMail } from "../utils/send_mail";
                 class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
                 id="lastname"
                 type="text"
+                name="lastname"
                 placeholder="Apellido"
               />
             </div>
@@ -99,24 +103,28 @@ import { sendMail } from "../utils/send_mail";
             class="block text-gray-700 text-sm font-bold mb-2"
             for="lastname"
           >
-            Correo
+            Correo*
           </label>
           <input
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="email"
             type="text"
+            name="email"
             placeholder="Correo"
+            required
           />
           <label
             class="block text-gray-700 text-sm font-bold mb-2"
-            for="lastname"
+            for="motive"
           >
-            Motivo
+            Motivo*
           </label>
           <div class="relative">
             <select
               class="block appearance-none w-full bg-gray-200 border border-gray-200 text-gray-700 py-3 px-4 pr-8 rounded leading-tight focus:outline-none focus:bg-white focus:border-gray-500"
-              id="grid-state"
+              id="motive"
+              required
+              name="motive"
             >
               <option>Solicitar datos de la red</option>
               <option>Colaboración en investigación</option>
@@ -139,14 +147,16 @@ import { sendMail } from "../utils/send_mail";
           </div>
           <label
             class="block text-gray-700 text-sm font-bold mb-2"
-            for="lastname"
+            for="message"
           >
-            Mensaje
+            Mensaje*
           </label>
           <textarea
             class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
             id="message"
             placeholder="Escribe tu mensaje..."
+            required
+            name="message"
             rows="8"></textarea>
           <Button text="Enviar" variant="color" />
         </form>

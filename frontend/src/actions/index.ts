@@ -1,4 +1,5 @@
-import { defineAction, z } from "astro:actions";
+import { defineAction } from "astro:actions";
+import { z } from 'astro:schema';
 
 export const server = {
   sendMail: defineAction({
@@ -13,6 +14,7 @@ export const server = {
     handler: async ({ email, name, lastname, motive, message }) => {
       console.log({ email, name, lastname, motive, message })
       // call a mailing service, or store to a database
+      
       return { success: true };
     },
   }),
