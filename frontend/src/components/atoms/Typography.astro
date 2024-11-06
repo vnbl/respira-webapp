@@ -1,6 +1,6 @@
 ---
 interface Props {
-  variant: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "label" | "p" | "p-sm" | "nav"
+  variant: "h1" | "h2" | "h3" | "h4" | "h5" | "h6" | "label" | "p" | "p-sm" | "nav" | "h5-2"
   color?: string
   customClass?:string
 }
@@ -41,24 +41,31 @@ const { variant, color, customClass = "" } = Astro.props;
 
 {
     variant === 'p' && (
-        <h6 class={`font-sans text-[1rem] text-${color || "black"} ` + customClass}><slot/></h6>
+        <p class={`font-sans text-[1rem] text-${color || "black"} ` + customClass}><slot/></p>
     )
 }
 
 {
     variant === 'label' && (
-        <h6 class={"font-sans text-[1rem] font-semibold italic " + customClass}><slot/></h6>
+        <p class={"font-sans text-[1rem] font-semibold italic " + customClass}><slot/></p>
     )
 }
 
 {
     variant === 'p-sm' && (
-        <h6 class={`font-sans text-[0.75rem] text-${color || "black"} ` + customClass}><slot/></h6>
+        <p class={`font-sans text-[0.75rem] text-${color || "black"} ` + customClass}><slot/></p>
     )
 }
 
 {
     variant === 'nav' && (
         <h6 class={`font-serif font-bold text-[1rem] text-${color || "black"} ` + customClass}><slot/></h6>
+    )
+}
+
+
+{
+    variant === 'h5-2' && (
+        <h5 class={`font-serif font-bold text-[1.25rem] text-${color ? color : "black"}  `+ customClass}><slot/></h5>
     )
 }

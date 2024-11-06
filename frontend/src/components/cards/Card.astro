@@ -1,0 +1,38 @@
+---
+import Slider from "../data-viz/Slider.astro";
+import AQICard from "../data-viz/AQICard.astro";
+import { AQI } from "../../data/cards";
+import Typography from "../atoms/Typography.astro";
+import Button from "../atoms/Button.astro";
+import { data, error, loading, region, selectedStation } from "../../store/map";
+import { getAQIIndex } from "../../utils";
+import { Card as ReactCard } from "../react/Card";
+
+---
+
+<ReactCard client:only>
+  <div slot="header">
+    <Typography variant="h4" customClass="w-auto text-center"
+      >¿Cómo está el aire ahora?</Typography
+    >
+  </div>
+  <div slot="header_forecast_six">
+    <Typography variant="h4" customClass="w-auto text-center mt-4">
+      Pronóstico
+    </Typography>
+    <Typography variant="h5-2" color="gray" customClass="mt-2"
+      >Próximas 6 hs</Typography
+    >
+  </div>
+  <div slot="header_forecast_twelve">
+    <Typography variant="h5-2" color="gray" customClass="mt-2"
+      >Próximas 12 hs</Typography
+    >
+  </div>
+  <div slot="action" class="mt-8">
+    <Button variant="color" text="Recomendaciones por Nivel" />
+    <Typography variant="p" customClass="text-green text-center font-bold"
+      >Compartir</Typography
+    >
+  </div>
+</ReactCard>
