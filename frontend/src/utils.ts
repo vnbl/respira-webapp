@@ -1,4 +1,3 @@
-import { isBackendAvailable } from './store/store';
 
 import {AQI_COLORS} from "./data/constants"
 
@@ -21,7 +20,7 @@ export const getAQIIndex = (aqi: number): number => {
     return AQIIndex
 }
 
-export const getColorRange = (aqi) => AQI_COLORS[getAQIIndex(aqi)];
+export const getColorRange = (aqi:number) => AQI_COLORS[getAQIIndex(aqi)];
 
 
 export const getTextColor = (bg: string) => {

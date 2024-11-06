@@ -88,6 +88,7 @@ export const menu: MenuItem[] = [
 export const FOOTER_MENU: MenuItem[] = [
   {
     title: "Recursos",
+    id: "resource-menu",
     route: [
       {
         title: "Mapa",
@@ -107,11 +108,13 @@ export const FOOTER_MENU: MenuItem[] = [
       {
         title: "Github",
         route: GITHUB_URL,
+        id:"github"
       },
     ],
   },
   {
     title: "El proyecto",
+    id: "project-menu",
     route: [
       {
         title: "Sobre el proyecto",

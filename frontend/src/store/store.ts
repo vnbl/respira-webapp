@@ -1,4 +1,4 @@
-import { atom, computed, task, onMount } from 'nanostores';
+import { atom, task, onMount } from 'nanostores';
 import { allTasks } from 'nanostores'
 
 export const backendHealthCheck= async () => {

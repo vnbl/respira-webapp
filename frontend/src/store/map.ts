@@ -1,6 +1,5 @@
 import { atom, computed, task, type Task} from "nanostores";
 import { isBackendAvailable } from "./store";
-import { createFetcherStore } from "./fetcher";
 import { EXCLUDED_STATIONS } from "../data/constants";
 
 

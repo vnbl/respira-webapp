@@ -1,5 +1,5 @@
 import * as React from "react";
-import { getAQIIndex, getColorRange } from "../../utils";
+import { getAQIIndex } from "../../utils";
 import { AQI } from "../../data/cards";
 import { useStore } from "@nanostores/react";
 import { region } from "../../store/map";
