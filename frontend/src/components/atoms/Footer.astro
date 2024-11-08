@@ -48,14 +48,14 @@ import { FOOTER_MENU } from "../../data/menu";
                 {item.title}
               </Typography>
               {item.route.map((i) => (
-                <a href={import.meta.env.BASE_URL + i.route}>
+                <a href={import.meta.env.SITE + i.route}>
                   <p class="text-white font-sans text-lg pt-6">{i.title}</p>
                 </a>
               ))}
             </div>
           );
         } else {
-          <a href={import.meta.env.BASE_URL + item.route}>
+          <a href={import.meta.env.SITE + item.route}>
             <p class="text-white font-sans text-lg pt-6">{item.title}</p>
           </a>;
         }
