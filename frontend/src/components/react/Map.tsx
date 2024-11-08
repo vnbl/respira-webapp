@@ -4,7 +4,6 @@ import Map, {
   NavigationControl,
   Marker,
   Popup,
-  useMap
 } from "react-map-gl/maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useStore } from "@nanostores/react";
@@ -32,7 +31,6 @@ function debounce(fn: any, ms: number) {
 
 const MapComponent = () => {
   const data = useStore(stations);
-  const {current: map} = useMap();
 
   const [dimensions, setDimensions] = React.useState({
     height: window.innerHeight,

@@ -2,7 +2,7 @@
 interface Props {
   text: string;
   variant: "color" | "void";
-  onclick?: (() => void) | string;
+  onclick?: null | undefined | string;
 }
 
 const { text, variant, onclick } = Astro.props;
@@ -24,7 +24,7 @@ const { text, variant, onclick } = Astro.props;
   variant === "void" && (
     <button
       class={
-        "font-bold py-2 px-6 rounded-md text-sm border text-black font-semibold py-2 px-6 rounded-md text-sm"
+        "border text-black font-semibold py-2 px-6 rounded-md text-sm"
       }
       onclick={onclick}
     >

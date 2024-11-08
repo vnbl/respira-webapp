@@ -1,9 +1,8 @@
 import React from "react";
 
-import { AQI_COLORS, AQI_RANGES } from "../../data/constants";
+import { AQI_COLORS } from "../../data/constants";
 import { getAQIIndex } from "../../utils";
-import { ResponsiveBar, type BarCustomLayerProps} from "@nivo/bar";
-import moment from "moment";
+import { ResponsiveBar} from "@nivo/bar";
 import { timeFormat } from "d3-time-format";
 import { scaleTime } from "d3-scale";
 import { BarItem } from "./BarItem";
@@ -11,9 +10,9 @@ import { BarItem } from "./BarItem";
 
 const getColorRange = (aqi:number) => AQI_COLORS[getAQIIndex(aqi)];
 
-const customTooltip = ({ id, value, color }) => (
+const customTooltip = ({ value } : {value:number}) => (
   <div className="bg-black p-2 rounded flex flex-col text-white font-serif">
-    <p className="text-xs">Min: {value}</p>
+    <p className="text-xs">{value}</p>
   </div>
 );
 

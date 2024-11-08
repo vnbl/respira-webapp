@@ -1,7 +1,8 @@
 import * as React from "react";
 import { getTextColor } from '../../utils';
+import type { AQICard as CardType } from "../../data/cards";
 
-export const AQICard = ({ card }) => {
+export const AQICard = ({ card } : {card: CardType}) => {
   return (
     <div className={`bg-${card.color} w-full  rounded-xl p-10`}>
       <div className="flex flex-row w-full min-h-20">

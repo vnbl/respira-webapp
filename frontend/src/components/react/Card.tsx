@@ -10,7 +10,7 @@ import { selectedStation } from "../../store/map";
 import { AQI } from "../../data/cards";
 import { getAQIIndex } from "../../utils";
 
-export const Card = (props) => {
+export const Card = (props:any) => {
   const backendAvailable = useStore(isBackendAvailable);
   const station = useStore(selectedStation);
   const data = useStore(region);
