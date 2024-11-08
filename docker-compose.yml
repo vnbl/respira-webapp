@@ -45,45 +45,67 @@ services:
       retries: 5
       start_period: 10s
 
-  pipeline:
-    build: ./data_retriever
+  # pipeline:
+  #   build: ./data_retriever
+  #   restart: always
+  #   environment: 
+  #     MAGE_DATA_DIR: ${MAGE_DATA_DIR} 
+  #     REQUIRE_USER_AUTHENTICATION: 1
+  #     DEFAULT_OWNER_EMAIL: ${DEFAULT_OWNER_EMAIL}
+  #     DEFAULT_OWNER_PASSWORD: ${DEFAULT_OWNER_PASSWORD}
+  #     DEFAULT_OWNER_USERNAME: ${DEFAULT_OWNER_USERNAME}
+  #     PIPELINE_PORT: ${PIPELINE_PORT}
+  #     PIPELINE_POSTGRES_USER: ${POSTGRES_USER}
+  #     PIPELINE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+  #     PIPELINE_POSTGRES_DB: ${POSTGRES_DB}
+  #     MAGE_BASE_PATH: ${MAGE_BASE_PATH}
+  #     PIPELINE_POSTGRES_HOST: db
+  #     PIPELINE_POSTGRES_PORT: ${POSTGRES_PORT}
+  #     PIPELINE_MYSQL_USER: ${MYSQL_USER}
+  #     PIPELINE_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+  #     PIPELINE_MYSQL_DB: ${MYSQL_DB}
+  #     PIPELINE_MYSQL_HOST: ${MYSQL_HOST}
+  #     PIPELINE_MYSQL_PORT: ${MYSQL_PORT}
+  #   networks:
+  #     - backend_nw
+  #     - pipeline_nw
+  #   ports:
+  #     - "${PIPELINE_PORT}:6789"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   healthcheck:
+  #     test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:${PIPELINE_PORT} | grep -q 200"]
+  #     interval: 1m30s
+  #     timeout: 30s
+  #     retries: 5
+  #     start_period: 10s
+  #   volumes:
+  #     - ./data_retriever:/app
+  #     - ${LOCAL_MAGE_DATA_DIR}:${MAGE_DATA_DIR} 
+  frontend: 
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        -  PUBLIC_REGION_DEFAULT_ID=1
+        -  PUBLIC_BACKEND_URL=${BACKEND_URL}
+        -  SITE_URL=${SITE_URL}
     restart: always
-    environment: 
-      MAGE_DATA_DIR: ${MAGE_DATA_DIR} 
-      REQUIRE_USER_AUTHENTICATION: 1
-      DEFAULT_OWNER_EMAIL: ${DEFAULT_OWNER_EMAIL}
-      DEFAULT_OWNER_PASSWORD: ${DEFAULT_OWNER_PASSWORD}
-      DEFAULT_OWNER_USERNAME: ${DEFAULT_OWNER_USERNAME}
-      PIPELINE_PORT: ${PIPELINE_PORT}
-      PIPELINE_POSTGRES_USER: ${POSTGRES_USER}
-      PIPELINE_POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      PIPELINE_POSTGRES_DB: ${POSTGRES_DB}
-      MAGE_BASE_PATH: ${MAGE_BASE_PATH}
-      PIPELINE_POSTGRES_HOST: db
-      PIPELINE_POSTGRES_PORT: ${POSTGRES_PORT}
-      PIPELINE_MYSQL_USER: ${MYSQL_USER}
-      PIPELINE_MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      PIPELINE_MYSQL_DB: ${MYSQL_DB}
-      PIPELINE_MYSQL_HOST: ${MYSQL_HOST}
-      PIPELINE_MYSQL_PORT: ${MYSQL_PORT}
+    environment:
+      PUBLIC_REGION_DEFAULT_ID: 1
+      PUBLIC_BACKEND_URL: ${BACKEND_URL}
+      FRONTEND_PORT: ${FRONTEND_PORT}
+      SITE_URL: ${SITE_URL}
     networks:
-      - backend_nw
-      - pipeline_nw
-    ports:
-      - "${PIPELINE_PORT}:6789"
-    depends_on:
-      db:
-        condition: service_healthy
+      - frontend_nw
+      - proxy_nw
     healthcheck:
-      test: ["CMD-SHELL", "curl -s -o /dev/null -w '%{http_code}' http://localhost:${PIPELINE_PORT} | grep -q 200"]
-      interval: 1m30s
-      timeout: 30s
+      test: ["CMD-SHELL", "curl --fail http://localhost:${FRONTEND_PORT} || exit 1"]
+      interval: 10s
+      timeout: 5s
       retries: 5
-      start_period: 10s
-    volumes:
-      - ./data_retriever:/app
-      - ${LOCAL_MAGE_DATA_DIR}:${MAGE_DATA_DIR} 
-
+      start_period: 10s  
   proxy:
     build: 
       context: ./proxy
@@ -95,6 +117,8 @@ services:
       PIPELINE_HOST: ${PIPELINE_HOST}
       PIPELINE_PORT: ${PIPELINE_PORT}
       CERT_NAME: ${CERT_NAME}
+      FRONTEND_HOST: frontend
+      FRONTEND_PORT: ${FRONTEND_PORT}
     ports:
       - "${PROXY_PORT}:80"
       - 443:443
@@ -107,6 +131,8 @@ services:
       - ./certbot/conf/:/etc/nginx/ssl/:ro
     depends_on:
       backend:
+        condition: service_healthy
+      frontend:
         condition: service_healthy
   
   certbot:
@@ -122,3 +148,4 @@ networks:
   backend_nw:
   proxy_nw:
   pipeline_nw:
+  frontend_nw:
