@@ -1,8 +1,8 @@
 from datetime import datetime, timedelta
 
 from django.utils import timezone
-from django.db.models import Avg, Max, OuterRef, Subquery
-from django.db.models.functions import TruncDate
+from django.db.models import Avg, Min, Max, OuterRef, Subquery
+from django.db.models.functions import TruncDate, TruncWeek, TruncMonth
 
 from rest_framework import status
 from rest_framework.decorators import action
@@ -10,6 +10,7 @@ from rest_framework.response import Response
 from rest_framework import generics
 
 from rest_framework.viewsets import ModelViewSet
+from statistics import median, quantiles
 
 import pandas as pd
 
@@ -168,67 +169,119 @@ class StationViewset(ModelViewSet):
             "forecast_12h": pd.DataFrame(last_inference.forecasts_12h).to_dict(orient='records')
         }, status=status.HTTP_200_OK)
 
+    # @action(detail=True, methods=['get'])
+    # def history(self, request, *args, **kwargs):
+    #     station = self.get_object()
+
+    #     metric = request.query_params.get('metric', 'aqi_pm2_5')
+        
+    #     if metric == 'pm2_5':
+    #         field = 'pm2_5'
+    #         avg_field = 'pm2_5_avg'
+        
+    #     else:
+    #         field = 'aqi_pm2_5'
+    #         avg_field = 'aqi_pm2_5_avg'
+
+    #     # Define the time ranges
+    #     one_day_ago = timezone.now() - timedelta(days=1)
+    #     seven_days_ago = timezone.now() - timedelta(days=7)
+    #     thirty_days_ago = timezone.now() - timedelta(days=30)
+
+    #     # Get the last 30 days
+    #     history_readings = StationReadingsGold.objects.filter(
+    #         station_id=station.id,
+    #         date_utc__gte=thirty_days_ago
+    #     ).order_by('-date_utc')
+
+    #     # Filter: last 24 hours
+    #     historical_1d = history_readings.filter(date_utc__gte=one_day_ago) \
+    #                             .values('date_utc', field) \
+    #                             .order_by('date_utc')
+
+    #     historical_1d = [{'value': entry[field], 'timestamp': entry['date_utc'].strftime('%Y-%m-%d %H:%M:%S')} for entry in historical_1d]
+
+    #     # Filter: last 7 days (group by day and aggregate)
+    #     historical_7d = history_readings.filter(date_utc__gte=seven_days_ago) \
+    #                             .annotate(day=TruncDate('date_utc')) \
+    #                             .values('day') \
+    #                             .annotate(avg_value=Avg(field)) \
+    #                             .order_by('day')
+
+    #     historical_7d = [{'value': entry['avg_value'], 'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00')} for entry in historical_7d]
+
+    #     # Filter: last 30 days (group by day and aggregate)
+    #     historical_30d = history_readings \
+    #                 .annotate(day=TruncDate('date_utc')) \
+    #                 .values('day') \
+    #                 .annotate(avg_value=Avg(field)) \
+    #                 .order_by('day')
+
+    #     historical_30d = [{'value': entry['avg_value'], 'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00')} for entry in historical_30d]
+
+    #     # Prepare the data to return
+    #     history_data = {
+    #         'historical_1d': historical_1d,
+    #         'historical_7d': historical_7d,
+    #         'historical_30d': historical_30d
+    #     }
+        
+    #     serializer = HistorySerializer(data=history_data)
+
+    #     if serializer.is_valid():
+    #         return Response(serializer.data, status=status.HTTP_200_OK)
+
+    #     else:
+    #         return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        
     @action(detail=True, methods=['get'])
-    def history(self, request, *args, **kwargs):
+    def boxplot(self, request, *args, **kwargs):
         station = self.get_object()
+        period = request.query_params.get('period', '7d')
 
-        metric = request.query_params.get('metric', 'aqi_pm2_5')
-        
-        if metric == 'pm2_5':
-            field = 'pm2_5'
-            avg_field = 'pm2_5_avg'
-        
+        now = timezone.now()
+        if period == '7d':
+            start_date = now - timedelta(days=7)
+            trunc_func = TruncDate
+        elif period == '30d':
+            start_date = now - timedelta(days=30)
+            trunc_func = TruncWeek
+        elif period == '1y':
+            start_date = now - timedelta(days=365)
+            trunc_func = TruncMonth
         else:
-            field = 'aqi_pm2_5'
-            avg_field = 'aqi_pm2_5_avg'
+            return Response({"error": "Invalid period. Use '7d', '30d' or '1y'."}, status=status.HTTP_400_BAD_REQUEST)
+        
+        readings = (
+            StationReadingsGold.objects.filter(station_id=station.id, date_utc__gte=start_date)
+            .annotate(period=trunc_func('date_utc'))
+            .values('period')
+            .annotate(
+                min_value=Min('aqi_pm2_5'),
+                max_value=Max('aqi_pm2_5'),
+                avg_value=Avg('aqi_pm2_5')
+            )
+            .order_by('period')
+        )
 
-        # Define the time ranges
-        one_day_ago = timezone.now() - timedelta(days=1)
-        seven_days_ago = timezone.now() - timedelta(days=7)
-        thirty_days_ago = timezone.now() - timedelta(days=30)
-
-        # Get the last 30 days
-        history_readings = StationReadingsGold.objects.filter(
-            station_id=station.id,
-            date_utc__gte=thirty_days_ago
-        ).order_by('-date_utc')
-
-        # Filter: last 24 hours
-        historical_1d = history_readings.filter(date_utc__gte=one_day_ago) \
-                                .values('date_utc', field) \
-                                .order_by('date_utc')
-
-        historical_1d = [{'value': entry[field], 'timestamp': entry['date_utc'].strftime('%Y-%m-%d %H:%M:%S')} for entry in historical_1d]
-
-        # Filter: last 7 days (group by day and aggregate)
-        historical_7d = history_readings.filter(date_utc__gte=seven_days_ago) \
-                                .annotate(day=TruncDate('date_utc')) \
-                                .values('day') \
-                                .annotate(avg_value=Avg(field)) \
-                                .order_by('day')
-
-        historical_7d = [{'value': entry['avg_value'], 'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00')} for entry in historical_7d]
-
-        # Filter: last 30 days (group by day and aggregate)
-        historical_30d = history_readings \
-                    .annotate(day=TruncDate('date_utc')) \
-                    .values('day') \
-                    .annotate(avg_value=Avg(field)) \
-                    .order_by('day')
-
-        historical_30d = [{'value': entry['avg_value'], 'timestamp': entry['day'].strftime('%Y-%m-%d 00:00:00')} for entry in historical_30d]
-
-        # Prepare the data to return
-        history_data = {
-            'historical_1d': historical_1d,
-            'historical_7d': historical_7d,
-            'historical_30d': historical_30d
+        box_data = {
+            "x": [],
+            "q1": [],
+            "median": [],
+            "q3": [],
+            "lowerfence": [],
+            "upperfence": []
         }
-        
-        serializer = HistorySerializer(data=history_data)
 
-        if serializer.is_valid():
-            return Response(serializer.data, status=status.HTTP_200_OK)
+        for entry in readings:
+            values = [entry['min_value'], entry['avg_value'], entry['max_value']]
+            values.sort()
 
-        else:
-            return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            box_data["x"].append(entry['period'].strftime('%Y-%m-%d'))
+            box_data["q1"].append(quantiles(values, n=4)[0]) 
+            box_data["median"].append(median(values))
+            box_data["q3"].append(quantiles(values, n=4)[2])
+            box_data["lowerfence"].append(min(values))
+            box_data["upperfence"].append(max(values))
+
+        return Response(box_data, status=status.HTTP_200_OK)
