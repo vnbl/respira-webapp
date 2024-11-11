@@ -11,6 +11,7 @@ from rest_framework import generics
 
 from rest_framework.viewsets import ModelViewSet
 from statistics import median, quantiles
+from collections import defaultdict
 
 import pandas as pd
 
@@ -234,6 +235,7 @@ class StationViewset(ModelViewSet):
     #     else:
     #         return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
         
+
     @action(detail=True, methods=['get'])
     def boxplot(self, request, *args, **kwargs):
         station = self.get_object()
@@ -251,18 +253,16 @@ class StationViewset(ModelViewSet):
             trunc_func = TruncMonth
         else:
             return Response({"error": "Invalid period. Use '7d', '30d' or '1y'."}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         readings = (
             StationReadingsGold.objects.filter(station_id=station.id, date_utc__gte=start_date)
             .annotate(period=trunc_func('date_utc'))
-            .values('period')
-            .annotate(
-                min_value=Min('aqi_pm2_5'),
-                max_value=Max('aqi_pm2_5'),
-                avg_value=Avg('aqi_pm2_5')
-            )
-            .order_by('period')
+            .values('period', 'aqi_pm2_5')
         )
+
+        period_values = defaultdict(list)
+        for reading in readings:
+            period_values[reading['period']].append(reading['aqi_pm2_5'])
 
         box_data = {
             "x": [],
@@ -273,15 +273,19 @@ class StationViewset(ModelViewSet):
             "upperfence": []
         }
 
-        for entry in readings:
-            values = [entry['min_value'], entry['avg_value'], entry['max_value']]
-            values.sort()
+        # boxplot calculation - improved
+        for period, values in period_values.items():
+            values.sort()  
+            q1, median_val, q3 = quantiles(values, n=4)[0], median(values), quantiles(values, n=4)[2]
+            iqr = q3 - q1
+            lowerfence = max(min(values), q1 - 1.5 * iqr)
+            upperfence = min(max(values), q3 + 1.5 * iqr)
 
-            box_data["x"].append(entry['period'].strftime('%Y-%m-%d'))
-            box_data["q1"].append(quantiles(values, n=4)[0]) 
-            box_data["median"].append(median(values))
-            box_data["q3"].append(quantiles(values, n=4)[2])
-            box_data["lowerfence"].append(min(values))
-            box_data["upperfence"].append(max(values))
+            box_data["x"].append(period.strftime('%Y-%m-%d'))
+            box_data["q1"].append(q1)
+            box_data["median"].append(median_val)
+            box_data["q3"].append(q3)
+            box_data["lowerfence"].append(lowerfence)
+            box_data["upperfence"].append(upperfence)
 
         return Response(box_data, status=status.HTTP_200_OK)
