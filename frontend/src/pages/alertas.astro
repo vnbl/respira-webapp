@@ -1,23 +1,27 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Footer from "../components/atoms/Footer.astro";
-import TwitterCard from "../components/cards/TwitterCard.astro";
-import TelegramCard from "../components/cards/TelegramCard.astro";
-import Button from "../components/atoms/Button.astro";
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Footer from '../components/atoms/Footer.astro'
+import TwitterCard from '../components/cards/TwitterCard.astro'
+import TelegramCard from '../components/cards/TelegramCard.astro'
+import Button from '../components/atoms/Button.astro'
 ---
 
 <BaseLayout>
-    <script>
-        // redirect if path accessed on computer
-        if(window.innerWidth > 640) {
-            window.open(import.meta.env.SITE,"_self","")
-        }
-    </script>
-    <section class="p-6 space-y-6 flex flex-col md:hidden"  >
-        <TelegramCard />
-        <TwitterCard />
-        <Button text="Ir al mapa" variant="void" onclick=`window.open("${import.meta.env.SITE}","_self","","")`/>
-    </section>
+  <script>
+    // redirect if path accessed on computer
+    if (window.innerWidth > 640) {
+      window.open(import.meta.env.SITE, '_self', '')
+    }
+  </script>
+  <section class="flex flex-col space-y-6 p-6 md:hidden">
+    <TelegramCard />
+    <TwitterCard />
+    <Button
+      text="Ir al mapa"
+      variant="void"
+      onclick=`window.open("${import.meta.env.SITE}","_self","","")`
+    />
+  </section>
 
-    <Footer  class="md:hidden"/>
+  <Footer class="md:hidden" />
 </BaseLayout>

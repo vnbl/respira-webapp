@@ -1,25 +1,35 @@
 ---
-import type { AQICard } from "../../data/cards";
-import { getTextColor } from "../../utils";
-import Typography from "../atoms/Typography.astro";
+import type { AQICard } from '../../data/cards'
+import { getTextColor } from '../../utils'
+import Typography from '../atoms/Typography.astro'
 interface Props {
-    card: AQICard;
-    variant?: "full" | "abrev" | "other"
+  card: AQICard
+  variant?: 'full' | 'abrev' | 'other'
 }
-const { card, variant } = Astro.props;
+const { card, variant } = Astro.props
 ---
 
 <div class=`bg-${card.color} w-full  rounded-xl p-10`>
-    <div class="flex flex-row w-full min-h-20">
-        <div class="flex flex-col align-center justify-center flex-1 mr-4">
-        <p class="text-5xl text-center font-emoji">{card.icon}</p>
-        </div>
-        <div class="flex flex-col w-full justify-center">
-            <div class="flex flex-row mb-2 flex-wrap">
-                <Typography variant="h5-2" color={getTextColor(card.color)} customClass={variant && variant === "full" ? " uppercase grow" : "grow"}>{card.title}</Typography>
-                <Typography variant="h5-2" color={getTextColor(card.color)}>{card.range[0]}-{card.range[1]}</Typography>
-            </div>
-            <Typography variant="p" color={getTextColor(card.color)} >{card.description}</Typography>
-        </div>
+  <div class="flex min-h-20 w-full flex-row">
+    <div class="align-center mr-4 flex flex-1 flex-col justify-center">
+      <p class="text-center font-emoji text-5xl">{card.icon}</p>
     </div>
+    <div class="flex w-full flex-col justify-center">
+      <div class="mb-2 flex flex-row flex-wrap">
+        <Typography
+          variant="h5-2"
+          color={getTextColor(card.color)}
+          customClass={variant && variant === 'full'
+            ? ' uppercase grow'
+            : 'grow'}>{card.title}</Typography
+        >
+        <Typography variant="h5-2" color={getTextColor(card.color)}
+          >{card.range[0]}-{card.range[1]}</Typography
+        >
+      </div>
+      <Typography variant="p" color={getTextColor(card.color)}
+        >{card.description}</Typography
+      >
+    </div>
+  </div>
 </div>

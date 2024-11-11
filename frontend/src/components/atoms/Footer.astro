@@ -1,34 +1,34 @@
 ---
-import { Image } from "astro:assets";
-import { FOOTER_IMAGES, SOCIAL_MEDIA_IMAGES } from "../../data/images";
-import Typography from "./Typography.astro";
-import { CONTACT_MAIL } from "../../data/constants";
-import { FOOTER_MENU } from "../../data/menu";
+import { Image } from 'astro:assets'
+import { FOOTER_IMAGES, SOCIAL_MEDIA_IMAGES } from '../../data/images'
+import Typography from './Typography.astro'
+import { CONTACT_MAIL } from '../../data/constants'
+import { FOOTER_MENU } from '../../data/menu'
 ---
 
 <div
-  class="bg-black h-auto w-full flex md:flex-row flex-col-reverse md:p-36 p-12"
+  class="flex h-auto w-full flex-col-reverse bg-black p-12 md:flex-row md:p-36"
 >
-  <div class="flex flex-col w-full md:mr-44">
-    <p class="text-white text-xl font-bold font-serif">Una colaboración de</p>
-    <div class="grid md:divide-x text-white md:grid-cols-4 md:mt-8 max-w-sm ">
+  <div class="flex w-full flex-col md:mr-44">
+    <p class="font-serif text-xl font-bold text-white">Una colaboración de</p>
+    <div class="grid max-w-sm text-white md:mt-8 md:grid-cols-4 md:divide-x">
       {
         FOOTER_IMAGES.map((image) => (
-          <div class="first:pl-0 md:px-4 even:col-span-2 md:py-0 py-4 first:justify-start md:justify-center flex">
+          <div class="flex py-4 first:justify-start first:pl-0 even:col-span-2 md:justify-center md:px-4 md:py-0">
             <Image alt={image.alt} src={image.path} class={image.class} />
           </div>
         ))
       }
     </div>
-    <p class="text-white md:mt-4 mt-8">
+    <p class="mt-8 text-white md:mt-4">
       Escribinos a <a
         href=`https://mail.google.com/mail/?view=cm&fs=1&tf=1&to=${CONTACT_MAIL}`
         target="_blank"><b class="text-lg"><u>{CONTACT_MAIL}</u></b></a
       >
     </p>
 
-    <div class="flex flex-row gap-1 text-center  md:align-middle md:mt-4">
-      <p class="text-white text-center">Seguinos en</p>
+    <div class="flex flex-row gap-1 text-center md:mt-4 md:align-middle">
+      <p class="text-center text-white">Seguinos en</p>
       {
         SOCIAL_MEDIA_IMAGES.map((img) => (
           <a href={img.link} target="_blank">
@@ -38,26 +38,29 @@ import { FOOTER_MENU } from "../../data/menu";
       }
     </div>
   </div>
-  <div class="flex grid w-full md:grid-cols-2 py-8 gap-4">
+  <div class="flex grid w-full gap-4 py-8 md:grid-cols-2">
     {
       FOOTER_MENU.map((item) => {
-        if (typeof item.route !== "string") {
+        if (typeof item.route !== 'string') {
           return (
             <div>
-              <Typography variant="h4" customClass="text-white opacity-70 text-xl">
+              <Typography
+                variant="h4"
+                customClass="text-white opacity-70 text-xl"
+              >
                 {item.title}
               </Typography>
               {item.route.map((i) => (
                 <a href={import.meta.env.SITE + i.route}>
-                  <p class="text-white font-sans text-lg pt-6">{i.title}</p>
+                  <p class="pt-6 font-sans text-lg text-white">{i.title}</p>
                 </a>
               ))}
             </div>
-          );
+          )
         } else {
-          <a href={import.meta.env.SITE + item.route}>
-            <p class="text-white font-sans text-lg pt-6">{item.title}</p>
-          </a>;
+          ;<a href={import.meta.env.SITE + item.route}>
+            <p class="pt-6 font-sans text-lg text-white">{item.title}</p>
+          </a>
         }
       })
     }

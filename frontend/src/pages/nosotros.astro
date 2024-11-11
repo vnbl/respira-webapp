@@ -1,196 +1,185 @@
 ---
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Footer from "../components/atoms/Footer.astro";
-import BackTop from "../components/atoms/BackTop.astro";
-import { Image } from "astro:assets";
-import Typography from "../components/atoms/Typography.astro";
-import Link from "../components/atoms/Link.astro";
-import Button from "../components/atoms/Button.astro";
-import MapImage from "../assets/map.png";
-import ChartImage from "../assets/chart.png";
-import Map2Image from "../assets/map2.png";
-import GithubIcon from "../assets/logos/github_icon.svg";
-import Github from "../assets/logos/github.svg";
-import { TEAM } from "../data/team";
-import { ORGANIZATIONS } from "../data/images";
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Footer from '../components/atoms/Footer.astro'
+import BackTop from '../components/atoms/BackTop.astro'
+import { Image } from 'astro:assets'
+import Typography from '../components/atoms/Typography.astro'
+import Link from '../components/atoms/Link.astro'
+import Button from '../components/atoms/Button.astro'
+import MapImage from '../assets/map.png'
+import ChartImage from '../assets/chart.png'
+import Map2Image from '../assets/map2.png'
+import GithubIcon from '../assets/logos/github_icon.svg'
+import Github from '../assets/logos/github.svg'
+import { TEAM } from '../data/team'
+import { ORGANIZATIONS } from '../data/images'
 ---
 
 <BaseLayout>
-    <section
-        class="grid md:grid-cols-2 md:p-20 p-0 gap-12 md:my-16 place-items-center"
+  <section
+    class="grid place-items-center gap-12 p-0 md:my-16 md:grid-cols-2 md:p-20"
+  >
+    <div class="m-12 justify-stretch space-y-4 md:m-0">
+      <Typography variant="h1">Sobre Proyecto Respira</Typography>
+      <Typography variant="p"
+        >Ofrecemos al público pronósticos sobre la Calidad del Aire en Asunción
+        y su área metropolitana mediante el uso de mapas interactivos en nuestra
+        página web, y alertas diarias en nuestros canales de Telegram y X
+        (Twitter).
+      </Typography>
+      <Typography variant="p"
+        >Además de proporcionar predicciones actualizadas sobre la calidad del
+        aire, proveemos estadísticas, noticias locales sobre incendios y datos
+        abiertos sobre la calidad del aire en la ciudad desde el año 2019,
+        provenientes de la Red de Monitoreo de Calidad del Aire de la Facultad
+        de Ingeniería de la Universidad Nacional de Asunción.
+      </Typography>
+      <Typography variant="p"
+        >Nuestras tecnologías open-source brindan a los ciudadanos información
+        clave para tomar decisiones informadas sobre su salud y el medio
+        ambiente, al tiempo que fomentan la colaboración comunitaria para
+        mejorar continuamente su funcionalidad y utilidad.
+      </Typography>
+      <Link
+        text="¿Cómo puedo protegerme de la contaminación?  "
+        customClass="text-gray"
+        href={'https://www.airnow.gov/sites/default/files/2018-05/air-quality-guide_particle_SPA.pdf'}
+      />
+    </div>
+    <Image alt="Map of Asuncion" src={MapImage} loading="eager" />
+  </section>
+  <section
+    class="grid place-items-center justify-center gap-12 bg-black pb-12 md:grid-cols-2 md:px-12 md:py-32"
+  >
+    <Image alt="Forecast chart" src={ChartImage} loading="eager" />
+    <div
+      class="order-first m-12 justify-stretch space-y-4 md:order-last md:m-0"
     >
-        <div class="space-y-4 justify-stretch m-12 md:m-0">
-            <Typography variant="h1">Sobre Proyecto Respira</Typography>
-            <Typography variant="p"
-                >Ofrecemos al público pronósticos sobre la Calidad del Aire en
-                Asunción y su área metropolitana mediante el uso de mapas
-                interactivos en nuestra página web, y alertas diarias en
-                nuestros canales de Telegram y X (Twitter).
-            </Typography>
-            <Typography variant="p"
-                >Además de proporcionar predicciones actualizadas sobre la
-                calidad del aire, proveemos estadísticas, noticias locales sobre
-                incendios y datos abiertos sobre la calidad del aire en la
-                ciudad desde el año 2019, provenientes de la Red de Monitoreo de
-                Calidad del Aire de la Facultad de Ingeniería de la Universidad
-                Nacional de Asunción.
-            </Typography>
-            <Typography variant="p"
-                >Nuestras tecnologías open-source brindan a los ciudadanos
-                información clave para tomar decisiones informadas sobre su
-                salud y el medio ambiente, al tiempo que fomentan la
-                colaboración comunitaria para mejorar continuamente su
-                funcionalidad y utilidad.
-            </Typography>
-            <Link
-                text="¿Cómo puedo protegerme de la contaminación?  "
-                customClass="text-gray"
-                href={"https://www.airnow.gov/sites/default/files/2018-05/air-quality-guide_particle_SPA.pdf"}
-            />
-        </div>
-        <Image alt="Map of Asuncion" src={MapImage} loading="eager" />
-    </section>
-    <section
-        class="grid md:grid-cols-2 md:px-12 gap-12 md:py-32 place-items-center justify-center bg-black pb-12"
+      <Typography variant="h2" color="white"
+        >¿Para qué sirven los pronósticos?</Typography
+      >
+      <Typography variant="p" color="white"
+        >Muchos de nosotros miramos a diario el pronóstico del tiempo para tomar
+        decisiones sobre nuestro día a día. Por ejemplo, si el pronóstico marca
+        lluvia, salimos de casa con un paraguas, o si el día estará muy
+        caluroso, evitamos exponernos al sol en horas del mediodía.
+      </Typography>
+      <Typography variant="p" color="white"
+        >De la misma forma, el pronóstico de la Calidad del Aire sirve para que
+        las personas puedan tomar acción acerca de cómo proteger su salud
+        durante eventos de alta contaminación, ya sea evitando actividades
+        físicas extenuantes, prestando atención a síntomas de fatiga o cerrando
+        ventanas y puertas de nuestros hogares para evitar que el aire
+        contaminado ingrese.
+      </Typography>
+    </div>
+  </section>
+  <section
+    class="grid place-content-stretch place-items-start justify-center gap-12 md:grid-cols-3 md:px-16 md:py-32"
+  >
+    <div class="m-12 justify-stretch space-y-4 md:col-span-2 md:m-0">
+      <Typography variant="h2">¿Por qué es necesario este proyecto?</Typography>
+      <Typography variant="p"
+        >En Asunción, cada año se reportan más días donde frentes de humo
+        provenientes de incendios forestales y quemas agrarias ingresan a la
+        ciudad, elevando los niveles de contaminación en el aire que respiramos.
+        Los incendios forestales no son la única fuente de contaminación del
+        aire que afecta a la ciudad. Prácticas endémicas como la quema de basura
+        y el amplio uso de vehículos con combustibles Diésel de baja calidad
+        afectan la calidad de nuestro aire, y por ende la calidad de vida de la
+        población paraguaya.
+      </Typography>
+      <Typography variant="p"
+        >Ante esta realidad, los ciudadanos nos encontramos desprotegidos de los
+        efectos nocivos de la contaminación del aire. La contaminación del aire
+        causa una serie de problemas de salud, tales como:
+      </Typography>
+      <ul class="list-disc pl-4">
+        <li>Muerte temprana</li>
+        <li>Tos</li>
+        <li>Afectación de la función pulmonar</li>
+        <li>Ataques de asma</li>
+        <li>Cardiopatías</li>
+        <li>Derrames cerebrales</li>
+        <li>Muerte temprana</li>
+      </ul>
+      <Typography variant="p"
+        >Este proyecto busca brindar a los ciudadanos herramientas para tomar
+        acción y protegerse ante los efectos nocivos de la contaminación del
+        aire. Además, queremos visibilizar esta problemática y encender el
+        debate ciudadano acerca de cómo nuestras autoridades pueden promover
+        iniciativas que combatan la contaminación del aire en Paraguay y
+        aseguren el bienestar de todos los paraguayos.
+      </Typography>
+    </div>
+    <div
+      class="flex max-h-80 w-screen md:mt-8 md:max-h-svh md:w-auto md:items-center md:justify-center"
     >
-        <Image alt="Forecast chart" src={ChartImage} loading="eager" />
-        <div
-            class="space-y-4 justify-stretch m-12 md:m-0 md:order-last order-first"
-        >
-            <Typography variant="h2" color="white"
-                >¿Para qué sirven los pronósticos?</Typography
-            >
-            <Typography variant="p" color="white"
-                >Muchos de nosotros miramos a diario el pronóstico del tiempo
-                para tomar decisiones sobre nuestro día a día. Por ejemplo, si
-                el pronóstico marca lluvia, salimos de casa con un paraguas, o
-                si el día estará muy caluroso, evitamos exponernos al sol en
-                horas del mediodía.
-            </Typography>
-            <Typography variant="p" color="white"
-                >De la misma forma, el pronóstico de la Calidad del Aire sirve
-                para que las personas puedan tomar acción acerca de cómo
-                proteger su salud durante eventos de alta contaminación, ya sea
-                evitando actividades físicas extenuantes, prestando atención a
-                síntomas de fatiga o cerrando ventanas y puertas de nuestros
-                hogares para evitar que el aire contaminado ingrese.
-            </Typography>
-        </div>
-    </section>
-    <section
-        class="grid md:grid-cols-3 md:px-16 gap-12 md:py-32 place-content-stretch place-items-start justify-center"
+      <Image
+        alt="Paraguay map with question mark on asuncion"
+        loading="lazy"
+        src={Map2Image}
+        class="object-none md:object-cover"
+      />
+    </div>
+  </section>
+  <section
+    class="grid place-content-stretch place-items-center justify-center gap-12 bg-light_green p-4 md:grid-cols-3 md:px-16 md:py-32"
+  >
+    <div class="m-12 justify-stretch space-y-4 md:col-span-2 md:m-0">
+      <Image src={Github} alt="Github logo" />
+      <Typography variant="h3" customClass="pt-2"
+        >Nuestro proyecto es Open Source!</Typography
+      >
+      <Typography variant="h3"
+        >Accede a nuestro repositorio en GitHub</Typography
+      >
+      <Button variant="color" text="Ir al repositorio" />
+    </div>
+    <div class="flex md:mt-8 md:items-center md:justify-center">
+      <Image src={GithubIcon} alt="Invertocat logo" />
+    </div>
+  </section>
+  <section class="flex flex-col px-8 py-8 md:px-16">
+    <Typography variant="h2" customClass="pt-2">Colaboradores</Typography>
+    <div
+      class="grid grid-cols-1 place-content-start gap-6 py-8 md:grid-cols-4 lg:grid-cols-5"
     >
-        <div class="space-y-4 justify-stretch m-12 md:m-0 md:col-span-2">
-            <Typography variant="h2"
-                >¿Por qué es necesario este proyecto?</Typography
-            >
-            <Typography variant="p"
-                >En Asunción, cada año se reportan más días donde frentes de
-                humo provenientes de incendios forestales y quemas agrarias
-                ingresan a la ciudad, elevando los niveles de contaminación en
-                el aire que respiramos. Los incendios forestales no son la única
-                fuente de contaminación del aire que afecta a la ciudad.
-                Prácticas endémicas como la quema de basura y el amplio uso de
-                vehículos con combustibles Diésel de baja calidad afectan la
-                calidad de nuestro aire, y por ende la calidad de vida de la
-                población paraguaya.
-            </Typography>
-            <Typography variant="p"
-                >Ante esta realidad, los ciudadanos nos encontramos
-                desprotegidos de los efectos nocivos de la contaminación del
-                aire. La contaminación del aire causa una serie de problemas de
-                salud, tales como:
-            </Typography>
-            <ul class="list-disc pl-4">
-                <li>Muerte temprana</li>
-                <li>Tos</li>
-                <li>Afectación de la función pulmonar</li>
-                <li>Ataques de asma</li>
-                <li>Cardiopatías</li>
-                <li>Derrames cerebrales</li>
-                <li>Muerte temprana</li>
-            </ul>
-            <Typography variant="p"
-                >Este proyecto busca brindar a los ciudadanos herramientas para
-                tomar acción y protegerse ante los efectos nocivos de la
-                contaminación del aire. Además, queremos visibilizar esta
-                problemática y encender el debate ciudadano acerca de cómo
-                nuestras autoridades pueden promover iniciativas que combatan la
-                contaminación del aire en Paraguay y aseguren el bienestar de
-                todos los paraguayos.
-            </Typography>
-        </div>
-        <div
-            class="md:mt-8 flex md:items-center md:justify-center w-screen md:w-auto max-h-80 md:max-h-svh"
-        >
-            <Image
-                alt="Paraguay map with question mark on asuncion"
-                loading="lazy"
-                src={Map2Image}
-                class="object-none md:object-cover"
-            />
-        </div>
-    </section>
-    <section
-        class="grid md:grid-cols-3 md:px-16 gap-12 md:py-32 place-content-stretch place-items-center justify-center bg-light_green p-4"
+      {
+        TEAM.map((team) => (
+          <div class="flex h-full w-full flex-col drop-shadow-md">
+            <div class="h-full min-h-32 w-full min-w-32 overflow-clip rounded-t-md bg-lightgray md:max-h-[15rem]">
+              <Image
+                src={team.image.path}
+                alt={team.name}
+                class="object-fit"
+                widths={[240, 540, 720, team.image.path.width]}
+                sizes={`(max-width: 360px) 240px, (max-width: 720px) 400px, (max-width: 1600px) 600px, ${team.image.path.width}px`}
+              />
+            </div>
+            <div class="max-h-1/3 w-full min-w-32 rounded-b-md bg-white p-2 md:max-h-[5rem] md:min-h-[5rem]">
+              <Typography variant="h6">{team.name}</Typography>
+              <Typography variant="p-sm">{team.title}</Typography>
+            </div>
+          </div>
+        ))
+      }
+    </div>
+  </section>
+  <section class="flex flex-col px-8 py-8 md:px-16">
+    <Typography variant="h2" customClass="pt-2">Organizaciones</Typography>
+    <div
+      class="mt-12 grid w-full gap-20 text-black sm:grid-cols-1 md:max-w-fit md:grid-cols-4 md:divide-x md:py-12"
     >
-        <div class="space-y-4 justify-stretch m-12 md:m-0 md:col-span-2">
-            <Image src={Github} alt="Github logo" />
-            <Typography variant="h3" customClass="pt-2"
-                >Nuestro proyecto es Open Source!</Typography
-            >
-            <Typography variant="h3"
-                >Accede a nuestro repositorio en GitHub</Typography
-            >
-            <Button variant="color" text="Ir al repositorio" />
-        </div>
-        <div class="md:mt-8 flex md:items-center md:justify-center">
-            <Image src={GithubIcon} alt="Invertocat logo" />
-        </div>
-    </section>
-    <section class="flex flex-col py-8  px-8 md:px-16">
-        <Typography variant="h2" customClass="pt-2">Colaboradores</Typography>
-        <div
-            class="grid grid-cols-1 md:grid-cols-4 lg:grid-cols-5 gap-6 place-content-start py-8"
-        >
-            {
-                TEAM.map((team) => (
-                    <div class="drop-shadow-md flex flex-col w-full h-full">
-                        <div class="bg-lightgray w-full h-full min-h-32 min-w-32 md:max-h-[15rem] rounded-t-md overflow-clip">
-                            <Image
-                                src={team.image.path}
-                                alt={team.name}
-                                class="object-fit"
-                                widths={[240, 540, 720, team.image.path.width]}
-                                sizes={`(max-width: 360px) 240px, (max-width: 720px) 400px, (max-width: 1600px) 600px, ${team.image.path.width}px`}
-                            />
-                        </div>
-                        <div class="bg-white md:max-h-[5rem] w-full md:min-h-[5rem] max-h-1/3 min-w-32 rounded-b-md p-2">
-                            <Typography variant="h6">{team.name}</Typography>
-                            <Typography variant="p-sm">{team.title}</Typography>
-                        </div>
-                    </div>
-                ))
-            }
-        </div>
-    </section>
-    <section class="flex flex-col py-8 px-8 md:px-16">
-        <Typography variant="h2" customClass="pt-2">Organizaciones</Typography>
-        <div class="grid md:divide-x text-black md:grid-cols-4 sm:grid-cols-1 mt-12  md:py-12 md:max-w-fit w-full gap-20">
-
-            {
-                ORGANIZATIONS.map((org) => (
-                    <div class="first:pl-0 md:last:pl-8 md:even:col-span-2 md:first:justify-start justify-center flex w-full">
-                        <Image
-                            alt={org.alt}
-                            src={org.path}
-                            class={org.class}
-                        />
-                    </div>
-                ))
-            }
-        </div>
-    </section>
-    <BackTop />
-    <Footer />
+      {
+        ORGANIZATIONS.map((org) => (
+          <div class="flex w-full justify-center first:pl-0 md:first:justify-start md:last:pl-8 md:even:col-span-2">
+            <Image alt={org.alt} src={org.path} class={org.class} />
+          </div>
+        ))
+      }
+    </div>
+  </section>
+  <BackTop />
+  <Footer />
 </BaseLayout>

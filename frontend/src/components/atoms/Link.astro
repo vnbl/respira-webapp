@@ -1,19 +1,19 @@
 ---
-import { Image } from "astro:assets";
-import LinkIcon from "../../assets/icons/link_icon.svg";
-import Typography from "./Typography.astro";
+import { Image } from 'astro:assets'
+import LinkIcon from '../../assets/icons/link_icon.svg'
+import Typography from './Typography.astro'
 interface Props {
-  text: string;
-  href: string;
-  variant?: "light" | "dark";
-  customClass?: string;
+  text: string
+  href: string
+  variant?: 'light' | 'dark'
+  customClass?: string
 }
 
-const { text, href, customClass, variant } = Astro.props;
+const { text, href, customClass, variant } = Astro.props
 ---
 
 {
-  variant === "light" ? (
+  variant === 'light' ? (
     <div class="flex flex-row items-center">
       <>
         <a
@@ -24,8 +24,8 @@ const { text, href, customClass, variant } = Astro.props;
           {text}
         </a>
         <Image
-          class={`h-4 w-auto pl-2 fill-white`}
-          alt={text + "Link"}
+          class={`h-4 w-auto fill-white pl-2`}
+          alt={text + 'Link'}
           src={LinkIcon}
         />
       </>
@@ -39,11 +39,10 @@ const { text, href, customClass, variant } = Astro.props;
           class={`font-semibold underline ${customClass}`}
         >
           <Typography variant="h6"> {text}</Typography>
-         
         </a>
         <Image
-          class={`h-4 w-auto pl-2 fill-white`}
-          alt={text + "Link"}
+          class={`h-4 w-auto fill-white pl-2`}
+          alt={text + 'Link'}
           src={LinkIcon}
           loading="eager"
         />

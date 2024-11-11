@@ -1,57 +1,54 @@
-import * as React from "react";
+import * as React from 'react'
 import Map, {
   GeolocateControl,
   NavigationControl,
   Marker,
   Popup,
-} from "react-map-gl/maplibre";
-import "maplibre-gl/dist/maplibre-gl.css";
-import { useStore } from "@nanostores/react";
-import {
-  stations,
-  setSelectedStation,
-  type STATION,
-} from "../../store/map";
-import Pin from "./Pin";
+} from 'react-map-gl/maplibre'
+import 'maplibre-gl/dist/maplibre-gl.css'
+import { useStore } from '@nanostores/react'
+import { stations, setSelectedStation, type STATION } from '../../store/map'
+import Pin from './Pin'
 
-import { getColorRange } from "../../utils";
-import { MapTooltip } from "./MapTooltip";
-
+import { getColorRange } from '../../utils'
+import { MapTooltip } from './MapTooltip'
 
 function debounce(fn: any, ms: number) {
-  let timer: NodeJS.Timeout | undefined;
+  let timer: NodeJS.Timeout | undefined
   return () => {
-    clearTimeout(timer);
+    clearTimeout(timer)
     timer = setTimeout(() => {
-      timer = undefined;
-      fn.apply(undefined, arguments);
-    }, ms);
-  };
+      timer = undefined
+      fn.apply(undefined, arguments)
+    }, ms)
+  }
 }
 
 const MapComponent = () => {
-  const data = useStore(stations);
+  const data = useStore(stations)
 
   const [dimensions, setDimensions] = React.useState({
     height: window.innerHeight,
     width: window.innerWidth,
-  });
+  })
 
   React.useEffect(() => {
     const debouncedHandleResize = debounce(function handleResize() {
       setDimensions({
         height: window.innerHeight,
         width: window.innerWidth,
-      });
-    }, 500);
-    window.addEventListener("resize", debouncedHandleResize);
+      })
+    }, 500)
+    window.addEventListener('resize', debouncedHandleResize)
 
     return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
-    };
-  });
+      window.removeEventListener('resize', debouncedHandleResize)
+    }
+  })
 
-  const [popupInfo, setPopupInfo] = React.useState<STATION | undefined>(undefined);
+  const [popupInfo, setPopupInfo] = React.useState<STATION | undefined>(
+    undefined
+  )
 
   const pins = React.useMemo(
     () =>
@@ -65,9 +62,9 @@ const MapComponent = () => {
               onClick={(e) => {
                 // If we let the click event propagates to the map, it will immediately close the popup
                 // with `closeOnClick: true`
-                e.originalEvent.stopPropagation();
-                setPopupInfo(station);
-                setSelectedStation(station.id);
+                e.originalEvent.stopPropagation()
+                setPopupInfo(station)
+                setSelectedStation(station.id)
               }}
             >
               <Pin
@@ -78,9 +75,8 @@ const MapComponent = () => {
           ))
         : [],
     [data]
-  );
+  )
 
-  
   return (
     <Map
       initialViewState={{
@@ -93,7 +89,10 @@ const MapComponent = () => {
       touchZoomRotate={false}
       minZoom={5.5}
       attributionControl={false}
-      style={{ width: dimensions.width, height: dimensions.height * 0.75 }}
+      style={{
+        width: dimensions.width,
+        height: dimensions.height * 0.75,
+      }}
       maxBounds={[
         [-67.0435297482847, -28.42576579802394],
         [-45.05865460568049, -17.608237804262302],
@@ -102,7 +101,7 @@ const MapComponent = () => {
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
       {data && pins}
-      {popupInfo && ( 
+      {popupInfo && (
         <Popup
           anchor="bottom-left"
           offset={10}
@@ -111,9 +110,13 @@ const MapComponent = () => {
           onClose={() => setPopupInfo(undefined)}
         >
           <div className="flex flex-col">
-            <p className="font-bold text-[16px] text-white">Estación {popupInfo.id}</p>
-            <p className="font-bold font-xs text-white">{popupInfo.name}</p>
-            <a><p className="text-green font-bold underline">Ver estadisticas</p></a>
+            <p className="text-[16px] font-bold text-white">
+              Estación {popupInfo.id}
+            </p>
+            <p className="font-xs font-bold text-white">{popupInfo.name}</p>
+            <a>
+              <p className="font-bold text-green underline">Ver estadisticas</p>
+            </a>
           </div>
         </Popup>
       )}
@@ -121,7 +124,7 @@ const MapComponent = () => {
       <NavigationControl position="bottom-right" />
       <MapTooltip />
     </Map>
-  );
-};
+  )
+}
 
-export default MapComponent;
+export default MapComponent

@@ -7,7 +7,9 @@
     "start": "astro check && astro dev",
     "build": "astro check && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "format:check": "prettier --check .",
+    "format:write": "prettier --write ."
   },
   "dependencies": {
     "@astrojs/check": "^0.9.4",
@@ -56,6 +58,9 @@
     "@types/react-plotly.js": "^2.6.3",
     "astro-service-worker": "^0.1.2",
     "msw": "^2.4.9",
+    "prettier": "^3.3.3",
+    "prettier-plugin-astro": "^0.14.1",
+    "prettier-plugin-tailwindcss": "^0.6.8",
     "vite": "^5.4.10"
   },
   "msw": {

@@ -1,14 +1,14 @@
-import * as React from "react";
+import * as React from 'react'
 
 const style = {
-  cursor: "pointer",
-  fill: "none",
-  stroke: "none",
-};
+  cursor: 'pointer',
+  fill: 'none',
+  stroke: 'none',
+}
 
 type SliderPinProps = {
-  size?: number,
-  value: number,
+  size?: number
+  value: number
   fill: string
 }
 
@@ -70,7 +70,7 @@ const Pin = ({ size = 56, value, fill }: SliderPinProps) => {
         </filter>
       </defs>
     </svg>
-  );
-};
+  )
+}
 
-export default React.memo(Pin);
+export default React.memo(Pin)

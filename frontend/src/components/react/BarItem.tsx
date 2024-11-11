@@ -1,9 +1,9 @@
-import { useCallback, useMemo, createElement } from "react";
-import type { MouseEvent } from "react";
-import { animated, to } from "@react-spring/web";
-import { useTheme } from "@nivo/core";
-import { useTooltip } from "@nivo/tooltip";
-import type { BarDatum, BarItemProps } from "@nivo/bar";
+import { useCallback, useMemo, createElement } from 'react'
+import type { MouseEvent } from 'react'
+import { animated, to } from '@react-spring/web'
+import { useTheme } from '@nivo/core'
+import { useTooltip } from '@nivo/tooltip'
+import type { BarDatum, BarItemProps } from '@nivo/bar'
 export const BarItem = <RawDatum extends BarDatum>({
   bar: { data, ...bar },
 
@@ -37,47 +37,47 @@ export const BarItem = <RawDatum extends BarDatum>({
   ariaLabelledBy,
   ariaDescribedBy,
 }: BarItemProps<RawDatum>) => {
-  const theme = useTheme();
-  const { showTooltipFromEvent, showTooltipAt, hideTooltip } = useTooltip();
+  const theme = useTheme()
+  const { showTooltipFromEvent, showTooltipAt, hideTooltip } = useTooltip()
 
   const renderTooltip = useMemo(
     () => () => createElement(tooltip, { ...bar, ...data }),
     [tooltip, bar, data]
-  );
+  )
 
   const handleClick = useCallback(
     (event: MouseEvent<SVGRectElement>) => {
-      onClick?.({ color: bar.color, ...data }, event);
+      onClick?.({ color: bar.color, ...data }, event)
     },
     [bar, data, onClick]
-  );
+  )
   const handleTooltip = useCallback(
     (event: MouseEvent<SVGRectElement>) =>
       showTooltipFromEvent(renderTooltip(), event),
     [showTooltipFromEvent, renderTooltip]
-  );
+  )
   const handleMouseEnter = useCallback(
     (event: MouseEvent<SVGRectElement>) => {
-      onMouseEnter?.(data, event);
-      showTooltipFromEvent(renderTooltip(), event);
+      onMouseEnter?.(data, event)
+      showTooltipFromEvent(renderTooltip(), event)
     },
     [data, onMouseEnter, showTooltipFromEvent, renderTooltip]
-  );
+  )
   const handleMouseLeave = useCallback(
     (event: MouseEvent<SVGRectElement>) => {
-      onMouseLeave?.(data, event);
-      hideTooltip();
+      onMouseLeave?.(data, event)
+      hideTooltip()
     },
     [data, hideTooltip, onMouseLeave]
-  );
+  )
 
   // extra handlers to allow keyboard navigation
   const handleFocus = useCallback(() => {
-    showTooltipAt(renderTooltip(), [bar.absX + bar.width / 2, bar.absY]);
-  }, [showTooltipAt, renderTooltip, bar]);
+    showTooltipAt(renderTooltip(), [bar.absX + bar.width / 2, bar.absY])
+  }, [showTooltipAt, renderTooltip, bar])
   const handleBlur = useCallback(() => {
-    hideTooltip();
-  }, [hideTooltip]);
+    hideTooltip()
+  }, [hideTooltip])
 
   return (
     <animated.g transform={transform}>
@@ -128,7 +128,7 @@ export const BarItem = <RawDatum extends BarDatum>({
           fillOpacity={labelOpacity}
           style={{
             ...theme.labels.text,
-            pointerEvents: "none",
+            pointerEvents: 'none',
             fill: labelColor,
           }}
         >
@@ -136,5 +136,5 @@ export const BarItem = <RawDatum extends BarDatum>({
         </animated.text>
       )}
     </animated.g>
-  );
-};
+  )
+}

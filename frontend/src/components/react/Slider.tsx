@@ -1,17 +1,16 @@
-import * as React from "react";
-import SliderPin from "../react/SliderPin";
-import { getAQIIndex, getColorRange } from "../../utils";
+import * as React from 'react'
+import SliderPin from '../react/SliderPin'
+import { getAQIIndex, getColorRange } from '../../utils'
 
+const calculateOffset = (value: number) => {
+  const index = getAQIIndex(value)
+  return index * (100 / 6) + 8
+}
 
-const calculateOffset = (value:number) => {
-  const index = getAQIIndex(value);
-  return index * (100 / 6) + 8;
-};
-
-export const Slider = ({ value }: {value: number}) => {
+export const Slider = ({ value }: { value: number }) => {
   return (
     <>
-      <div className={"flex flex-row fixed w-[86%] -mt-5"}>
+      <div className={'fixed -mt-5 flex w-[86%] flex-row'}>
         <div
           style={{
             width: `calc(${calculateOffset(value)}% - 15px)`,
@@ -20,33 +19,33 @@ export const Slider = ({ value }: {value: number}) => {
         <SliderPin value={value} fill={getColorRange(value)} />
       </div>
       <div className="flex flex-row">
-        <div className="text-xs w-1/2"></div>
-        <p className="text-xs font-bold w-full text-lightgray text-center">
+        <div className="w-1/2 text-xs"></div>
+        <p className="w-full text-center text-xs font-bold text-lightgray">
           50
         </p>
-        <p className="text-xs font-bold w-full text-lightgray text-center">
+        <p className="w-full text-center text-xs font-bold text-lightgray">
           100
         </p>
-        <p className="text-xs font-bold w-full text-lightgray text-center">
+        <p className="w-full text-center text-xs font-bold text-lightgray">
           1 50
         </p>
-        <p className="text-xs font-bold w-full text-lightgray text-center">
+        <p className="w-full text-center text-xs font-bold text-lightgray">
           200
         </p>
-        <p className="text-xs font-bold w-full text-lightgray text-center">
+        <p className="w-full text-center text-xs font-bold text-lightgray">
           300
         </p>
-        <div className="text-xs w-1/2"></div>
+        <div className="w-1/2 text-xs"></div>
       </div>
 
       <div className="flex flex-row divide-x-2">
-        <div className="bg-aqi-green-dark h-6 w-full rounded-l-full border-y-2 border-l-2 border-gray"></div>
-        <div className="bg-aqi-yellow-dark h-6 w-full border-2 border-gray"></div>
-        <div className="bg-aqi-orange-dark h-6 w-full border-2 border-gray"></div>
-        <div className="bg-aqi-red-dark h-6 w-full border-2 border-gray"></div>
-        <div className="bg-aqi-purple-dark h-6 w-full border-2 border-gray"></div>
-        <div className="bg-aqi-vermellion-dark h-6 w-full rounded-r-full border-2 border-gray"></div>
+        <div className="h-6 w-full rounded-l-full border-y-2 border-l-2 border-gray bg-aqi-green-dark"></div>
+        <div className="h-6 w-full border-2 border-gray bg-aqi-yellow-dark"></div>
+        <div className="h-6 w-full border-2 border-gray bg-aqi-orange-dark"></div>
+        <div className="h-6 w-full border-2 border-gray bg-aqi-red-dark"></div>
+        <div className="h-6 w-full border-2 border-gray bg-aqi-purple-dark"></div>
+        <div className="h-6 w-full rounded-r-full border-2 border-gray bg-aqi-vermellion-dark"></div>
       </div>
     </>
-  );
-};
+  )
+}

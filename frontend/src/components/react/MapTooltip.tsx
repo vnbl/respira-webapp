@@ -1,13 +1,13 @@
-import * as React from "react";
-import { getAQIIndex } from "../../utils";
-import { AQI } from "../../data/cards";
-import { useStore } from "@nanostores/react";
-import { region } from "../../store/map";
+import * as React from 'react'
+import { getAQIIndex } from '../../utils'
+import { AQI } from '../../data/cards'
+import { useStore } from '@nanostores/react'
+import { region } from '../../store/map'
 
 export const MapTooltip = () => {
-  const data = useStore(region);
-  const card = React.useMemo(()=> {
-    if(!data){
+  const data = useStore(region)
+  const card = React.useMemo(() => {
+    if (!data) {
       return undefined
     }
     return AQI[getAQIIndex(data.aqi)]
@@ -15,16 +15,18 @@ export const MapTooltip = () => {
   return (
     <>
       {card ? (
-        <div className="bg-[#535353] absolute bottom-5 left-5 md:top-10 md:right-10 md:left-auto  w-fit h-fit rounded-lg  p-2 md:p-3 flex md:flex-col md:space-x-0 space-x-2">
-          <div className="flex flex-row space-x-2 items-center">
-          <p className="text-white text-sm">
-            Media: {card.title}
-          </p>
-          <div className={`bg-${card.color} h-4 w-4`} />
+        <div className="absolute bottom-5 left-5 flex h-fit w-fit space-x-2 rounded-lg bg-[#535353] p-2 md:left-auto md:right-10 md:top-10 md:flex-col md:space-x-0 md:p-3">
+          <div className="flex flex-row items-center space-x-2">
+            <p className="text-sm text-white">Media: {card.title}</p>
+            <div className={`bg-${card.color} h-4 w-4`} />
           </div>
-          {data.aqi >=50 && <a><p className="text-white underline text-sm">Recomendaciones</p></a>}
+          {data.aqi >= 50 && (
+            <a>
+              <p className="text-sm text-white underline">Recomendaciones</p>
+            </a>
+          )}
         </div>
       ) : undefined}
     </>
-  );
-};
+  )
+}

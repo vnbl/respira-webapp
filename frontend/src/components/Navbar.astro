@@ -1,26 +1,26 @@
 ---
-import { Image } from "astro:assets";
+import { Image } from 'astro:assets'
 
-import Button from "./atoms/Button.astro";
-import NavbarItem from "./NavbarItem.astro";
-import FullLogo from "../assets/logo.svg";
-import IconLogo from "../assets/icon.svg";
-import Close from "../assets/utils/close-icon.svg";
+import Button from './atoms/Button.astro'
+import NavbarItem from './NavbarItem.astro'
+import FullLogo from '../assets/logo.svg'
+import IconLogo from '../assets/icon.svg'
+import Close from '../assets/utils/close-icon.svg'
 import {
   Astronav,
   MenuIcon,
   MenuItems,
   OpenIcon,
   CloseIcon,
-} from "astro-navbar";
-import { menu } from "../data/menu";
+} from 'astro-navbar'
+import { menu } from '../data/menu'
 ---
 
 <div
-  class="lg:flex justify-between p-2 gap-5 bg-base drop-shadow-lg z-40 min-h-20 fixed w-full lg:px-10 px-6"
+  class="fixed z-40 min-h-20 w-full justify-between gap-5 bg-base p-2 px-6 drop-shadow-lg lg:flex lg:px-10"
 >
   <Astronav closeOnClick>
-    <div class="flex lg:w-auto justify-between items-center">
+    <div class="flex items-center justify-between lg:w-auto">
       <a href={import.meta.env.SITE}>
         <Image
           class="h-16 w-auto"
@@ -30,7 +30,7 @@ import { menu } from "../data/menu";
         />
       </a>
       <div class="block lg:hidden">
-        <MenuIcon class="w-4 h-4 text-gray-800">
+        <MenuIcon class="text-gray-800 h-4 w-4">
           <OpenIcon>
             <Image src={IconLogo} alt="Open menu" />
           </OpenIcon>
@@ -40,17 +40,21 @@ import { menu } from "../data/menu";
         </MenuIcon>
       </div>
     </div>
-    <MenuItems class="hidden lg:flex w-full justify-center items-center">
-      <ul class="flex flex-col lg:flex-row lg:gap-8 gap-8 lg:m-0 m-8">
+    <MenuItems class="hidden w-full items-center justify-center lg:flex">
+      <ul class="m-8 flex flex-col gap-8 lg:m-0 lg:flex-row lg:gap-8">
         {
           menu.map((option) => (
-            <NavbarItem title={option.title} route={option.route} type={option.type}/>
+            <NavbarItem
+              title={option.title}
+              route={option.route}
+              type={option.type}
+            />
             // TODO: add dropdown
           ))
         }
       </ul>
     </MenuItems>
-    <div class="hidden lg:block min-w-30 content-center">
+    <div class="min-w-30 hidden content-center lg:block">
       <a href={import.meta.env.SITE}>
         <Button text="MAPA" variant="void" />
       </a>

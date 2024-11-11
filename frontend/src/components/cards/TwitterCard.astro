@@ -1,16 +1,20 @@
 ---
-import Button from "../atoms/Button.astro";
-import Typography from "../atoms/Typography.astro";
-import X from "../../assets/logos/x.svg";
-import { Image } from "astro:assets";
-import { TWITTER_URL } from "../../data/constants";
+import Button from '../atoms/Button.astro'
+import Typography from '../atoms/Typography.astro'
+import X from '../../assets/logos/x.svg'
+import { Image } from 'astro:assets'
+import { TWITTER_URL } from '../../data/constants'
 ---
 
-<div class="bg-cyan flex flex-col p-6 space-y-6 rounded-lg">
-    <Typography variant="h3">Alertas vía X (Twitter)</Typography>
-    <Typography variant="p"
-        >Encontranos como <b>@proyectorespirapy</b> en X para seguir nuestras mediciones</Typography
-    >
-        <Button text="Ir a X" variant="void" onclick=`window.open("${TWITTER_URL}","_blank","","")`/>
-    <Image src={X} alt="X" />
+<div class="flex flex-col space-y-6 rounded-lg bg-cyan p-6">
+  <Typography variant="h3">Alertas vía X (Twitter)</Typography>
+  <Typography variant="p"
+    >Encontranos como <b>@proyectorespirapy</b> en X para seguir nuestras mediciones</Typography
+  >
+  <Button
+    text="Ir a X"
+    variant="void"
+    onclick=`window.open("${TWITTER_URL}","_blank","","")`
+  />
+  <Image src={X} alt="X" />
 </div>

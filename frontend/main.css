@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Merriweather");   
+@import url('https://fonts.googleapis.com/css2?family=Merriweather');
 
 .maplibregl-popup-content {
   background: rgba(79, 64, 57, 1) !important;
@@ -10,7 +10,6 @@
 .maplibregl-popup-tip {
   border-top-color: transparent !important;
 }
-
 
 .maplibregl-popup-close-button {
   visibility: hidden !important;

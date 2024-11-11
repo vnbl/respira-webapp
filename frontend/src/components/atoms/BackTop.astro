@@ -1,12 +1,12 @@
 ---
-import { Image } from "astro:assets";
-import Arrow from "../../assets/icons/arrow_top_icon.svg"
+import { Image } from 'astro:assets'
+import Arrow from '../../assets/icons/arrow_top_icon.svg'
 ---
 
-<div class="w-auto font-black border mx-10 my-2"></div>
+<div class="mx-10 my-2 w-auto border font-black"></div>
 <a href="#top">
-<div class="w-auto flex justify-end mx-10 mb-10" onclick="">
-    <p class="font-semibold text-lg">Volver arriba</p>
-    <Image alt="Arrow top" src={Arrow} class="mx-3"/>
-</div>
+  <div class="mx-10 mb-10 flex w-auto justify-end" onclick="">
+    <p class="text-lg font-semibold">Volver arriba</p>
+    <Image alt="Arrow top" src={Arrow} class="mx-3" />
+  </div>
 </a>

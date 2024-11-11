@@ -1,24 +1,24 @@
 ---
-import LottieAnimation from "astro-integration-lottie/Lottie.astro";
+import LottieAnimation from 'astro-integration-lottie/Lottie.astro'
 
-import Map from "../components/react/Map";
-import BaseLayout from "../layouts/BaseLayout.astro";
-import Card from "../components/cards/Card.astro";
-import AQICard from "../components/data-viz/AQICard.astro";
-import Footer from "../components/atoms/Footer.astro";
-import { AQI } from "../data/cards";
-import Link from "../components/atoms/Link.astro";
-import { Image } from "astro:assets";
-import { HOME_IMAGES } from "../data/images";
-import BackTop from "../components/atoms/BackTop.astro";
-import Typography from "../components/atoms/Typography.astro";
+import Map from '../components/react/Map'
+import BaseLayout from '../layouts/BaseLayout.astro'
+import Card from '../components/cards/Card.astro'
+import AQICard from '../components/data-viz/AQICard.astro'
+import Footer from '../components/atoms/Footer.astro'
+import { AQI } from '../data/cards'
+import Link from '../components/atoms/Link.astro'
+import { Image } from 'astro:assets'
+import { HOME_IMAGES } from '../data/images'
+import BackTop from '../components/atoms/BackTop.astro'
+import Typography from '../components/atoms/Typography.astro'
 ---
 
 <BaseLayout>
-  <Map client:only="react" >
+  <Map client:only="react">
     <div
       slot="fallback"
-      class="w-full h-4/6 justify-center content-center flex"
+      class="flex h-4/6 w-full content-center justify-center"
     >
       <LottieAnimation
         src="src/assets/animations/bar_loader.json"
@@ -26,9 +26,9 @@ import Typography from "../components/atoms/Typography.astro";
       />
     </div>
   </Map>
-  <div class="md:absolute top-0  w-full md:w-1/2 pointer-events-none">
+  <div class="pointer-events-none top-0 w-full md:absolute md:w-1/2">
     <Card />
-    <div class="hidden px-10 mt-16 space-y-4 md:pr-20 md:block">
+    <div class="mt-16 hidden space-y-4 px-10 md:block md:pr-20">
       <Typography variant="p">
         La contaminación por partículas puede ocasionar problemas de salud
         graves, como ataques de asma, ataques cardíacos, derrames cerebrales y
@@ -43,7 +43,7 @@ import Typography from "../components/atoms/Typography.astro";
         Utilice los pronósticos diarios del Índice de Calidad del Aire (AQI) de
         esta web para planear sus actividades al aire libre.
       </Typography>
-      <div class="flex flex-row w-full justify-between p-4 mt-16 px-14 mt-8">
+      <div class="mt-16 mt-8 flex w-full flex-row justify-between p-4 px-14">
         {
           HOME_IMAGES.map((image) => (
             <Image class={image.class} alt={image.alt} src={image.path} />
@@ -52,8 +52,8 @@ import Typography from "../components/atoms/Typography.astro";
       </div>
     </div>
   </div>
-  <div class="w-full flex flex-col md:flex-row p-8 md:p-12">
-    <div class="md:w-1/2 hidden md:block"/>
+  <div class="flex w-full flex-col p-8 md:flex-row md:p-12">
+    <div class="hidden md:block md:w-1/2"></div>
     <div class="md:w-1/2">
       <Typography variant="h1" color="gray"
         >Índice de calidad del aire (AQI)</Typography
@@ -64,7 +64,7 @@ import Typography from "../components/atoms/Typography.astro";
           text="Via fuente"
         />
       </p>
-      <div class="flex flex-col space-y-3 h-full pt-8">
+      <div class="flex h-full flex-col space-y-3 pt-8">
         {AQI.map((aqi) => <AQICard card={aqi} variant="full" />)}
       </div>
     </div>

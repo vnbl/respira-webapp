@@ -1,31 +1,29 @@
 ---
 interface Props {
-  text: string;
-  variant: "color" | "void";
-  onclick?: null | undefined | string;
+  text: string
+  variant: 'color' | 'void'
+  onclick?: null | undefined | string
 }
 
-const { text, variant, onclick } = Astro.props;
+const { text, variant, onclick } = Astro.props
 ---
 
 {
-  variant === "color" && (
+  variant === 'color' && (
     <button
       class={
-        "text-white font-serif font-bold py-3 px-6 rounded-md text-sm bg-green w-full" 
+        'w-full rounded-md bg-green px-6 py-3 font-serif text-sm font-bold text-white'
       }
       onclick={onclick}
     >
-      <p class="font-serif uppercase">{text}</b>
+      <p class="font-serif uppercase">{text}</p>
     </button>
   )
 }
 {
-  variant === "void" && (
+  variant === 'void' && (
     <button
-      class={
-        "border text-black font-semibold py-2 px-6 rounded-md text-sm"
-      }
+      class={'rounded-md border px-6 py-2 text-sm font-semibold text-black'}
       onclick={onclick}
     >
       <b>{text.toUpperCase()}</b>
