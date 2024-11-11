@@ -1,0 +1,9 @@
+repos:
+-   repo: local
+    hooks:
+    -   id: astro_check
+        name: astro_check
+        entry: npx astro check
+        language: system
+        files: ^frontend/
+        types: [file]
