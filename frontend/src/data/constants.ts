@@ -12,4 +12,6 @@ export const AQI_COLORS : string[] = ["#AFFAAF", "#FFEB7F","#FBC189","#F27474","
 
 export const EXCLUDED_STATIONS: number[] = [101]
 
-export const BACKEND_URL= import.meta.env.PUBLIC_BACKEND_URL
+export const BACKEND_URL= import.meta.env.PUBLIC_BACKEND_URL 
+
+export const BASE_URL = import.meta.env.SITE + import.meta.env.BASE_URL

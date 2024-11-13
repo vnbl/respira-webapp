@@ -1,5 +1,6 @@
 ---
 import Typography from "./atoms/Typography.astro";
+import {BASE_URL} from "../data/constants"
 
 const { title, route, type } = Astro.props;
 
@@ -18,7 +19,7 @@ let isModal = type === "modal";
             </Typography>
         </button>
         <a
-            href={import.meta.env.SITE + route}
+            href={BASE_URL + route}
             class={isModal ? "md:hidden visible" : ""}
         >
             <li class="place-content-center cursor-default">
@@ -33,7 +34,7 @@ let isModal = type === "modal";
 {
     type !== "modal" && (
         <a
-            href={import.meta.env.SITE + route}
+            href={BASE_URL + route}
             class={isModal ? "md:hidden visible" : ""}
         >
             <li class="place-content-center cursor-default">
