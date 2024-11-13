@@ -1,8 +1,8 @@
 ---
 import Navbar from "../components/Navbar.astro";
-import {ShareModal} from "../components/react/modals/ShareModal"
-import "../../main.css"
-import {BASE_URL} from "../data/constants"
+import { ShareModal } from "../components/react/modals/ShareModal";
+import "../../main.css";
+import { BASE_URL } from "../data/constants";
 ---
 
 <html lang="en" class="md:overflow-hidden">
@@ -15,18 +15,27 @@ import {BASE_URL} from "../data/constants"
       href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    
-    <title>Respira</title>
-  </head>
+  <div id="fb-root"></div>
+  <script
+    async
+    defer
+    crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v21.0"
+  ></script>
+  <meta name="viewport" content="width=device-width" />
+  <meta name="generator" content={Astro.generator} />
+
+  <title>Respira</title>
+
   <body class="bg-base h-full">
-    <ShareModal client:only="react"/>
+    <ShareModal client:only="react" />
     <Navbar />
-    <div class="overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300"
+    <div
+      class="overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300"
     >
-      <span id="top"/>
+      <span id="top"></span>
       <slot />
     </div>
   </body>
+
 </html>

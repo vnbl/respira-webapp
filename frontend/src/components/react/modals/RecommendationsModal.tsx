@@ -2,10 +2,6 @@ import React from "react"
 import Modal from "../Modal"
 import { useStore } from "@nanostores/react"
 import { isShareModalOpen, toggleModal } from "../../../store/modals"
-import Copy from "../../../assets/icons/copy_icon.svg?react";
-import Telegram from "../../../assets/icons/telegram_icon_gray.svg?react"
-import Facebook from "../../../assets/icons/facebook_icon_gray.svg?react"
-import Twitter from "../../../assets/icons/x_icon_gray.svg?react"
 
 import { BASE_URL, FACEBOOK_SHARE, TELEGRAM_SHARE, TELEGRAM_URL, TWITTER_SHARE } from "../../../data/constants";
 
@@ -13,7 +9,7 @@ import { BASE_URL, FACEBOOK_SHARE, TELEGRAM_SHARE, TELEGRAM_URL, TWITTER_SHARE }
 const ShareModal = () => {
   const isOpen = useStore(isShareModalOpen)
   return (
-    <Modal showModal={isOpen} toggleModal={toggleModal} title="Comparti el link">
+    <Modal showModal={isOpen} toggleModal={toggleModal}>
       <div className="w-full px-2 border-[0.5px] mb-4"></div>
       <div className="flex flex-row space-x-4 justify-between">
         <a href={TELEGRAM_SHARE} target="_blank">

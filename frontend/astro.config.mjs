@@ -23,6 +23,8 @@ export default defineConfig({
           svgoConfig: {
             plugins: ['preset-default', 'removeTitle', 'removeDesc', 'removeDoctype', 'cleanupIds'],
           },
+          icon: true,
+          
         },
       }),
     ],
