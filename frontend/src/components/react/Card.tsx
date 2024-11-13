@@ -17,7 +17,7 @@ export const Card = (props:any) => {
 
   return (
     <div
-      className={`bg-white w-full md:w-2/3  md:min-h-full rounded-xl z-20 md:ml-8 md:mt-8 drop-shadow-lg flex flex-col p-8 space-y-6 pointer-events-auto`}
+      className={`bg-white w-full md:w-2/3  md:min-h-full rounded-xl z-20 md:ml-8 md:mt-8 drop-shadow-lg flex flex-col p-8 space-y-4 pointer-events-auto`}
     >
       {!backendAvailable && (
         <div className="w-full h-full content-center justify-center">

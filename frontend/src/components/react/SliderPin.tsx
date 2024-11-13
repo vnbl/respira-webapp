@@ -12,7 +12,7 @@ type SliderPinProps = {
   fill: string
 }
 
-const Pin = ({ size = 56, value, fill }: SliderPinProps) => {
+const Pin = ({ size = 65, value, fill }: SliderPinProps) => {
   return (
     <svg height={size} viewBox="0 0 45 56" style={style}>
       <g filter="url(#filter0_d_328_13963)">
