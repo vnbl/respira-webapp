@@ -6,11 +6,20 @@ import { Image } from "astro:assets";
 import { TWITTER_URL } from "../../data/constants";
 ---
 
-<div class="bg-cyan flex flex-col p-6 space-y-6 rounded-lg">
-    <Typography variant="h3">Alertas vía X (Twitter)</Typography>
-    <Typography variant="p"
-        >Encontranos como <b>@proyectorespirapy</b> en X para seguir nuestras mediciones</Typography
-    >
-        <Button text="Ir a X" variant="void" onclick=`window.open("${TWITTER_URL}","_blank","","")`/>
-    <Image src={X} alt="X" />
+<div
+    class="bg-cyan flex flex-row p-8 items-center md:justify-center md:space-x-6  space-y-6 md:space-y-0 rounded-lg flex-wrap align-center"
+>
+    <div class="flex flex-col flex-grow space-y-4 max-w-2/3">
+        <Typography variant="h3">Alertas vía X (Twitter)</Typography>
+        <Typography variant="p"
+            >Encontranos como <b>@proyectorespirapy</b> en X para seguir nuestras
+            mediciones</Typography
+        >
+        <Button
+            text="Ir a X"
+            variant="void"
+            onclick=`window.open("${TWITTER_URL}","_blank","","")`
+        />
+    </div>
+    <Image src={X} alt="X" class="p-8 w-40"/>
 </div>
