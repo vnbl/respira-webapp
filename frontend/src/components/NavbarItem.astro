@@ -1,24 +1,36 @@
 ---
 import Typography from "./atoms/Typography.astro";
+import { BASE_URL } from "../data/constants";
 
 const { title, route, type } = Astro.props;
 
 let isModal = type === "modal";
 ---
 
+<script>
+    import { isAlertModalOpen } from "../store/modals";
+
+    const buttons = document.querySelectorAll("button.dialog");
+
+    // Handle clicks on each button.
+    buttons.forEach((button) => {
+        button.addEventListener("click", () => {
+            isAlertModalOpen.set(!isAlertModalOpen.get());
+        });
+    });
+</script>
 {
-    type === "modal" && (
-        
-        <button class="place-content-center cursor-default hidden md:block"  onclick="{`window.default-modal.showModal()`}" 
-        data-dialog-target="dialog"
-        
+    isModal && (
+        <button
+            class="dialog place-content-center cursor-default hidden md:block"
+            data-dialog-target="dialog"
         >
             <Typography variant="nav" customClass="m-auto select-none">
                 {title}
             </Typography>
         </button>
         <a
-            href={import.meta.env.SITE + route}
+            href={BASE_URL + route}
             class={isModal ? "md:hidden visible" : ""}
         >
             <li class="place-content-center cursor-default">
@@ -31,11 +43,8 @@ let isModal = type === "modal";
 }
 
 {
-    type !== "modal" && (
-        <a
-            href={import.meta.env.SITE + route}
-            class={isModal ? "md:hidden visible" : ""}
-        >
+    !isModal && (
+        <a href={BASE_URL + route} class={isModal ? "md:hidden visible" : ""}>
             <li class="place-content-center cursor-default">
                 <Typography variant="nav" customClass="m-auto select-none">
                     {title}

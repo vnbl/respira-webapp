@@ -4,7 +4,7 @@ import { ResponsiveBar} from "@nivo/bar";
 import { timeFormat } from "d3-time-format";
 import { scaleTime } from "d3-scale";
 import { BarItem } from "./BarItem";
-
+import {DateTime} from "luxon"
 
 const customTooltip = ({ value }: { value: number }) => (
   <div className="flex flex-col rounded bg-black p-2 font-serif text-white">
@@ -20,14 +20,19 @@ export const BarChart = ({ data }: any) => {
     [data]
   );
 
-  const formatter = timeFormat("%I %p");
+  const formatter = timeFormat("%-I:%M %p");
+  const formatDateToTimezone = (date:Date) => {
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone
+    const tzOffset = DateTime.fromJSDate(date).setZone(tz).offset; // minutes
+    return new Date(date.getTime() + (tzOffset - 60) * 60000);
+  }
   const timeScaleTicks: string[] = React.useMemo(() => {
     const scale = scaleTime().domain([
       new Date(data[0].timestamp),
       new Date(data[data.length - 1].timestamp),
     ])
     const ticks = scale.ticks(data.length > 6 ? 6 : 10)
-    return ticks.map((tick) => formatter(tick))
+    return ticks.map((tick) => formatter(formatDateToTimezone(tick)))
   }, data)
 
   return (
@@ -59,7 +64,7 @@ export const BarChart = ({ data }: any) => {
         tickPadding: 5,
         tickRotation: 0,
         format: (val) => { 
-          const formatted = formatter(new Date(val));
+          const formatted = formatter(formatDateToTimezone(new Date(val)));
           return timeScaleTicks.includes(formatted) ? formatted: '' 
         },
       }}

@@ -90,7 +90,7 @@ const MapComponent = () => {
       }}
       dragRotate={false}
       touchPitch={false}
-      touchZoomRotate={false}
+      touchZoomRotate={true}
       minZoom={5.5}
       attributionControl={false}
       style={{ width: dimensions.width, height: dimensions.height * 0.75 }}

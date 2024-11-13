@@ -1,8 +1,13 @@
 ---
 import Navbar from "../components/Navbar.astro";
-import SocialModal from "../components/SocialModal.astro";
-import "../../main.css"
-const BASE_URL = import.meta.env.SITE;
+import { ShareModal } from "../components/react/modals/ShareModal";
+import { RecommendationsModal } from "../components/react/modals/RecommendationsModal";
+import { AlertModal } from "../components/react/modals/AlertModal";
+import TelegramCard from "../components/cards/TelegramCard.astro";
+import TwitterCard from "../components/cards/TwitterCard.astro";
+
+import "../../main.css";
+import { BASE_URL } from "../data/constants";
 ---
 
 <html lang="en" class="md:overflow-hidden">
@@ -15,18 +20,33 @@ const BASE_URL = import.meta.env.SITE;
       href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
       rel="stylesheet"
     />
-    <meta name="viewport" content="width=device-width" />
-    <meta name="generator" content={Astro.generator} />
-    
-    <title>Respira</title>
-  </head>
+  </head><div id="fb-root"></div>
+  <script
+    async
+    defer
+    crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v21.0"
+  ></script>
+  <meta name="viewport" content="width=device-width" />
+  <meta name="generator" content={Astro.generator} />
+
+  <title>Respira</title>
+
   <body class="bg-base h-full">
-    <SocialModal/>
+    <ShareModal client:only="react" />
+    <RecommendationsModal client:only="react" />
+    <AlertModal client:only="react">
+      <TelegramCard slot="left" />
+      <TwitterCard slot="right" customClass="rounded-br-lg" />
+    </AlertModal>
     <Navbar />
-    <div class="overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300"
+    <div
+      class=" bg-base overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300"
     >
-      <span id="top"/>
+      <span id="top"></span>
       <slot />
     </div>
   </body>
+
+
 </html>
