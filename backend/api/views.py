@@ -1,7 +1,7 @@
 from datetime import datetime, timedelta
 
 from django.utils import timezone
-from django.db.models import Avg, Max, OuterRef, Subquery
+from django.db.models import Avg, Max, OuterRef, Subquery, Exists
 from django.db.models.functions import TruncDate
 
 from rest_framework import status
@@ -47,7 +47,17 @@ class MapViewset(generics.GenericAPIView):
                 "error": "'id' must be an integer."
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        latest_inference_run_id = InferenceRuns.objects.order_by('-run_date').first().id
+                
+        latest_inference_run = (
+            InferenceRuns.objects
+            .filter(Exists(
+                InferenceResults.objects.filter(inference_run_id=OuterRef('id'))
+            ))
+            .order_by('-run_date')
+            .first()
+        )
+
+        latest_inference_run_id = latest_inference_run.id if latest_inference_run else None
             
         # get region_readings, average forecast for regions beloging to region
         if entity == 'region':
