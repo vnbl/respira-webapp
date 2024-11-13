@@ -40,7 +40,7 @@ export const Card = (props: any) => {
     <div
       className={`bg-white w-full md:w-2/3  md:min-height:calc(100vh-4rem) rounded-xl z-20 md:ml-8 md:mt-8 drop-shadow-lg flex flex-col p-8 space-y-4 pointer-events-auto`}
       style={{
-        minHeight: "calc(100vh-4rem)px"
+        minHeight: window.innerHeight * 0.8
       }}
    >
       {!backendAvailable && (
