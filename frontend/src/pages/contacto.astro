@@ -94,9 +94,14 @@ import Button from "../components/atoms/Button.astro";
             <Button text="Enviar" variant="color" />
             </form>
         </div>
-        <div class="flex flex-col md:w-1/2 gap-4 mt-[1/2]">
-            <TelegramCard />
-            <TwitterCard />
+        <div class="grid grid-row-4 md:w-1/2 gap-4 mt-[1/2]">
+            <div class="row-span-2"></div>
+            <div class="row-span-1 rounded-lg overflow-clip">
+                <TelegramCard />
+            </div>
+            <div class="row-span-1 rounded-lg overflow-clip">
+                <TwitterCard />
+            </div>
         </div>
     </section>
     <BackTop />

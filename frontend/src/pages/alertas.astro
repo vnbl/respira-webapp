@@ -17,8 +17,12 @@ import {BASE_URL} from "../data/constants"
         }
     </script>
     <section class="p-6 space-y-6 flex flex-col md:hidden"  >
-        <TelegramCard />
-        <TwitterCard />
+        <div class="rounded-lg overflow-clip">
+            <TelegramCard />
+        </div>
+        <div class="rounded-lg overflow-clip">
+            <TwitterCard />
+        </div>
         <Button text="Ir al mapa" variant="void" onclick=`window.open("${BASE_URL}","_self","","")`/>
     </section>
 

@@ -31,8 +31,9 @@ export default defineConfig({
   },
 
   site: SITE_URL || "http://localhost",
-  base: "/",
+  base: "",
   output: "hybrid",
+  trailingSlash: "ignore",
   srcDir: "./src",
   integrations: [react(), tailwind(), lottie()],
   adapter: node({

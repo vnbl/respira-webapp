@@ -97,12 +97,12 @@ export const FOOTER_MENU: MenuItem[] = [
       },
       {
         title: "Datos",
-        route: "/datos",
+        route: "datos",
         id: "data",
       },
       {
         title: "Investigaciones y recursos",
-        route: "/recursos",
+        route: "recursos",
         id: "research",
       },
       {
@@ -118,12 +118,12 @@ export const FOOTER_MENU: MenuItem[] = [
     route: [
       {
         title: "Sobre el proyecto",
-        route: "/nosotros",
+        route: "nosotros",
         id: "us",
       },
       {
         title: "Contacto",
-        route: "/contacto",
+        route: "contacto",
         id: "contact",
       },
     ],

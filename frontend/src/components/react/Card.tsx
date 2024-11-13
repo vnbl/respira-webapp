@@ -9,7 +9,7 @@ import { isBackendAvailable } from "../../store/store";
 import { selectedStation } from "../../store/map";
 import { AQI } from "../../data/cards";
 import { getAQIIndex } from "../../utils";
-import { toggleModal } from "../../store/modals";
+import { toggleShareModal } from "../../store/modals";
 import { BASE_URL } from "../../data/constants";
 
 export const Card = (props: any) => {
@@ -28,7 +28,7 @@ export const Card = (props: any) => {
         console.log(`Oops! I couldn't share to the world because: ${error}`);
       }
     } else {
-      toggleModal(true)
+      toggleShareModal(true)
       // fallback code
       console.log(
         "Web share is currently not supported on this browser. Please provide a callback"
