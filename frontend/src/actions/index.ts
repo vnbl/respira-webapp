@@ -18,7 +18,7 @@ export type EmailInput = z.infer<typeof formInput>
 const sendMail = async (values: EmailInput) => {
   return resend.emails.send({
     from:import.meta.env.SMTP_SENDER,
-    to: ['delivered@resend.dev', CONTACT_MAIL],
+    to: [CONTACT_MAIL],
     subject: `[${BASE_URL}] ${values.motive} `,
     react: Email(values),
   });
