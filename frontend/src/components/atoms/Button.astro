@@ -1,33 +1,33 @@
 ---
-import type { HTMLAttributes } from 'astro/types';
-type Props  = {
+import type { HTMLAttributes } from "astro/types";
+type Props = {
   text: string;
   variant: "color" | "void";
   onclick?: null | undefined | string;
-} &  HTMLAttributes<'button'> 
+  customClass?: string;
+} & HTMLAttributes<"button">;
 
-const { text, variant, onclick, ...props } = Astro.props;
+const { text, variant, onclick, customClass, ...props } = Astro.props;
 ---
 
 {
   variant === "color" && (
     <button
       class={
-        "text-white font-serif font-bold py-3 px-6 rounded-md text-sm bg-green w-full" 
+        "text-white font-serif font-bold py-3 px-6 rounded-md text-sm bg-green w-full " +
+        customClass
       }
       onclick={onclick}
       {...props}
     >
-      <p class="font-serif uppercase">{text}</b>
+      <p class="font-serif uppercase">{text}</p>
     </button>
   )
 }
 {
   variant === "void" && (
     <button
-      class={
-        "border text-black font-semibold py-2 px-6 rounded-md text-sm"
-      }
+      class={"border text-black font-semibold py-2 px-6 rounded-md text-sm " + customClass}
       {...props}
       onclick={onclick}
     >

@@ -13,9 +13,19 @@ import { HOME_IMAGES } from "../data/images";
 import BackTop from "../components/atoms/BackTop.astro";
 import Typography from "../components/atoms/Typography.astro";
 ---
+<script>
+  import { isRecommendationsModalOpen} from "../store/modals";
 
+  const buttons = document.querySelectorAll("a.modal");
+  // Handle clicks on each button.
+  buttons.forEach((button) => {
+    button.addEventListener("click", () => {
+      isRecommendationsModalOpen.set(!isRecommendationsModalOpen.get());
+    });
+  });
+</script>
 <BaseLayout>
-  <Map client:only="react" >
+  <Map client:only="react">
     <div
       slot="fallback"
       class="w-full h-4/6 justify-center content-center flex"
@@ -26,7 +36,7 @@ import Typography from "../components/atoms/Typography.astro";
       />
     </div>
   </Map>
-  <div class="md:absolute top-0  w-full md:w-1/2 pointer-events-none">
+  <div class="md:absolute top-0 w-full md:w-1/2 pointer-events-none">
     <Card />
     <div class="hidden px-10 mt-16 space-y-4 md:pr-20 md:block">
       <Typography variant="p">
@@ -53,7 +63,7 @@ import Typography from "../components/atoms/Typography.astro";
     </div>
   </div>
   <div class="w-full flex flex-col md:flex-row p-8 md:p-12">
-    <div class="md:w-1/2 hidden md:block"/>
+    <div class="md:w-1/2 hidden md:block"></div>
     <div class="md:w-1/2">
       <Typography variant="h1" color="gray"
         >Índice de calidad del aire (AQI)</Typography
@@ -69,6 +79,9 @@ import Typography from "../components/atoms/Typography.astro";
       </div>
     </div>
   </div>
+  <a class="modal">
+    <p class="font-bold text-md pl-10">Recomendaciones por nivel</p>
+  </a>
   <BackTop />
   <Footer />
 </BaseLayout>

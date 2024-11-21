@@ -16,9 +16,9 @@ export default function Modal({ showModal, toggleModal, title, children, renderH
       {showModal ? (
         <>
           <div
-            className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none"
+            className="justify-center items-center flex overflow-x-hidden overflow-y-auto fixed inset-0 z-50 outline-none focus:outline-none overscroll-contain"
           >
-            <div className="relative w-auto my-6 mx-auto max-w-3xl">
+            <div className="relative w-auto mt-4 mx-auto max-w-3xl max-h-auto">
               <div className="border-0 rounded-lg shadow-lg relative flex flex-col w-full bg-base outline-none focus:outline-none ">
                 {renderHeader && <div className="flex flex-row justify-between p-5 rounded-t items-center  flex-grow ">
                   <h3 className="text-xl font-serif mr-12">
