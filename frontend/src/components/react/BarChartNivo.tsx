@@ -42,7 +42,6 @@ export const BarChart = ({ data }: any) => {
       keys={["value"]}
       indexBy="timestamp"
       padding={0.05}
-      barComponent={BarItem}
       enableGridY={false}
       colors={(datum) => getColorRange(datum.value || 0)}
       enableLabel={false}
