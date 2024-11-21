@@ -10,6 +10,7 @@
     "astro": "astro"
   },
   "dependencies": {
+    "@astro-utils/forms": "^3.13.18",
     "@astrojs/check": "^0.9.4",
     "@astrojs/node": "^8.3.4",
     "@astrojs/react": "^3.6.2",
@@ -23,6 +24,7 @@
     "@nivo/bar": "^0.87.0",
     "@nivo/core": "^0.87.0",
     "@nivo/tooltip": "^0.87.0",
+    "@react-email/components": "^0.0.28",
     "@react-spring/web": "^9.7.5",
     "astro": "^4.16.9",
     "astro-integration-lottie": "^0.3.1",
@@ -35,12 +37,11 @@
     "maplibre-gl": "^4.1.0",
     "moment": "^2.30.1",
     "nanostores": "^0.11.3",
-    "plotly": "^1.0.6",
-    "plotly.js": "^2.35.2",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-map-gl": "^7.1.7",
     "react-plotly.js": "^2.6.0",
+    "resend": "^4.0.1",
     "sharp": "^0.33.2",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.4.2"

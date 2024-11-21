@@ -4,7 +4,7 @@ export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	theme: {
 		fontFamily: {
-			sans: ['Open Sans Variable'],
+			sans: ['Open Sans Variable', 'sans-serif'],
 			serif:['Merriweather'],
 			emoji:['Inter Variable']
 		},
