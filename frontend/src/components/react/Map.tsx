@@ -113,7 +113,7 @@ const MapComponent = () => {
           <div className="flex flex-col">
             <p className="font-bold text-[16px] text-white">Estación {popupInfo.id}</p>
             <p className="font-bold font-xs text-white">{popupInfo.name}</p>
-            <a><p className="text-green font-bold underline">Ver estadisticas</p></a>
+            {/* <a><p className="text-green font-bold underline">Ver estadisticas</p></a> */}
           </div>
         </Popup>
       )}

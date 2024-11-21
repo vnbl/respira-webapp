@@ -82,7 +82,7 @@ export const menu: MenuItem[] = [
   { title: "Contacto", route: "/contacto", id: "contact" },
   { title: "Sobre nosotros", route: "/nosotros", id: "us" },
   { title: "Recursos", route: "/recursos", id: "research" },
-  { title: "Datos", route: stations, id: "data" },
+  // { title: "Datos", route: stations, id: "data" },
 ];
 
 export const FOOTER_MENU: MenuItem[] = [
@@ -95,11 +95,11 @@ export const FOOTER_MENU: MenuItem[] = [
         route: "/",
         id: "map",
       },
-      {
-        title: "Datos",
-        route: "/datos",
-        id: "data",
-      },
+      // {
+      //   title: "Datos",
+      //   route: "/datos",
+      //   id: "data",
+      // },
       {
         title: "Investigaciones y recursos",
         route: "/recursos",
