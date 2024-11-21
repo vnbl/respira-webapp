@@ -3,7 +3,6 @@ import { getColorRange } from "../../utils";
 import { ResponsiveBar} from "@nivo/bar";
 import { timeFormat } from "d3-time-format";
 import { scaleTime } from "d3-scale";
-import { BarItem } from "./BarItem";
 import {DateTime} from "luxon"
 
 const customTooltip = ({ value }: { value: number }) => (
