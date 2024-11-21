@@ -3,9 +3,15 @@ import { Image } from "astro:assets";
 import { FOOTER_IMAGES, SOCIAL_MEDIA_IMAGES } from "../../data/images";
 import Typography from "./Typography.astro";
 import { CONTACT_MAIL } from "../../data/constants";
-import { FOOTER_MENU } from "../../data/menu";
-import {BASE_URL} from "../../data/constants"
+import { FOOTER_MENU, type MenuItem } from "../../data/menu";
+import { BASE_URL } from "../../data/constants";
 
+const getRoute = (route: string | MenuItem[]): string => {
+  if (typeof route !== "string") {
+    return "";
+  }
+  return route.includes("https://") ? route : BASE_URL + route;
+};
 ---
 
 <div
@@ -13,7 +19,7 @@ import {BASE_URL} from "../../data/constants"
 >
   <div class="flex flex-col w-full md:mr-44">
     <p class="text-white text-xl font-bold font-serif">Una colaboración de</p>
-    <div class="grid md:divide-x text-white md:grid-cols-4 md:mt-8 max-w-sm ">
+    <div class="grid md:divide-x text-white md:grid-cols-4 md:mt-8 max-w-sm">
       {
         FOOTER_IMAGES.map((image) => (
           <div class="first:pl-0 md:px-4 even:col-span-2 md:py-0 py-4 first:justify-start md:justify-center flex">
@@ -29,7 +35,7 @@ import {BASE_URL} from "../../data/constants"
       >
     </p>
 
-    <div class="flex flex-row gap-1 text-center  md:align-middle md:mt-4">
+    <div class="flex flex-row gap-1 text-center md:align-middle md:mt-4">
       <p class="text-white text-center">Seguinos en</p>
       {
         SOCIAL_MEDIA_IMAGES.map((img) => (
@@ -46,18 +52,21 @@ import {BASE_URL} from "../../data/constants"
         if (typeof item.route !== "string") {
           return (
             <div>
-              <Typography variant="h4" customClass="text-white opacity-70 text-xl">
+              <Typography
+                variant="h4"
+                customClass="text-white opacity-70 text-xl"
+              >
                 {item.title}
               </Typography>
               {item.route.map((i) => (
-                <a href={BASE_URL + i.route}>
+                <a href={getRoute(i.route)}>
                   <p class="text-white font-sans text-lg pt-6">{i.title}</p>
                 </a>
               ))}
             </div>
           );
         } else {
-          <a href={BASE_URL + item.route}>
+          <a href={getRoute(item.route)}>
             <p class="text-white font-sans text-lg pt-6">{item.title}</p>
           </a>;
         }
