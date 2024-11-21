@@ -13,7 +13,7 @@ import GithubIcon from "../assets/logos/github_icon.svg";
 import Github from "../assets/logos/github.svg";
 import { TEAM } from "../data/team";
 import { ORGANIZATIONS } from "../data/images";
-import { PROJECT_URL } from "../data/constants";
+import { GITHUB_URL } from "../data/constants";
 ---
 
 <BaseLayout>
@@ -143,7 +143,7 @@ import { PROJECT_URL } from "../data/constants";
             <Typography variant="h3"
                 >Accede a nuestro repositorio en GitHub</Typography
             >
-            <Button variant="color" text="Ir al repositorio" onclick=`window.open("${PROJECT_URL}","_blank","","")`/>
+            <Button variant="color" text="Ir al repositorio" onclick=`window.open("${GITHUB_URL}","_blank","","")`/>
         </div>
         <div class="md:mt-8 flex md:items-center md:justify-center">
             <Image src={GithubIcon} alt="Invertocat logo" />
