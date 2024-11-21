@@ -2,7 +2,7 @@
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Footer from "../components/atoms/Footer.astro";
 import BackTop from "../components/atoms/BackTop.astro";
-import { Image } from "astro:assets";
+import { Picture, Image } from "astro:assets";
 import Typography from "../components/atoms/Typography.astro";
 import Link from "../components/atoms/Link.astro";
 import Button from "../components/atoms/Button.astro";
@@ -13,6 +13,7 @@ import GithubIcon from "../assets/logos/github_icon.svg";
 import Github from "../assets/logos/github.svg";
 import { TEAM } from "../data/team";
 import { ORGANIZATIONS } from "../data/images";
+import { GITHUB_URL } from "../data/constants";
 ---
 
 <BaseLayout>
@@ -142,7 +143,7 @@ import { ORGANIZATIONS } from "../data/images";
             <Typography variant="h3"
                 >Accede a nuestro repositorio en GitHub</Typography
             >
-            <Button variant="color" text="Ir al repositorio" />
+            <Button variant="color" text="Ir al repositorio" onclick=`window.open("${GITHUB_URL}","_blank","","")`/>
         </div>
         <div class="md:mt-8 flex md:items-center md:justify-center">
             <Image src={GithubIcon} alt="Invertocat logo" />
@@ -156,16 +157,16 @@ import { ORGANIZATIONS } from "../data/images";
             {
                 TEAM.map((team) => (
                     <div class="drop-shadow-md flex flex-col w-full h-full">
-                        <div class="bg-lightgray w-full h-full min-h-32 min-w-32 md:max-h-[15rem] rounded-t-md overflow-clip">
-                            <Image
+                        <div class="bg-lightgray w-full h-full overflow-clip rounded-t-md">
+                            <Picture
                                 src={team.image.path}
                                 alt={team.name}
-                                class="object-fit"
+                                class="object-contain"
                                 widths={[240, 540, 720, team.image.path.width]}
                                 sizes={`(max-width: 360px) 240px, (max-width: 720px) 400px, (max-width: 1600px) 600px, ${team.image.path.width}px`}
                             />
                         </div>
-                        <div class="bg-white md:max-h-[5rem] w-full md:min-h-[5rem] max-h-1/3 min-w-32 rounded-b-md p-2">
+                        <div class="bg-white md:h-[5rem] w-full md:min-h-[5rem] max-h-1/3 min-w-32 rounded-b-md p-2">
                             <Typography variant="h6">{team.name}</Typography>
                             <Typography variant="p-sm">{team.title}</Typography>
                         </div>
@@ -176,11 +177,11 @@ import { ORGANIZATIONS } from "../data/images";
     </section>
     <section class="flex flex-col py-8 px-8 md:px-16">
         <Typography variant="h2" customClass="pt-2">Organizaciones</Typography>
-        <div class="grid md:divide-x text-black md:grid-cols-4 sm:grid-cols-1 mt-12  md:py-12 md:max-w-fit w-full gap-20">
+        <div class="grid md:divide-x text-black md:grid-cols-4 sm:grid-cols-1 mt-12  md:py-12 md:max-w-fit w-full items-center">
 
             {
                 ORGANIZATIONS.map((org) => (
-                    <div class="first:pl-0 md:last:pl-8 md:even:col-span-2 md:first:justify-start justify-center flex w-full">
+                    <div class="first:pl-0 md:last:pl-8 md:even:col-span-2 md:first:justify-start justify-center flex w-full mx-10">
                         <Image
                             alt={org.alt}
                             src={org.path}

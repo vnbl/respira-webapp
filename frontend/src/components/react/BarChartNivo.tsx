@@ -3,7 +3,6 @@ import { getColorRange } from "../../utils";
 import { ResponsiveBar} from "@nivo/bar";
 import { timeFormat } from "d3-time-format";
 import { scaleTime } from "d3-scale";
-import { BarItem } from "./BarItem";
 import {DateTime} from "luxon"
 
 const customTooltip = ({ value }: { value: number }) => (
@@ -42,7 +41,6 @@ export const BarChart = ({ data }: any) => {
       keys={["value"]}
       indexBy="timestamp"
       padding={0.05}
-      barComponent={BarItem}
       enableGridY={false}
       colors={(datum) => getColorRange(datum.value || 0)}
       enableLabel={false}

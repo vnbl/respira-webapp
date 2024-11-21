@@ -12,14 +12,14 @@ export const AQICard = ({ card } : {card: CardType}) => {
         <div className="flex flex-col w-full justify-center">
           <div className="flex flex-row mb-2 flex-wrap">
             <h5
-              className={`font-serif font-bold text-[1.25rem] text-${
+              className={`font-sans font-bold text-[1.25rem] text-${
                 getTextColor(card.color) || "black"
               }  grow`}
             >
               {card.title}
             </h5>
             <h5
-              className={`font-serif font-bold text-[1.25rem] text-${
+              className={`font-sans font-bold text-[1.25rem] text-${
                 getTextColor(card.color) || "black"
               }`}
             >

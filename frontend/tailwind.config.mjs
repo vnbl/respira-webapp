@@ -4,9 +4,9 @@ export default {
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	theme: {
 		fontFamily: {
-			sans: ['Open Sans'],
+			sans: ['Open Sans Variable'],
 			serif:['Merriweather'],
-			emoji:['Inter']
+			emoji:['Inter Variable']
 		},
 		borderWidth: {
       DEFAULT: '1px',

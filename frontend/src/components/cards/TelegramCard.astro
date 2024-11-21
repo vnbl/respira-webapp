@@ -4,7 +4,6 @@ import QR from "../../assets/logos/telegram_qr.svg";
 import Copy from "../../assets/icons/copy_icon.svg";
 import { Image } from "astro:assets";
 import { TELEGRAM_URL } from "../../data/constants";
-
 ---
 
 <script>
@@ -20,22 +19,25 @@ import { TELEGRAM_URL } from "../../data/constants";
 </script>
 
 <div
-    class="bg-bg-gray flex flex-row items-center md:justify-center md:space-x-6  space-y-6 md:space-y-0 flex-wrap align-center  h-full px-8 py-8 md:pt-0" 
+    class="bg-bg-gray flex flex-row items-center md:justify-center md:space-x-6 space-y-6 md:space-y-0 flex-wrap w-full align-center h-full px-8 py-8"
 >
-    <div class="flex flex-col flex-grow space-y-2">
+    <div class="flex flex-col flex-grow space-y-4 w-min">
         <Typography variant="h3">Alertas vía Telegram</Typography>
         <Typography variant="p"
             >Recibí alertas automáticas en tu Telegram ingresando a nuestro
             grupo de Alertas.</Typography
         >
         <div
-            class="bg-white rounded-lg border-lightgray border-2 p-3 flex flex-row items-center"
+            class="bg-white rounded-lg border-lightgray border-2 p-3 flex  flex-grow flex-row items-center"
         >
-            <p class="text-lightgray font-sans flex-grow max-w-2/3 text-ellipsis">{TELEGRAM_URL}</p>
+            <p class="text-lightgray font-sans flex-grow text-ellipsis">
+                {TELEGRAM_URL}
+            </p>
             <button class="copy">
                 <Image src={Copy} alt="Copy icon" class="h-4" />
             </button>
         </div>
     </div>
-    <Image src={QR} alt="QR to Telegram" class="max-h-48 max-w-48" />
+    <Image src={QR} alt="QR to Telegram" class="h-48 w-48" />
+
 </div>

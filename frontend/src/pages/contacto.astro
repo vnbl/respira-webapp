@@ -9,7 +9,7 @@ import Button from "../components/atoms/Button.astro";
 ---
 
 <BaseLayout>
-    <section class="flex flex-col md:flex-row md:px-16 md:p-20 p-8 px-8" 
+    <section class="flex flex-col md:flex-row md:px-16 md:p-20 p-8 px-8 md:gap-12" 
     >
         <div class="md:w-1/2">
             <Typography variant="h2">Contactános</Typography>
@@ -94,8 +94,8 @@ import Button from "../components/atoms/Button.astro";
             <Button text="Enviar" variant="color" />
             </form>
         </div>
-        <div class="grid grid-row-4 md:w-1/2 gap-4 mt-[1/2]">
-            <div class="row-span-2"></div>
+        <div class="grid grid-row-4 md:w-1/2 gap-4 mt-[1/2] ">
+            <div class="row-span-2 md:h-60"></div>
             <div class="row-span-1 rounded-lg overflow-clip">
                 <TelegramCard />
             </div>

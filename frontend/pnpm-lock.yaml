@@ -23,6 +23,9 @@ importers:
       '@fontsource-variable/inter':
         specifier: ^5.0.18
         version: 5.0.18
+      '@fontsource-variable/open-sans':
+        specifier: ^5.1.0
+        version: 5.1.0
       '@fontsource/merriweather':
         specifier: ^5.0.13
         version: 5.0.13
@@ -1003,6 +1006,9 @@ packages:
 
   '@fontsource-variable/inter@5.0.18':
     resolution: {integrity: sha512-rJzSrtJ3b7djiGFvRuTe6stDfbYJGhdQSfn2SI2WfXviee7Er0yKAHE5u7FU7OWVQQQ1x3+cxdmx9NdiAkcrcA==}
+
+  '@fontsource-variable/open-sans@5.1.0':
+    resolution: {integrity: sha512-NuJdoORzM6qp+bf5j7dyo6MO8rBEEiSw8wiZv9t7sga0RIODgLLbBAMaZMaZiLwNbXcGPxhFcHcuDaQr1xj9kA==}
 
   '@fontsource/merriweather@5.0.13':
     resolution: {integrity: sha512-V/UsU+5yceDICBUJJXWCT+6xf5YpLIVUHfUjBQ+NNbllIhe3zaVZ1f3t5+fNKwvBzKBDa3RNMCofAdW7uzw08Q==}
@@ -6465,6 +6471,8 @@ snapshots:
     optional: true
 
   '@fontsource-variable/inter@5.0.18': {}
+
+  '@fontsource-variable/open-sans@5.1.0': {}
 
   '@fontsource/merriweather@5.0.13': {}
 
