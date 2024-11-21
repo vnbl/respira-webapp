@@ -2,8 +2,8 @@
 import Typography from "../atoms/Typography.astro";
 import Button from "../atoms/Button.astro";
 import { Card as ReactCard } from "../react/Card";
-
 ---
+
 
 <ReactCard client:only="react">
   <div slot="header">
@@ -25,7 +25,10 @@ import { Card as ReactCard } from "../react/Card";
     >
   </div>
   <div slot="action" class="mt-8">
-    <Button variant="color" text="Recomendaciones por Nivel"  onclick={"() => {console.log('test')}"}/>
-   
+    <Button
+      variant="color"
+      text="Recomendaciones por Nivel"
+      customClass="modal"
+    />
   </div>
 </ReactCard>

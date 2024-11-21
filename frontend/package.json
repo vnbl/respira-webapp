@@ -19,6 +19,7 @@
     "@fontsource-variable/open-sans": "^5.1.0",
     "@fontsource/merriweather": "^5.0.13",
     "@fontsource/twinkle-star": "^5.0.20",
+    "@material-tailwind/react": "^2.1.10",
     "@nanostores/query": "^0.3.4",
     "@nanostores/react": "^0.8.0",
     "@nivo/bar": "^0.87.0",

@@ -3,6 +3,7 @@ import { getAQIIndex } from "../../utils";
 import { AQI } from "../../data/cards";
 import { useStore } from "@nanostores/react";
 import { region } from "../../store/map";
+import { toggleRecommendationsModal } from "../../store/modals";
 
 export const MapTooltip = () => {
   const data = useStore(region);
@@ -22,7 +23,7 @@ export const MapTooltip = () => {
           </p>
           <div className={`bg-${card.color} h-4 w-4`} />
           </div>
-          {data.aqi >=50 && <a><p className="text-white underline text-sm">Recomendaciones</p></a>}
+          {data.aqi >=50 && <a onClick={() => toggleRecommendationsModal(true)}><p className="text-white underline text-sm">Recomendaciones</p></a>}
         </div>
       ) : undefined}
     </>

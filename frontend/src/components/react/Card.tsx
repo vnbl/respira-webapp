@@ -9,7 +9,7 @@ import { isBackendAvailable } from "../../store/store";
 import { selectedStation } from "../../store/map";
 import { AQI } from "../../data/cards";
 import { getAQIIndex } from "../../utils";
-import { toggleShareModal } from "../../store/modals";
+import { isRecommendationsModalOpen, toggleRecommendationsModal, toggleShareModal } from "../../store/modals";
 import { BASE_URL } from "../../data/constants";
 
 export const Card = (props: any) => {
@@ -20,7 +20,7 @@ export const Card = (props: any) => {
     if (navigator.share) {
       try {
         await navigator
-          .share({url: BASE_URL})
+          .share({ url: BASE_URL })
           .then(() =>
             console.log("Hooray! Your content was shared to tha world")
           );
@@ -42,7 +42,7 @@ export const Card = (props: any) => {
       style={{
         minHeight: window.innerHeight * 0.8
       }}
-   >
+    >
       {!backendAvailable && (
         <div className="w-full h-full content-center justify-center">
           <p className="font-bold text-lg text-center">
@@ -82,11 +82,18 @@ export const Card = (props: any) => {
               client:only="react"
             />
           </div>
-          {props.action}
+          <button
+            className={
+              "text-white font-serif font-bold py-3 px-6 rounded-md text-sm bg-green w-full "
+            }
+            onClick={() => toggleRecommendationsModal(true)}
+            {...props}
+          >
+            <p className="font-serif uppercase">Recomendaciones por nivel</p>
+          </button>
           <button className="share w-full text-center mt-4" id="share" onClick={() => handleSharing()}>
             <p className="text-green text-center font-bold"
             >Compartir</p>
-
           </button>
         </>
       )}
