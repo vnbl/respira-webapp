@@ -3,7 +3,6 @@ import Modal from "../Modal"
 import { useStore } from "@nanostores/react"
 import { isAlertModalOpen, toggleAlertModal } from "../../../store/modals"
 import Close from "../../../assets/icons/close_icon.svg?react"
-import { BASE_URL, FACEBOOK_SHARE, TELEGRAM_SHARE, TELEGRAM_URL, TWITTER_SHARE } from "../../../data/constants";
 
 
 const AlertModal = (props: any) => {

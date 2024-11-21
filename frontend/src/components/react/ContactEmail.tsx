@@ -73,20 +73,4 @@ const textBold = {
   color: "#404040",
   lineHeight: "26px",
 };
-const button = {
-  backgroundColor: "#007ee6",
-  borderRadius: "4px",
-  color: "#fff",
-  fontFamily: "'Open Sans', 'Helvetica Neue', Arial",
-  fontSize: "15px",
-  textDecoration: "none",
-  textAlign: "center" as const,
-  display: "block",
-  width: "210px",
-  padding: "14px 7px",
-};
-
-const anchor = {
-  textDecoration: "underline",
-};
 export default Email;
