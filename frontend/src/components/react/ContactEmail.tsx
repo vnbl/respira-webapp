@@ -20,7 +20,7 @@ export function Email(props: EmailInput) {
   return (
     <Html>
       <Head />
-      <Preview>Dropbox reset your password</Preview>
+      <Preview>Nueva consulta</Preview>
       <Body style={main}>
         <Container style={container}>
           <Img
