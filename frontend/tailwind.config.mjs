@@ -6,7 +6,7 @@ export default {
 		fontFamily: {
 			sans: ['Open Sans Variable'],
 			serif:['Merriweather'],
-			emoji:['Inter']
+			emoji:['Inter Variable']
 		},
 		borderWidth: {
       DEFAULT: '1px',

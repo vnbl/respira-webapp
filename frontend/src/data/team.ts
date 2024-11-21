@@ -56,7 +56,7 @@ export const TEAM : TEAM_CARD []= [
     },
     {
         name: "Fabián Bozzolo",
-        title: "Communication",
+        title: "Comunicación",
         image: {
             path: Fabian
         }
