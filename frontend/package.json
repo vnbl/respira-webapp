@@ -15,6 +15,7 @@
     "@astrojs/react": "^3.6.2",
     "@astrojs/tailwind": "^5.1.2",
     "@fontsource-variable/inter": "^5.0.18",
+    "@fontsource-variable/open-sans": "^5.1.0",
     "@fontsource/merriweather": "^5.0.13",
     "@fontsource/twinkle-star": "^5.0.20",
     "@nanostores/query": "^0.3.4",
