@@ -117,8 +117,8 @@ const MapComponent = () => {
           </div>
         </Popup>
       )}
-      <GeolocateControl position="bottom-right" />
-      <NavigationControl position="bottom-right" />
+      <GeolocateControl position="bottom-right"  showAccuracyCircle={false} />
+      <NavigationControl position="bottom-right"/>
       <MapTooltip />
     </Map>
   );
