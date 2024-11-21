@@ -1,7 +1,5 @@
 ---
-export const prerender = false
-
-import { actions, getActionProps, FormData } from "astro:actions";
+export const prerender = false;
 
 import BaseLayout from "../layouts/BaseLayout.astro";
 import Footer from "../components/atoms/Footer.astro";
@@ -10,48 +8,24 @@ import TwitterCard from "../components/cards/TwitterCard.astro";
 import TelegramCard from "../components/cards/TelegramCard.astro";
 import Typography from "../components/atoms/Typography.astro";
 import Button from "../components/atoms/Button.astro";
-import { sendMail } from "../utils/send_mail";
-
-// type Form = {
-//   name: string;
-//   lastname?: string;
-//   email: string;
-//   motive: string;
-//   message: string;
-// };
-
-// const form = Bind<Form>();
-
-// if (Astro.request.method === "POST") {
-//   try {
-//     const data = await Astro.request.formData();
-//     console.log("data", data);
-//     console.log("data", data.entries());
-
-//     // const name = data.get("username");
-//     // const email = data.get("email");
-//     // const password = data.get("password");
-//     // Do something with the data
-//   } catch (error) {
-//     if (error instanceof Error) {
-//       console.error(error.message);
-//     }
-//   }
-// }
 ---
 
 <script>
-  import { actions } from 'astro:actions';
-  import { navigate } from 'astro:transitions/client';
+  import { actions } from "astro:actions";
 
-  const form = document.querySelector('form');
-  form?.addEventListener('submit', async (event) => {
+  const form = document.querySelector("form");
+  const button = document.getElementById("form-button");
+  form?.addEventListener("submit", async (event) => {
     event.preventDefault();
     const formData = new FormData(form);
-    console.log(formData  )
-    const { error } = await actions.sendMail(formData);
-    // if (!error) navigate('/confirmation');
-  })
+    const { error, data } = await actions.sendMail(formData);
+    if (error) {
+      window.alert('Hubo un error enviando el mail')
+      return console.error({ error });
+    }
+    window.alert('Mensaje enviado!')
+    console.log({ data });
+  });
 </script>
 
 <BaseLayout>
@@ -63,9 +37,7 @@ import { sendMail } from "../utils/send_mail";
         datos o algún mail en particular.
       </Typography>
       <div class="md:mr-8 gap-2 flex flex-col my-8">
-        <form
-          class="md:mr-8 gap-2 flex flex-col my-8"
-        >
+        <form class="md:mr-8 gap-2 flex flex-col my-8" id="contacto">
           <div class="mb-4 flex flex-col md:flex-row gap-4">
             <div class="w-full">
               <label
@@ -157,20 +129,24 @@ import { sendMail } from "../utils/send_mail";
             placeholder="Escribe tu mensaje..."
             required
             name="message"
+            maxlength="800"
             rows="8"></textarea>
-          <Button text="Enviar" variant="color" />
+            <p class="text-[#FF18DA] text-xs">*Máximo número de carácteres es 800</p>
+            <div class="w-full mt-4">
+          <Button text="Enviar" variant="color" id={'form-button'}/>
+        </div>
         </form>
       </div>
     </div>
-    <div class="grid grid-row-4 md:w-1/2 gap-4 mt-[1/2] ">
+    <div class="grid grid-row-4 md:w-1/2 gap-4 mt-[1/2]">
       <div class="row-span-2 md:h-60"></div>
       <div class="row-span-1 rounded-lg overflow-clip">
-          <TelegramCard />
+        <TelegramCard />
       </div>
       <div class="row-span-1 rounded-lg overflow-clip">
-          <TwitterCard />
+        <TwitterCard />
       </div>
-  </div>
+    </div>
   </section>
   <BackTop />
   <Footer />

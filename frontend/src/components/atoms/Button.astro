@@ -1,11 +1,12 @@
 ---
-interface Props {
+import type { HTMLAttributes } from 'astro/types';
+type Props  = {
   text: string;
   variant: "color" | "void";
   onclick?: null | undefined | string;
-}
+} &  HTMLAttributes<'button'> 
 
-const { text, variant, onclick } = Astro.props;
+const { text, variant, onclick, ...props } = Astro.props;
 ---
 
 {
@@ -15,6 +16,7 @@ const { text, variant, onclick } = Astro.props;
         "text-white font-serif font-bold py-3 px-6 rounded-md text-sm bg-green w-full" 
       }
       onclick={onclick}
+      {...props}
     >
       <p class="font-serif uppercase">{text}</b>
     </button>
@@ -26,6 +28,7 @@ const { text, variant, onclick } = Astro.props;
       class={
         "border text-black font-semibold py-2 px-6 rounded-md text-sm"
       }
+      {...props}
       onclick={onclick}
     >
       <b>{text.toUpperCase()}</b>
