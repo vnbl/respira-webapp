@@ -72,14 +72,14 @@ export const Card = (props: any) => {
           <div className="h-[100px] w-full">
             <Chart
               data={station ? station.forecast_6h : data.forecast_6h}
-              client:only
+              client:only="react"
             />
           </div>
           {props.header_forecast_twelve}
           <div className="h-[100px] w-full pb-2">
             <Chart
               data={station ? station.forecast_12h : data.forecast_12h}
-              client:only
+              client:only="react"
             />
           </div>
           {props.action}
