@@ -96,6 +96,8 @@ services:
       PUBLIC_BACKEND_URL: ${BACKEND_URL}
       FRONTEND_PORT: ${FRONTEND_PORT}
       SITE_URL: ${SITE_URL}
+      SMTP_SENDER: ${SMTP_SENDER}
+      SMTP_KEY: ${SMTP_KEY}
     networks:
       - frontend_nw
       - proxy_nw
