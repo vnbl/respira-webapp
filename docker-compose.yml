@@ -122,6 +122,7 @@ services:
       CERT_NAME: ${CERT_NAME}
       FRONTEND_HOST: frontend
       FRONTEND_PORT: ${FRONTEND_PORT}
+      SERVER_HOST: ${SERVER_HOST}
     ports:
       - "${PROXY_PORT}:80"
       - 443:443
