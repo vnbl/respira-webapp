@@ -6,8 +6,6 @@ import { BACKEND_URL } from '../data/constants';
 
 export const backendHealthCheck= async () => {
     try {
-        console.log(import.meta.env)
-        console.log(process.env)
         const response = await fetch(BACKEND_URL + '/health');
         if(response.status !== 200) {
            return false
@@ -29,4 +27,5 @@ onMount(isBackendAvailable, () => {
   })
 
 isBackendAvailable.listen(() => {})
+
 await allTasks()

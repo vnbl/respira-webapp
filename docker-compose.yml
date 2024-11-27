@@ -90,12 +90,16 @@ services:
         -  PUBLIC_REGION_DEFAULT_ID=1
         -  PUBLIC_BACKEND_URL=${BACKEND_URL}
         -  SITE_URL=${SITE_URL}
+        -  SMTP_SENDER=${SMTP_SENDER}
+        -  SMTP_KEY=${SMTP_KEY}
     restart: always
     environment:
       PUBLIC_REGION_DEFAULT_ID: 1
       PUBLIC_BACKEND_URL: ${BACKEND_URL}
       FRONTEND_PORT: ${FRONTEND_PORT}
       SITE_URL: ${SITE_URL}
+      SMTP_SENDER: ${SMTP_SENDER}
+      SMTP_KEY: ${SMTP_KEY}
     networks:
       - frontend_nw
       - proxy_nw
@@ -118,6 +122,7 @@ services:
       CERT_NAME: ${CERT_NAME}
       FRONTEND_HOST: frontend
       FRONTEND_PORT: ${FRONTEND_PORT}
+      SERVER_HOST: ${SERVER_HOST}
     ports:
       - "${PROXY_PORT}:80"
       - 443:443

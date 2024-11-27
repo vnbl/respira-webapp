@@ -1,4 +1,6 @@
-@import url("https://fonts.googleapis.com/css2?family=Merriweather");   
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 .maplibregl-popup-content {
   background: rgba(79, 64, 57, 1) !important;

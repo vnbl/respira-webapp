@@ -23,6 +23,13 @@ import Who from "../assets/logos/who.svg"
 import AireLibre from "../assets/logos/aire_libre.svg"
 
 
+import Babies from "../assets/recommendations/babies.svg";
+import Diabetes from "../assets/recommendations/diabetes.svg";
+import HeartCondition from "../assets/recommendations/heart_condition.svg";
+import Kids from "../assets/recommendations/kids.svg";
+import LungDisease from "../assets/recommendations/lung_disease.svg";
+import Older from "../assets/recommendations/older.svg";
+
 import {INSTAGRAM_URL, FACEBOOK_URL, TELEGRAM_URL} from "./constants"
 
 export type Image = {
@@ -135,6 +142,36 @@ export const SOCIAL_MEDIA_IMAGES : (Omit<Image & Link, "text">)[] = [
         alt: "Facebook Icon",
         path: Facebook,
         link: FACEBOOK_URL     
+    },
+
+]
+
+
+
+export const RECOMMENDATIONS_IMAGES : Image[] = [
+    {
+        alt: "recommendations",
+        path: Older,
+    },
+    {
+        alt: "recommendations",
+        path: HeartCondition,
+    },
+    {
+        alt: "recommendations",
+        path: Kids,
+    },
+    {
+        alt: "recommendations",
+        path: LungDisease,
+    },
+    {
+        alt: "recommendations",
+        path: Babies,
+    },
+    {
+        alt: "recommendations",
+        path: Diabetes,
     },
 
 ]

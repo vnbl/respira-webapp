@@ -1,13 +1,22 @@
 /** @type {import('tailwindcss').Config} */
-
-export default {
+const withMT = require("@material-tailwind/react/utils/withMT");
+ export default withMT({
 	content: ['./src/**/*.{astro,html,js,jsx,md,mdx,svelte,ts,tsx,vue}'],
 	theme: {
 		fontFamily: {
-			sans: ['Open Sans'],
+			sans: ['Open Sans Variable', 'sans-serif'],
 			serif:['Merriweather'],
-			emoji:['Inter']
+			emoji:['Inter Variable']
 		},
+		borderWidth: {
+      DEFAULT: '1px',
+      '0': '0',
+      '2': '2px',
+      '3': '3px',
+      '4': '4px',
+      '6': '6px',
+      '8': '8px',
+    },
 		colors: {
 			base: '#F0ECEA',
 			basedark: '#afa29c',
@@ -50,3 +59,4 @@ export default {
 	},
 	plugins: [],
 }
+);

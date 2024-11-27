@@ -5,6 +5,8 @@ ENV PATH="$PNPM_HOME:$PATH"
 ARG PUBLIC_BACKEND_URL
 ARG PUBLIC_REGION_DEFAULT_ID
 ARG SITE_URL
+ARG SMTP_KEY
+ARG SMTP_SENDER
 
 RUN corepack enable
 COPY . /app
@@ -18,6 +20,9 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store  pnpm install --frozen-lockfil
 RUN echo SITE_URL=$SITE_URL >> .env
 RUN echo PUBLIC_BACKEND_URL=$PUBLIC_BACKEND_URL >> .env
 RUN echo PUBLIC_REGION_DEFAULT_ID=$PUBLIC_REGION_DEFAULT_ID >> .env
+RUN echo SMTP_KEY=$SMTP_KEY >> .env
+RUN echo SMTP_SENDER=$SMTP_SENDER >> .env
+
 RUN pnpm run build
 
 FROM base

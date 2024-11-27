@@ -2,10 +2,10 @@
 import Typography from "../atoms/Typography.astro";
 import Button from "../atoms/Button.astro";
 import { Card as ReactCard } from "../react/Card";
-
 ---
 
-<ReactCard client:only>
+
+<ReactCard client:only="react">
   <div slot="header">
     <Typography variant="h4" customClass="w-auto text-center"
       >¿Cómo está el aire ahora?</Typography
@@ -25,9 +25,10 @@ import { Card as ReactCard } from "../react/Card";
     >
   </div>
   <div slot="action" class="mt-8">
-    <Button variant="color" text="Recomendaciones por Nivel" />
-    <Typography variant="p" customClass="text-green text-center font-bold"
-      >Compartir</Typography
-    >
+    <Button
+      variant="color"
+      text="Recomendaciones por Nivel"
+      customClass="modal"
+    />
   </div>
 </ReactCard>

@@ -90,7 +90,7 @@ const MapComponent = () => {
       }}
       dragRotate={false}
       touchPitch={false}
-      touchZoomRotate={false}
+      touchZoomRotate={true}
       minZoom={5.5}
       attributionControl={false}
       style={{ width: dimensions.width, height: dimensions.height * 0.75 }}
@@ -113,12 +113,12 @@ const MapComponent = () => {
           <div className="flex flex-col">
             <p className="font-bold text-[16px] text-white">Estación {popupInfo.id}</p>
             <p className="font-bold font-xs text-white">{popupInfo.name}</p>
-            <a><p className="text-green font-bold underline">Ver estadisticas</p></a>
+            {/* <a><p className="text-green font-bold underline">Ver estadisticas</p></a> */}
           </div>
         </Popup>
       )}
-      <GeolocateControl position="bottom-right" />
-      <NavigationControl position="bottom-right" />
+      <GeolocateControl position="bottom-right"  showAccuracyCircle={false} />
+      <NavigationControl position="bottom-right"/>
       <MapTooltip />
     </Map>
   );
