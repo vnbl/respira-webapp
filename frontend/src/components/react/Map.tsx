@@ -86,7 +86,7 @@ const MapComponent = () => {
       initialViewState={{
         longitude: -57.65,
         latitude: -25.28,
-        zoom: 12.5,
+        zoom: 10.5,
       }}
       dragRotate={false}
       touchPitch={false}
