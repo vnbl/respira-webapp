@@ -23,7 +23,18 @@ http {
         return 301 https://$SERVER_HOST$request_uri;
         
     }
-    
+    server {
+        listen 80;
+        server_name www.$SERVER_HOST;
+        return 301 https://www.$SERVER_HOST$request_uri;
+    }
+    server {
+        listen 443 ssl;
+        ssl_certificate /etc/nginx/ssl/live/$CERT_NAME/fullchain.pem;
+        ssl_certificate_key /etc/nginx/ssl/live/$CERT_NAME/privkey.pem;
+        server_name www.$SERVER_HOST;
+        return 301 https://$SERVER_HOST$request_uri;
+    }
     server {
         listen 443 default_server ssl ;
         listen [::]:443 ssl;
