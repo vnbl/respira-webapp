@@ -4,10 +4,13 @@ import react from "@astrojs/react";
 import lottie from "astro-integration-lottie";
 import svgr from "vite-plugin-svgr"
 import node from "@astrojs/node";
-import { loadEnv } from "vite";
-const { SITE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
 import react from '@astrojs/react';
 import formDebug from "@astro-utils/forms/dist/integration.js";
+import partytown from '@astrojs/partytown'
+import sitemap from '@astrojs/sitemap';
+
+import { loadEnv } from "vite";
+const { SITE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
 
 // https://astro.build/config
 export default defineConfig({
@@ -26,7 +29,7 @@ export default defineConfig({
             plugins: ['preset-default', 'removeTitle', 'removeDesc', 'removeDoctype', 'cleanupIds'],
           },
           icon: true,
-          
+
         },
       }),
     ],
@@ -37,7 +40,13 @@ export default defineConfig({
   output: "hybrid",
   trailingSlash: "ignore",
   srcDir: "./src",
-  integrations: [formDebug, react(), tailwind(), lottie()],
+  integrations: [formDebug, react(), tailwind(), lottie(), partytown({
+    config: {
+      forward: ["dataLayer.push"],
+    },
+  }),
+    sitemap()
+  ],
   adapter: node({
     mode: "standalone",
   }),

@@ -92,6 +92,7 @@ services:
         -  SITE_URL=${SITE_URL}
         -  SMTP_SENDER=${SMTP_SENDER}
         -  SMTP_KEY=${SMTP_KEY}
+        -  PUBLIC_GTAG=${PUBLIC_GTAG}
     restart: always
     environment:
       PUBLIC_REGION_DEFAULT_ID: 1
