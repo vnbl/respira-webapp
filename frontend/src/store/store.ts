@@ -27,5 +27,3 @@ onMount(isBackendAvailable, () => {
   })
 
 isBackendAvailable.listen(() => {})
-
-await allTasks()
