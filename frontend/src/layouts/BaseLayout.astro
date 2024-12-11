@@ -15,21 +15,28 @@ import "@fontsource-variable/inter";
 
 import "../../main.css";
 import { BASE_URL } from "../data/constants";
+
+const GTAG=import.meta.env.PUBLIC_GTAG
 ---
 
 <html lang="en" class="md:overflow-hidden">
   <head>
+    <!-- Cookie consent import -->
+    <link
+    rel="stylesheet"
+    href="https://cdn.jsdelivr.net/gh/orestbida/cookieconsent@3.0.1/dist/cookieconsent.css"
+  />
     <!-- Google tag (gtag.js) -->
-    <script  type="text/partytown" async src=`https://www.googletagmanager.com/gtag/js?id=${import.meta.env.PUBLIC_GTAG}`
+    <script  type="text/partytown" async src=`https://www.googletagmanager.com/gtag/js?id=${GTAG}`
     ></script>
-    <script type="text/partytown">
+    <script type="text/partytown" define:vars={{GTAG}}>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
       }
       gtag("js", new Date());
 
-      gtag("config", import.meta.env.PUBLIC_GTAG);
+      gtag("config", GTAG);
     </script>
     <meta charset="utf-8" />
     <link rel="sitemap" href="/sitemap-index.xml" />
@@ -53,6 +60,7 @@ import { BASE_URL } from "../data/constants";
   <title>Respira</title>
 
   <body class="bg-base h-full">
+    <script type="module" src="/src/scripts/cookieconsent-config.js"></script>
     <ShareModal client:only="react" />
     <RecommendationsModal client:only="react" />
     <AlertModal client:only="react">
