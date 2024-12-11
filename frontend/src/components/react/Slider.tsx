@@ -11,7 +11,7 @@ const calculateOffset = (value:number) => {
 export const Slider = ({ value }: {value: number}) => {
   return (
     <>
-      <div className={"flex flex-row fixed w-[86%] -mt-2"}>
+      <div className={"flex flex-row fixed w-[86%] -mt-2 translate-x-0 translate-y-0"}>
         <div
           style={{
             width: `calc(${calculateOffset(value)}% - 25px)`,
