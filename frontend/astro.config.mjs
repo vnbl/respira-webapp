@@ -6,7 +6,6 @@ import svgr from "vite-plugin-svgr"
 import node from "@astrojs/node";
 import react from '@astrojs/react';
 import formDebug from "@astro-utils/forms/dist/integration.js";
-import partytown from '@astrojs/partytown'
 import sitemap from '@astrojs/sitemap';
 
 import { loadEnv } from "vite";
@@ -40,11 +39,7 @@ export default defineConfig({
   output: "hybrid",
   trailingSlash: "ignore",
   srcDir: "./src",
-  integrations: [formDebug, react(), tailwind(), lottie(), partytown({
-    config: {
-      forward: ["dataLayer.push"],
-    },
-  }),
+  integrations: [formDebug, react(), tailwind(), lottie(),
     sitemap()
   ],
   adapter: node({

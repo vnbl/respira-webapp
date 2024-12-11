@@ -22,9 +22,9 @@ const GTAG=import.meta.env.PUBLIC_GTAG
 <html lang="en" class="md:overflow-hidden">
   <head>
     <!-- Google tag (gtag.js) -->
-    <script  type="text/partytown" async src=`https://www.googletagmanager.com/gtag/js?id=${GTAG}`
+    <script   async src=`https://www.googletagmanager.com/gtag/js?id=${GTAG}`
     ></script>
-    <script type="text/partytown" define:vars={{GTAG}}>
+    <script define:vars={{GTAG}}>
       window.dataLayer = window.dataLayer || [];
       function gtag() {
         dataLayer.push(arguments);
