@@ -20,6 +20,14 @@ export default defineConfig({
         usePolling: true,
       },
     },
+    build: {
+      target: ["es2015", "es2020","esnext", "chrome87", "firefox78", "safari14", "edge88"  ]
+    },
+    esbuild: {
+      supported: {
+        "top-level-await": true,
+      },
+    },
     plugins: [
       svgr({
         include: '**/*.svg?react',
