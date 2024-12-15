@@ -1,0 +1,30 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import Footer from "../components/atoms/Footer.astro";
+import TwitterCard from "../components/cards/TwitterCard.astro";
+import TelegramCard from "../components/cards/TelegramCard.astro";
+import Button from "../components/atoms/Button.astro";
+import {BASE_URL} from "../data/constants"
+
+---
+
+<BaseLayout>
+    <script>
+        import {BASE_URL} from "../data/constants"
+        // redirect if path accessed on computer
+        if(window.innerWidth > 640) {
+            window.open(BASE_URL,"_self","")
+        }
+    </script>
+    <section class="p-6 space-y-6 flex flex-col md:hidden"  >
+        <div class="rounded-lg overflow-clip">
+            <TelegramCard />
+        </div>
+        <div class="rounded-lg overflow-clip">
+            <TwitterCard />
+        </div>
+        <Button text="Ir al mapa" variant="void" onclick=`window.open("${BASE_URL}","_self","","")`/>
+    </section>
+
+    <Footer  class="md:hidden"/>
+</BaseLayout>

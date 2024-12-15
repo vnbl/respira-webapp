@@ -1,27 +1,29 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 from django.utils import timezone
-from django.db.models import Avg, Max, OuterRef, Subquery
+from django.db.models import Avg, Max, OuterRef, Subquery, Exists
 from django.db.models.functions import TruncDate
 
 from rest_framework import status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework import generics
+
 from rest_framework.viewsets import ModelViewSet
 
+import pandas as pd
+
 from .models import Stations, Regions, RegionReadings, StationReadingsGold, InferenceRuns, InferenceResults
-from .serializers import StationSerializer, RegionSerializer, ForecastSerializer, HistorySerializer
+from .serializers import StationSerializer, RegionSerializer, MapSerializer, ForecastSerializer, HistorySerializer
 
-
-class HealthCheckView(APIView):
+class HealthCheckView(generics.GenericAPIView):
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
         return Response({"status": "ok"}, status=status.HTTP_200_OK)
 
 
-class MapViewset(APIView):
+class MapViewset(generics.GenericAPIView):
     http_method_names = ['get']
 
     def get(self, request, *args, **kwargs):
@@ -45,54 +47,111 @@ class MapViewset(APIView):
                 "error": "'id' must be an integer."
             }, status=status.HTTP_400_BAD_REQUEST)
 
-        # average the aqi of all the stations in the region and their forecast
+                
+        latest_inference_run = (
+            InferenceRuns.objects
+            .filter(Exists(
+                InferenceResults.objects.filter(inference_run_id=OuterRef('id'))
+            ))
+            .order_by('-run_date')
+            .first()
+        )
+
+        latest_inference_run_id = latest_inference_run.id if latest_inference_run else None
+            
+        # get region_readings, average forecast for regions beloging to region
         if entity == 'region':
-            latest_readings = StationReadingsGold.objects.filter(station_id=OuterRef('station_id')).order_by('-timestamp')
-            result = StationReadingsGold.objects.filter(station__region_id=entity_id).annotate(
-                latest_aqi=Subquery(latest_readings.values('aqi')[:1])
-            ).aggregate(average_aqi=Avg('latest_aqi'))
+            latest_region_reading = RegionReadings.objects.filter(region_id=entity_id) \
+                            .order_by('-date_utc').first()
 
-        # get the station and its forecast
+            if latest_region_reading:
+                latest_aqi = latest_region_reading.aqi_region_avg
+            else:
+                return Response({
+                    "error": "No readings found for this region."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # 6h forecast
+            forecast_6h = InferenceResults.objects.filter(inference_run=latest_inference_run_id) \
+                            .values_list('forecasts_6h', flat=True)
+            forecast_6h_data = [item for sublist in forecast_6h for item in sublist]
+            
+            result_forecast_6h = pd.DataFrame(forecast_6h_data) \
+                                    .groupby('timestamp', as_index=False)['value'].mean()
+            
+            # 12h forecast
+            forecast_12h = InferenceResults.objects.filter(inference_run=latest_inference_run_id) \
+                            .values_list('forecasts_12h', flat=True)
+            forecast_12h_data = [item for sublist in forecast_12h for item in sublist]
+
+            result_forecast_12h = pd.DataFrame(forecast_12h_data) \
+                                    .groupby('timestamp', as_index=False)['value'].mean()
+
+        # get station_readings
         elif entity == 'station':
-            latest_readings = StationReadingsGold.objects.filter(station_id=entity_id).order_by('-timestamp').first()
-            result = {"station_id": entity_id, "latest_aqi": latest_readings.aqi if latest_readings else None}
 
-        return Response(result, status=status.HTTP_200_OK)
-    
+            try:
+                station = Stations.objects.get(id=entity_id)
+            except Stations.DoesNotExist:
+                return Response({
+                    'error': 'Station ID does not exist in the database.'
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            if station.is_pattern_station:
+                return Response({
+                    'error':'Station ID is a pattern station.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not station.is_station_on:
+                return Response({
+                    'error':'Station ID has been manually shut down due to maintenance.'
+                }, status=status.HTTP_400_BAD_REQUEST)
+
+            latest_station_reading = StationReadingsGold.objects.filter(station_id=entity_id) \
+                                        .order_by('-date_utc').first()
+
+            if latest_station_reading:
+                latest_aqi = latest_station_reading.aqi_pm2_5
+            else:
+                return Response({
+                    "error": "No readings found for this station."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            # 6h forecast
+            forecast_6h = InferenceResults.objects.filter(inference_run=latest_inference_run_id, station_id=entity_id) \
+                            .values_list('forecasts_6h', flat=True)
+            forecast_6h_data = [item for sublist in forecast_6h for item in sublist]
+
+            if not forecast_6h_data:
+                return Response({
+                    "error": "No forecast data available for this station."
+                }, status=status.HTTP_404_NOT_FOUND)
+            
+            result_forecast_6h = pd.DataFrame(forecast_6h_data)
+
+            # 12h forecast
+            forecast_12h = InferenceResults.objects.filter(inference_run=latest_inference_run_id, station_id=entity_id) \
+                            .values_list('forecasts_12h', flat=True)
+            forecast_12h_data = [item for sublist in forecast_12h for item in sublist]
+
+            if not forecast_12h_data:
+                return Response({
+                    "error": "No 12-hour forecast data available for this station."
+                }, status=status.HTTP_404_NOT_FOUND)
+
+            result_forecast_12h = pd.DataFrame(forecast_12h_data)
+
+        return Response({
+            "aqi": latest_aqi,
+            "forecast_6h": result_forecast_6h.to_dict(orient='records'),
+            "forecast_12h": result_forecast_12h.to_dict(orient='records')
+        }, status=status.HTTP_200_OK)
+
 
 class RegionViewset(ModelViewSet):
-    queryset = Regions.objects.filter(id=1)
+    queryset = Regions.objects.all()
     serializer_class = RegionSerializer
     http_method_names = ['get']
-
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        
-        return Response(serializer.data)
-    
-    @action(detail=True, methods=['get'])
-    def forecast(self, request, *args, **kwargs):
-        # GET CORRECT FORECAST, 6H AND 12H
-        region_readings = RegionReadings.objects.filter(region_id=self.get_object().id)
-        serializer = StationSerializer(region_readings, many=True)
-
-        if serializer.is_valid():
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
-
-
-    @action(detail=True, methods=['get'])
-    def history(self, request, *args, **kwargs):
-        # ADD DATE FILTER
-        region_readings = RegionReadings.objects.filter(region_id=self.get_object().id)
-        serializer = StationSerializer(region_readings, many=True)
-
-        if serializer.is_valid():
-            return Response(serializer.data)
-        else:
-            return Response(serializer.errors)
 
 
 class StationViewset(ModelViewSet):
@@ -100,49 +159,24 @@ class StationViewset(ModelViewSet):
     serializer_class = StationSerializer
     http_method_names = ['get']
 
-    def retrieve(self, request, *args, **kwargs):
-        instance = self.get_object()
-        serializer = self.get_serializer(instance)
-        
+    def list(self, request, *args, **kwargs):
+        queryset = self.get_queryset()
+        serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
-
 
     @action(detail=True, methods=['get'])
     def forecast(self, request, *args, **kwargs):
         station = self.get_object()
         
-        yesterday = timezone.now() - timedelta(days=1)
+        last_inference = InferenceResults.objects.filter(station=station.id).order_by('-inference_run_id').first()
+        inference_run = InferenceRuns.objects.filter(id=last_inference.inference_run_id).first()
 
-        aqi_series = StationReadingsGold.objects.filter(
-                station_id=station.id, 
-                date_localtime__gte=yesterday
-            ) \
-            .order_by('-date_localtime') \
-            .values('date_localtime', 'aqi_pm2_5')
-        
-        aqi_series = [{'value': entry['aqi_pm2_5'], 'timestamp': entry['date_localtime'].strftime('%Y-%m-%d %H:%M:%S')} for entry in aqi_series]
-
-        # get the latest inference result by id
-        inference_result = InferenceResults.objects.filter(station_id=station.id).order_by('-id').first()
-        
-        # get the date of the inference run
-        inference_date = InferenceRuns.objects.filter(id=inference_result.inference_run_id).first().run_date
-        
-        forecast_data = {
-            'forecast_date': inference_date,
-            'aqi': aqi_series,
-            'forecast_6h': inference_result.forecast_6h,
-            'forecast_12h': inference_result.forecast_12h
-        }
-
-        serializer = ForecastSerializer(data=forecast_data)
-
-        if serializer.is_valid():
-            return Response(serializer.data)
-        
-        else:
-            return Response(serializer.errors)
-
+        return Response({
+            "forecast_date": inference_run.run_date,
+            "aqi_level": pd.DataFrame(last_inference.aqi_input).to_dict(orient='records'),
+            "forecast_6h": pd.DataFrame(last_inference.forecasts_6h).to_dict(orient='records'),
+            "forecast_12h": pd.DataFrame(last_inference.forecasts_12h).to_dict(orient='records')
+        }, status=status.HTTP_200_OK)
 
     @action(detail=True, methods=['get'])
     def history(self, request, *args, **kwargs):
@@ -166,19 +200,19 @@ class StationViewset(ModelViewSet):
         # Get the last 30 days
         history_readings = StationReadingsGold.objects.filter(
             station_id=station.id,
-            date_localtime__gte=thirty_days_ago
-        ).order_by('-date_localtime')
+            date_utc__gte=thirty_days_ago
+        ).order_by('-date_utc')
 
         # Filter: last 24 hours
-        historical_1d = history_readings.filter(date_localtime__gte=one_day_ago) \
-                                .values('date_localtime', field) \
-                                .order_by('date_localtime')
+        historical_1d = history_readings.filter(date_utc__gte=one_day_ago) \
+                                .values('date_utc', field) \
+                                .order_by('date_utc')
 
-        historical_1d = [{'value': entry[field], 'timestamp': entry['date_localtime'].strftime('%Y-%m-%d %H:%M:%S')} for entry in historical_1d]
+        historical_1d = [{'value': entry[field], 'timestamp': entry['date_utc'].strftime('%Y-%m-%d %H:%M:%S')} for entry in historical_1d]
 
         # Filter: last 7 days (group by day and aggregate)
-        historical_7d = history_readings.filter(date_localtime__gte=seven_days_ago) \
-                                .annotate(day=TruncDate('date_localtime')) \
+        historical_7d = history_readings.filter(date_utc__gte=seven_days_ago) \
+                                .annotate(day=TruncDate('date_utc')) \
                                 .values('day') \
                                 .annotate(avg_value=Avg(field)) \
                                 .order_by('day')
@@ -187,7 +221,7 @@ class StationViewset(ModelViewSet):
 
         # Filter: last 30 days (group by day and aggregate)
         historical_30d = history_readings \
-                    .annotate(day=TruncDate('date_localtime')) \
+                    .annotate(day=TruncDate('date_utc')) \
                     .values('day') \
                     .annotate(avg_value=Avg(field)) \
                     .order_by('day')
@@ -207,4 +241,4 @@ class StationViewset(ModelViewSet):
             return Response(serializer.data, status=status.HTTP_200_OK)
 
         else:
-            return Response(serializer.errors)
+            return Response(serializer.errors, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

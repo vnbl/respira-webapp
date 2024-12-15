@@ -2,25 +2,75 @@ worker_processes 8;
 user root;
 error_log  /var/log/nginx/error.log;
 pid /var/run/nginx.pid;
+
 events {}
+
 http {
     include mime.types;
     server {
-        listen ${PROXY_PORT}; 
-        server_name ${BACKEND_HOST};
-        
+        listen 80;
+        server_name $SERVER_HOST;
+
         location /static/ {
             alias /static/;
             autoindex on;
             access_log off;
+        }
+        
+        location /.well-known/acme-challenge/ {
+            root /var/www/certbot;
+        }
+        return 301 https://$SERVER_HOST$request_uri;
+        
+    }
+    server {
+        listen 80;
+        server_name www.$SERVER_HOST;
+        return 301 https://$SERVER_HOST$request_uri;
+        
+    }
+    server {
+        listen 443 ssl;
+        ssl_certificate /etc/nginx/ssl/live/$CERT_NAME/fullchain.pem;
+        ssl_certificate_key /etc/nginx/ssl/live/$CERT_NAME/privkey.pem;
+        server_name www.$SERVER_HOST;
+        return 301 https://$SERVER_HOST$request_uri;
+    }
+    server {
+        listen 443 default_server ssl ;
+        listen [::]:443 ssl;
+        http2 on;
+
+        server_name $SERVER_HOST;
+
+        ssl_certificate /etc/nginx/ssl/live/$CERT_NAME/fullchain.pem;
+        ssl_certificate_key /etc/nginx/ssl/live/$CERT_NAME/privkey.pem;
+
+        location /api/ {
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_pass http://$BACKEND_HOST:$BACKEND_PORT;
         }
 
         location / {
             proxy_set_header Host $http_host;
             proxy_set_header X-Real-IP $remote_addr;
             proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-            proxy_set_header X-Forwarded-Proto https;
-            proxy_pass http://${BACKEND_HOST}:${BACKEND_PORT};
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_pass http://$FRONTEND_HOST:$FRONTEND_PORT;
+        }
+
+        location /pipeline/ {
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_set_header Host $http_host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_set_header X-Forwarded-Proto $scheme;
+            proxy_pass http://$PIPELINE_HOST:$PIPELINE_PORT;
         }
     }
 }

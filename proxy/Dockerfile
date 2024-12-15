@@ -1,16 +1,15 @@
-FROM nginx:latest
+FROM nginx:latest as base
 
-ENV BACKEND_HOST=${BACKEND_HOST}
-ENV BACKEND_PORT=${BACKEND_PORT}
-
-RUN apt-get update && \
-    apt-get install -y gettext-base
-
-COPY nginx.conf.template /etc/nginx/nginx.conf.template
-COPY entrypoint.sh /entrypoint.sh
-
-EXPOSE ${PROXY_PORT}
-
-RUN chmod +x /entrypoint.sh
-
+FROM base AS local
+COPY nginx.conf.local.template /etc/nginx/nginx.conf.template
+COPY --chmod=0755 entrypoint.sh /entrypoint.sh
+EXPOSE 80
 CMD ["/bin/sh", "-c", "/entrypoint.sh"]
+
+FROM base AS production
+COPY nginx.conf.template /etc/nginx/nginx.conf.template
+COPY --chmod=0755 entrypoint.sh /entrypoint.sh
+EXPOSE 80
+EXPOSE 443
+CMD ["/bin/sh", "-c", "/entrypoint.sh"]
+

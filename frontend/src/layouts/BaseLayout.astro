@@ -1,0 +1,75 @@
+---
+import Navbar from "../components/Navbar.astro";
+import { ShareModal } from "../components/react/modals/ShareModal";
+import { RecommendationsModal } from "../components/react/modals/RecommendationsModal";
+import { AlertModal } from "../components/react/modals/AlertModal";
+import TelegramCard from "../components/cards/TelegramCard.astro";
+import TwitterCard from "../components/cards/TwitterCard.astro";
+
+import "@fontsource-variable/open-sans";
+import "@fontsource/merriweather/300-italic.css";
+import "@fontsource/merriweather/400-italic.css";
+import "@fontsource/merriweather/700-italic.css";
+import "@fontsource/merriweather/900-italic.css";
+import "@fontsource-variable/inter";
+
+import "../../main.css";
+import { BASE_URL } from "../data/constants";
+
+const GTAG=import.meta.env.PUBLIC_GTAG
+---
+
+<html lang="en" class="md:overflow-hidden">
+  <head>
+    <!-- Google tag (gtag.js) -->
+    <script   async src=`https://www.googletagmanager.com/gtag/js?id=${GTAG}`
+    ></script>
+    <script define:vars={{GTAG}}>
+      window.dataLayer = window.dataLayer || [];
+      function gtag() {
+        dataLayer.push(arguments);
+      }
+      gtag("js", new Date());
+
+      gtag("config", GTAG);
+    </script>
+    <meta charset="utf-8" />
+    <link rel="sitemap" href="/sitemap-index.xml" />
+    <link rel="icon" type="image/svg+xml" href={BASE_URL + "/favicon.svg"} />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Merriweather:ital,wght@0,300;0,400;0,700;0,900;1,300;1,400;1,700;1,900&display=swap"
+      rel="stylesheet"
+    />
+  </head><div id="fb-root"></div>
+  <script
+    async
+    defer
+    crossorigin="anonymous"
+    src="https://connect.facebook.net/en_US/sdk.js#xfbml=1&version=v21.0"
+  ></script>
+  <meta name="viewport" content="width=device-width" />
+  <meta name="generator" content={Astro.generator} />
+
+  <title>Respira</title>
+
+  <body class="bg-base h-full">
+    <script type="module" src="/src/scripts/cookieconsent-config.js"></script>
+    <ShareModal client:only="react" />
+    <RecommendationsModal client:only="react" />
+    <AlertModal client:only="react">
+      <TelegramCard slot="left" />
+      <TwitterCard slot="right" customClass="rounded-br-lg" />
+    </AlertModal>
+    <Navbar />
+    <div
+      class="bg-base overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300"
+    >
+      <span id="top"></span>
+      <slot />
+    </div>
+  </body>
+
+
+</html>

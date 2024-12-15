@@ -28,7 +28,13 @@ SECRET_KEY = os.getenv('BACKEND_SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost']
+ALLOWED_HOSTS = [
+    '127.0.0.1',
+    'localhost',
+    '159.65.227.146',
+    'proyectorespira.net',
+    '.proyectorespira.net',
+]
 
 # Application definition
 
@@ -39,6 +45,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    "corsheaders",  
     'rest_framework',
     'drf_spectacular',
     'api'
@@ -57,12 +64,21 @@ SPECTACULAR_SETTINGS = {
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    "corsheaders.middleware.CorsMiddleware",
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'corsheaders.middleware.CorsMiddleware'
+]
+
+CORS_ORIGIN_ALLOW_ALL = False
+
+CORS_ORIGIN_WHITELIST = [
+    'http://proyectorespira.net',
+    'http://dev.proyectorespira.net'
 ]
 
 ROOT_URLCONF = 'backend.urls'
@@ -146,3 +162,9 @@ STATIC_ROOT = '/static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+
+# CORS configuration 
+# See https://github.com/adamchainz/django-cors-headers for details
+
+CORS_ALLOWED_ORIGINS =  os.getenv('BACKEND_CORS_ALLOWED_ORIGINS').split(",")
