@@ -7,7 +7,7 @@ EXPOSE 80
 CMD ["/bin/sh", "-c", "/entrypoint.sh"]
 
 FROM base AS development
-COPY nginx.conf.dev.template /etc/nginx/nginx.conf.template
+COPY nginx.conf.dev.template /etc/nginx/nginx.conf.dev.template
 COPY --chmod=0755 entrypoint.sh /entrypoint.sh
 EXPOSE 80
 CMD ["/bin/sh", "-c", "/entrypoint.sh"]
