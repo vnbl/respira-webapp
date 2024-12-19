@@ -1,4 +1,5 @@
 ---
+
 import Typography from "./atoms/Typography.astro";
 import { BASE_URL } from "../data/constants";
 import { Dropdown, DropdownItems } from "astro-navbar";
@@ -71,7 +72,7 @@ let isDropdown = type === "dropdown";
                         <div class="h-10 w-full bg-basedark rounded"></div>
                     </div>)
                 }
-                {!route.loading.get() && route.store.get()?.map((val:any) => (
+                {!route.loading.get() &&  route.store.get() &&  route.store.get().map((val:any) => (
                     <a href={route.baseRoute+"/"+val["id"]}>
                     <li>
                         <Typography variant="nav" >Estación {val[route.titleKey]} </Typography>
