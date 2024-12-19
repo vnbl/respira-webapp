@@ -41,7 +41,7 @@ export default defineConfig({
 
   site: SITE_URL || "http://localhost:4321",
   base: "",
-  output: "hybrid",
+  output: "server",
   trailingSlash: "ignore",
   srcDir: "./src",
   integrations: [formDebug, react(), tailwind(), lottie(),
