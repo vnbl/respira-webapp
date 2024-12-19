@@ -3,7 +3,7 @@ import { isBackendAvailable } from "./store";
 import { BACKEND_URL, EXCLUDED_STATIONS } from "../data/constants";
 
 
-type FORECAST = {
+export type FORECAST = {
     value: number,
     timestamp: string
 }
@@ -52,9 +52,11 @@ export const fetchStations = async () => {
         const stationsPromise = await fetch(import.meta.env.PUBLIC_BACKEND_URL + `/stations`)
         const s = await stationsPromise.json()
         const availableStations = s.filter((v: STATION) => v.is_station_on && !(EXCLUDED_STATIONS.includes(v.id)) )
-        
+        loadingStations.set(false)
+
         return availableStations;
     } catch(err){
+        loadingStations.set(false)
         console.log("Error on fetching station data", err)
         errorStations.set("Error getting the stations")
         return undefined

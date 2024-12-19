@@ -14,11 +14,11 @@ import {
   CloseIcon,
 } from "astro-navbar";
 import { menu } from "../data/menu";
-import {BASE_URL} from "../data/constants"
+import { BASE_URL } from "../data/constants";
 ---
 
 <div
-  class="lg:flex justify-between p-2 gap-5 bg-base drop-shadow-lg z-40 min-h-20 fixed w-full lg:px-10 px-6"
+  class="lg:flex justify-between md:p-2 gap-5 bg-base drop-shadow-lg z-40 min-h-20 fixed w-full lg:px-10 px-6  items-center"
 >
   <Astronav closeOnClick>
     <div class="flex lg:w-auto justify-between items-center">
@@ -45,8 +45,11 @@ import {BASE_URL} from "../data/constants"
       <ul class="flex flex-col lg:flex-row lg:gap-8 gap-8 lg:m-0 m-8">
         {
           menu.map((option) => (
-            <NavbarItem title={option.title} route={option.route} type={option.type}/>
-            // TODO: add dropdown
+            <NavbarItem
+              title={option.title}
+              route={option.route}
+              type={option.type}
+            />
           ))
         }
       </ul>

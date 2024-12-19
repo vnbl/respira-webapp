@@ -7,6 +7,7 @@ import node from "@astrojs/node";
 import react from '@astrojs/react';
 import formDebug from "@astro-utils/forms/dist/integration.js";
 import sitemap from '@astrojs/sitemap';
+import requestNanostores from '@inox-tools/request-nanostores';
 
 import { loadEnv } from "vite";
 const { SITE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
@@ -14,10 +15,14 @@ const { SITE_URL } = loadEnv(process.env.NODE_ENV, process.cwd(), "");
 // https://astro.build/config
 export default defineConfig({
   vite: {
+
     server: {
       watch: {
         usePolling: true,
       },
+    },
+    ssr: {
+      noExternal: [/^d3.*$/, /^@nivo.*$/],
     },
     plugins: [
       svgr({
@@ -34,13 +39,13 @@ export default defineConfig({
     ],
   },
 
-  site: SITE_URL || "http://localhost",
+  site: SITE_URL || "http://localhost:4321",
   base: "",
   output: "hybrid",
   trailingSlash: "ignore",
   srcDir: "./src",
   integrations: [formDebug, react(), tailwind(), lottie(),
-    sitemap()
+    sitemap(), requestNanostores()
   ],
   adapter: node({
     mode: "standalone",
