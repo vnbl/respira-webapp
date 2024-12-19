@@ -42,9 +42,11 @@ statisticsStationId.set(stationId)
       >Mediciones de calidad de aire grabadas por los sensores y predicciones de
       las próximas 6 y 12 horas.</Typography
     >
-    <div class="h-[450px] w-full">
+    <div class="flex overflow-x-auto">
+    <div class="h-[450px] w-full min-w-[60rem]">
       <HistoricLineChart client:only="react" />
     </div>
+  </div>
     <Typography variant="h3" customClass="pt-10"
       >Histórico: Índice de calidad del aire</Typography
     >

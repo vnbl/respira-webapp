@@ -107,7 +107,7 @@ export const HistoricLineChart = () => {
           colors={["#E5AA14", "#21C731", "#3BADD1"]}
           data={formattedData}
           animate
-          margin={{ top: 50, right: 110, bottom: 50, left: 60 }}
+          margin={{ top: 150, right: 110, bottom: 50, left: 60 }}
           enablePoints={false}
           yScale={{
             type: 'linear',
@@ -171,7 +171,7 @@ export const HistoricLineChart = () => {
               direction: 'column',
               justify: false,
               translateX: 100,
-              translateY: -50,
+              translateY: -100,
               itemsSpacing: 0,
               itemDirection: 'left-to-right',
               itemWidth: 80,
