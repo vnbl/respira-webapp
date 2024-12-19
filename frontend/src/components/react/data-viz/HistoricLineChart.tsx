@@ -5,33 +5,6 @@ import { errorHistoricForecast, historicForecastData, loadingHistoricForecast } 
 import { useAnimatedPath } from "@nivo/core";
 import { animated } from '@react-spring/web'
 
-// const DashedSolidLine = ({ series, lineGenerator, xScale, yScale }: any) => {
-//   return series.map(({ id, data, color }: any, index: number) => {
-//     const [styles, setStyles] = useState({ stroke: color, strokeWidth: 2, strokeDasharray: index > 0 ? "3,6" : "" })
-
-//     const path = useMemo(() => lineGenerator(data.map((d) => d.position)), [lineGenerator, data])
-//     console.log(path)
-//     const animatedPath = useAnimatedPath(path)
-
-//     return (
-//       <animated.path
-//         key={id}
-//         d={animatedPath}
-//         fill="none"
-//         onMouseEnter={() =>
-//           setStyles({
-//             stroke: color,
-//             strokeWidth: 2 * 2,
-//             strokeDasharray: ""
-//           })
-//         }
-//         onMouseLeave={() => setStyles({ ...styles, strokeDasharray: index >0 ? "3,6" : "" })}
-//         {...styles}
-//       />
-//     )
-//   });
-// };
-
 
 type LinesItemProps = Pick<CustomLayerProps, 'lineGenerator'> & {
   color: string
@@ -57,7 +30,7 @@ function LinesItem({
   const [styles, setStyles] = useState({ stroke, strokeWidth, strokeDasharray: dashed ? "3,6" : "" })
 
   const path = useMemo(() => lineGenerator(points), [lineGenerator, points])
-  if(!path) return []
+  if (!path) return []
   const animatedPath = useAnimatedPath(path)
 
   return (
@@ -101,6 +74,7 @@ export const HistoricLineChart = () => {
     if (!data) {
       return undefined
     }
+    const filler = data.aqi_level[data.aqi_level.length-1]
     return [
       {
         color: "hsla(43, 84%, 49%)",
@@ -112,12 +86,12 @@ export const HistoricLineChart = () => {
       {
         color: "hsla(126, 72%, 45%)",
         id: "Prediccion 6 horas",
-        data: data.forecast_6h.map(d => ({ x: d.timestamp, y: d.value }))
+        data: [{ x: filler.timestamp, y: filler.value }].concat(data.forecast_6h.map(d => ({ x: d.timestamp, y: d.value })))
       },
       {
         color: "hsla(194, 62%, 53%)",
         id: "Prediccion 12 horas",
-        data: data.forecast_12h.map(d => ({ x: d.timestamp, y: d.value }))
+        data: [{ x: filler.timestamp, y: filler.value }].concat(data.forecast_12h.map(d => ({ x: d.timestamp, y: d.value })))
       }
     ]
   }, [data])
