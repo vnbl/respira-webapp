@@ -23,14 +23,14 @@ const data = {
 const quantiles = [0, 0.25, 0.5, 0.75, 1];
 
 const formatterWeek =(date: string, {index}: {index?:number}) => DateTime.fromFormat(date, "yyyy-mm-dd", { locale: "es" })
-.weekdayShort
-const formatterMonth =(date: string, {index}: {index?:number}) =>  index !== undefined ? (index+1) + "W": undefined
+.weekdayShort || ""
+const formatterMonth =(date: string, {index}: {index?:number}) =>  index !== undefined ? (index+1) + "W": ""
 const formatterYear =(date: string, {index}: {index?:number}) => date
 
-const processData = (data, formatter) => {
+const processData = (data:any, formatter : (date: string, {index}: {index?:number}) => string) => {
   if(!data){return}
   const size = data["x"].length;
-  return data["x"].reverse().map((value, index) => ({
+  return data["x"].reverse().map((_:any, index:number) => ({
     group: formatter(data["x"][index], {index}),
     subGroup: "",
     mean: data["median"][index],

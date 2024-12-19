@@ -12,7 +12,10 @@ export type STATION = {
     name: string,
     coordinates: number[],
     is_station_on: boolean,
-    aqi_pm2_5: number
+    aqi_pm2_5: number,
+    region: {
+        name: string
+    }
 }
 
 export type STATION_FORECAST = {

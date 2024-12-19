@@ -1,22 +1,19 @@
 ---
-import { undefined } from "astro:schema";
+export const prerender = false;
+
 import Typography from "../../components/atoms/Typography.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
 import { stations } from "../../store/map";
 import Footer from "../../components/atoms/Footer.astro";
 import { HistoricLineChart } from "../../components/react/data-viz/HistoricLineChart.tsx";
 import { BoxPlotChart } from "../../components/react/data-viz/BoxPlotChart.tsx";
-
-import { loadingStations } from "../../store/map";
 import { statisticsSelectedStation } from "../../store/statistics";
 import PlaceHolderMap from "../../components/react/PlaceholderMap";
 import BackTop from "../../components/atoms/BackTop.astro";
 
-export const prerender = false;
 
 const { slug } = Astro.params;
 if (!slug) return Astro.redirect("/404");
-const stationsLoading = loadingStations.get();
 
 const availableStations = stations.get();
 const station = availableStations?.find((s) =>

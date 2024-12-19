@@ -38,22 +38,6 @@ const PlaceHolderMap = () => {
     width: '100%',
   });
 
-  React.useEffect(() => {
-    const debouncedHandleResize = debounce(function handleResize() {
-      setDimensions({
-        height: window.innerHeight,
-        width: window.innerWidth,
-      });
-    }, 500);
-    window.addEventListener("resize", debouncedHandleResize);
-
-    return () => {
-      window.removeEventListener("resize", debouncedHandleResize);
-    };
-  });
-
-
-  
   return (
     <Map
       initialViewState={{
@@ -66,7 +50,7 @@ const PlaceHolderMap = () => {
       touchZoomRotate={true}
       minZoom={5.5}
       attributionControl={false}
-      style={{...dimensions}}
+      style={{ ...dimensions }}
       interactive={false}
       maxBounds={[
         [-67.0435297482847, -28.42576579802394],
@@ -74,17 +58,18 @@ const PlaceHolderMap = () => {
       ]}
       mapStyle="https://api.maptiler.com/maps/442672a8-7228-4ab4-9780-83a9932987b5/style.json?key=NKY3xmA1haxXwc5Jm48B"
     >
-       <Marker
-              key={`marker-${data?.id}`}
-              longitude={data?.coordinates[1]}
-              latitude={data?.coordinates[0]}
-              anchor="center"
-            >
-              <Pin
-                fill={getColorRange(data?.aqi_pm2_5 || 0)}
-                value={data?.aqi_pm2_5}
-              />
-            </Marker>
+      {data && <Marker
+        key={`marker-${data.id}`}
+        longitude={data.coordinates[1]}
+        latitude={data.coordinates[0]}
+        anchor="center"
+      >
+        <Pin
+          fill={getColorRange(data.aqi_pm2_5 || 0)}
+          value={data.aqi_pm2_5}
+        />
+      </Marker>}
+
     </Map>
   );
 };

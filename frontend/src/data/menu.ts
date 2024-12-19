@@ -12,12 +12,23 @@ export type DynamicMenuItem = {
 export type MenuItem = {
   title: string;
   subtitle?: string;
-  route: string | MenuItem[] | DynamicMenuItem;
+  route: string | MenuItem[];
   id: string;
-  type?: "route" | "modal" | "dropdown";
+  type?: "route" | "modal";
 };
 
-export const menu: MenuItem[] = [
+export type MenuItemDropdown = {
+  title: string;
+  subtitle?: string;
+  route: DynamicMenuItem;
+  id: string;
+  type?: "dropdown";
+};
+
+
+
+
+export const menu: (MenuItem | MenuItemDropdown)[] = [
   { title: "Recibir alertas", route: "/alertas", id: "alerts", type: "modal" },
   { title: "Contacto", route: "/contacto", id: "contact" },
   { title: "Sobre nosotros", route: "/nosotros", id: "us" },
@@ -41,17 +52,6 @@ export const FOOTER_MENU: MenuItem[] = [
         title: "Mapa",
         route: "/",
         id: "map",
-      },
-      {
-        title: "Datos",
-        route: {
-          store: stations,
-          baseRoute: "/datos",
-          titleKey: "id",
-          loading:loadingStations,
-          subtitleKey: "name"
-        },
-        id: "data",
       },
       {
         title: "Investigaciones y recursos",

@@ -67,7 +67,7 @@ function LinesItem({
       onMouseEnter={() =>
         setStyles({
           strokeWidth: strokeWidth,
-          stroke: strokeWidth,
+          stroke: strokeWidth.toString(),
           strokeDasharray: ""
         })
       }

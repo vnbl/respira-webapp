@@ -1,6 +1,6 @@
 import { atom, computed, task, type Task } from "nanostores";
 import { isBackendAvailable } from "./store";
-import { BACKEND_URL, EXCLUDED_STATIONS } from "../data/constants";
+import { BACKEND_URL } from "../data/constants";
 import type { FORECAST, STATION } from "./map";
 import { shared } from '@it-astro:request-nanostores';
 
