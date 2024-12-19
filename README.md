@@ -33,72 +33,28 @@ docker compose build
 docker compose up -d
 ```
 
-## Nginx configuration 
-The proxy configuration is done by the `/proxy` docker container. There are three `nginx.conf[environment].template` that have the specific configuration for all the environments ('local', 'development', 'production').
-This can be configured by the `ENVIRONMENT` env variable.
+## Deployment with ssl
+The deployment with ssl is done in two parts 
 
-#### SSL configuration
-
-By default the dev and prod example redirect to use SSL for the server meaning a certificate has to be configured. This can be done using the certbot image that is included in the docker compose.
-
-**Prerequisites**
-- The DNS has to have a A record for the domain `domain.net`  pointing to the server
-- Access to the server
-
-**Steps**
-> [!IMPORTANT]
-> This example uses `domain.net` as the default domain to create the certs for, REPLACE WITH THE CORRECT DOMAIN BEFORE RUNNING THE STEPS BELOW!
-
-
-1. Replace the `nginx.conf[environment].template` relevant to the environment you are deploying to with the following content. At this moment we want to serve the acme challenge url so the certbot can resolve the certificate. 
-
-```
-worker_processes 8;
-user root;
-error_log  /var/log/nginx/error.log;
-pid /var/run/nginx.pid;
-
-events {}
-
-http {
-    include mime.types;
-    server {
-        listen 80;
-        server_name $SERVER_HOST;
-
-        location /static/ {
-            alias /static/;
-            autoindex on;
-            access_log off;
-        }
-        
-        location /.well-known/acme-challenge/ {
-            root /var/www/certbot;
-        }        
-    }
-}
-```
-
-2. Run the following commands from the root of the repository
+First it's necessary to set up the acme challenge on the http port for that comment out the 443 ssl server and run
 
 ```
 docker compose build
 docker compose up -d
-docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d domain.net
+docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ --dry-run -d dev.proyectorespira.org
 ```
-3. if the dry-run completes successfully then execute the following command, this will create the certificate files in the machine
+if the dry-run completes successfully then execute
 
 ```
-docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d domain.net
+docker compose run --rm  certbot certonly --webroot --webroot-path /var/www/certbot/ -d dev.proyectorespira.org
+docker compose restart 
 ```
-4. Restore `nginx.conf[environment].template` to default values and run 
+Uncomment the https server on the `nginx.conf.template` and run
 
 ```
 docker compose build
 docker compose up -d
 ```
-**Certificate renewal**
-
 To renew the certifcate run 
 
 ```

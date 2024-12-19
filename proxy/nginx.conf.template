@@ -26,7 +26,8 @@ http {
     server {
         listen 80;
         server_name www.$SERVER_HOST;
-        return 301 https://www.$SERVER_HOST$request_uri;
+        return 301 https://$SERVER_HOST$request_uri;
+        
     }
     server {
         listen 443 ssl;
