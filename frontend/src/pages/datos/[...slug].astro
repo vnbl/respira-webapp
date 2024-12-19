@@ -3,15 +3,17 @@ export const prerender = false;
 
 import Typography from "../../components/atoms/Typography.astro";
 import BaseLayout from "../../layouts/BaseLayout.astro";
-import {  stations } from "../../store/map";
 import Footer from "../../components/atoms/Footer.astro";
 import { HistoricLineChart } from "../../components/react/data-viz/HistoricLineChart.tsx";
 import { BoxPlotChart } from "../../components/react/data-viz/BoxPlotChart.tsx";
 import { statisticsSelectedStation, statisticsStationId } from "../../store/statistics";
 import PlaceHolderMap from "../../components/react/PlaceholderMap";
 import BackTop from "../../components/atoms/BackTop.astro";
+import {CharacteristicsStation} from "../../components/react/statistics/Characteristics"
+import {HeaderStatistics} from "../../components/react/statistics/Header"
 
 const { slug } = Astro.params;
+statisticsStationId.set(undefined)
 if (!slug) return Astro.redirect("/404");
 const stationId=parseInt(slug)
 if(Number.isNaN(stationId))  return Astro.redirect("/404");
@@ -19,14 +21,8 @@ statisticsStationId.set(stationId)
 ---
 
 <BaseLayout>
- 
   <section class="flex flex-col md:px-20 px-10 pt-12">
-    <Typography variant="h2"
-      >Estación {statisticsSelectedStation.get()?.id}</Typography
-    >
-    <Typography variant="h3" customClass="font-normal"
-      >Estación {statisticsSelectedStation.get()?.name}</Typography
-    >
+    <HeaderStatistics />
     <hr class="h-px my-8 bg-gray-200 border-1 dark:bg-gray-700" />
     <div
       class="grid md:grid-cols-3 grid-cols-1 md:space-x-12 md:space-y-0 space-y-6"
@@ -34,37 +30,7 @@ statisticsStationId.set(stationId)
       <div class="rounded-lg overflow-clip">
         <PlaceHolderMap client:only="react" />
       </div>
-      <div class="flex flex-col">
-        <Typography variant="h4" color="black">Características</Typography>
-        <div
-          class="grid md:grid-cols-3 grid-cols-2 space-y-3 mt-4 col-span-1.5"
-        >
-          <Typography variant="h6" customClass="font-serif col-span-1"
-            >Localidad</Typography
-          >
-          <Typography variant="p" customClass="md:col-span-2"
-            >{statisticsSelectedStation.get()?.name}</Typography
-          >
-          <Typography variant="h6" customClass="font-serif  col-span-1"
-            >Region</Typography
-          >
-          <Typography variant="p" customClass="md:col-span-2"
-            >{statisticsSelectedStation.get()?.region.name}</Typography
-          >
-          <Typography variant="h6" customClass="font-serif  col-span-1"
-            >Estado</Typography
-          >
-          <div class="bg-aqi-green-dark w-fit px-2 rounded-lg md:col-span-2">
-            Activo
-          </div>
-          <Typography variant="h6" customClass="font-serif col-span-1"
-            >Última medición AQI</Typography
-          >
-          <Typography variant="p" customClass="md:col-span-2"
-            >{statisticsSelectedStation.get()?.aqi_pm2_5}</Typography
-          >
-        </div>
-      </div>
+      <CharacteristicsStation />
     </div>
   </section>
   <section class="flex flex-col md:px-20 px-10 pt-12">

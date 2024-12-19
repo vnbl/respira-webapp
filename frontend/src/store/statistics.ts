@@ -1,7 +1,7 @@
 import { atom, computed, task, type Task } from "nanostores";
 import { isBackendAvailable } from "./store";
 import { BACKEND_URL } from "../data/constants";
-import type { FORECAST, STATION } from "./map";
+import { stations, type FORECAST, type STATION } from "./map";
 import { shared } from '@it-astro:request-nanostores';
 
 
@@ -11,7 +11,24 @@ export type HISTORIC_FORECAST = {
   forecast_12h: FORECAST[]
 }
 
-export const statisticsSelectedStation =  shared('statisticsSelectedStation',atom<STATION | undefined>(undefined))
+
+export const statisticsStationId =  shared('statisticsStationId',atom<number | undefined>(undefined))
+export const statisticsSelectedStation =  computed([isBackendAvailable, statisticsStationId, stations], (backendAvailable, id, stations): Task<STATION | undefined> => task(async () => {
+  if (!backendAvailable) {
+    return undefined
+  }
+  if (!id) {
+    return undefined
+  }
+  if(!stations) {
+    return undefined
+  }
+  console.log(id)
+  const station = stations.find((s) =>
+    s.id === id ? s : undefined
+  );
+  return station
+}))
 
 export const errorHistoricForecast = atom<string | undefined>(undefined)
 export const loadingHistoricForecast = atom<boolean>(false)
