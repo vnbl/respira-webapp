@@ -43,11 +43,6 @@ type LinesItemProps = Pick<CustomLayerProps, "lineGenerator"> & {
   dashed: boolean;
 };
 
-const props = {
-  lineWidth: 4,
-  enableSlices: "x",
-  margin: { top: 20, right: 20, bottom: 60, left: 80 },
-} as const;
 
 function LinesItem({
   lineGenerator,
@@ -59,7 +54,7 @@ function LinesItem({
   const [styles, setStyles] = useState({
     stroke,
     strokeWidth,
-    strokeDasharray: dashed ? "3,6" : "",
+    strokeDasharray: dashed ? "6" : "",
   });
 
   const path = useMemo(() => lineGenerator(points), [lineGenerator, points]);
@@ -70,16 +65,6 @@ function LinesItem({
     <animated.path
       d={animatedPath}
       fill="none"
-      onMouseEnter={() =>
-        setStyles({
-          strokeWidth: strokeWidth,
-          stroke: strokeWidth.toString(),
-          strokeDasharray: "",
-        })
-      }
-      onMouseLeave={() =>
-        setStyles({ stroke, strokeWidth, strokeDasharray: "" })
-      }
       {...styles}
     />
   );
