@@ -63,7 +63,6 @@ let isDropdown = type === "dropdown";
             </button>
             <DropdownItems  class="md:relative">
               <div class="md:absolute md:top-8 bg-base md:p-3 p-1 rounded min-w-36">
-                {console.log(route.loading.get())}
                 <ul class="flex flex-col space-y-2">
                 {route.loading.get() && (
                     <div class="animate-pulse flex flex-col space-y-4">
@@ -72,7 +71,7 @@ let isDropdown = type === "dropdown";
                         <div class="h-10 w-full bg-basedark rounded"></div>
                     </div>)
                 }
-                {!route.loading.get() && route.store.get().map((val:any) => (
+                {!route.loading.get() && route.store.get()?.map((val:any) => (
                     <a href={route.baseRoute+"/"+val["id"]}>
                     <li>
                         <Typography variant="nav" >Estación {val[route.titleKey]} </Typography>
