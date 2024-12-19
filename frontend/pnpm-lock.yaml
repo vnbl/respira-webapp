@@ -38,6 +38,9 @@ importers:
       '@fontsource/twinkle-star':
         specifier: ^5.0.20
         version: 5.0.20
+      '@inox-tools/request-nanostores':
+        specifier: ^0.2.1
+        version: 0.2.1(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2))(nanostores@0.11.3)
       '@material-tailwind/react':
         specifier: ^2.1.10
         version: 2.1.10(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -50,7 +53,13 @@ importers:
       '@nivo/bar':
         specifier: ^0.87.0
         version: 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/boxplot':
+        specifier: ^0.87.0
+        version: 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nivo/core':
+        specifier: ^0.87.0
+        version: 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/line':
         specifier: ^0.87.0
         version: 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@nivo/tooltip':
@@ -1281,6 +1290,20 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@inox-tools/request-nanostores@0.2.1':
+    resolution: {integrity: sha512-SuBZquSsefqpTYcxzYKpNvo8wQ7fcyHg1xQ5aa0SLNcoawKepBGBt9e9lUNn315p80p6LaJK8bGGvg7ergTYOA==}
+    peerDependencies:
+      astro: ^5
+      nanostores: ^0.11.3
+
+  '@inox-tools/request-state@0.3.0':
+    resolution: {integrity: sha512-cRqW5zMf0wv0pJJ0g3ZQR9hUouaEjeSiZciLqhn0RW0wyKxSbKcH00N3FLu0lmay8Lzh6c3YA/3NlVTnD28XpA==}
+    peerDependencies:
+      astro: ^5
+
+  '@inox-tools/utils@0.3.0':
+    resolution: {integrity: sha512-2Brt/vpn3Likf0L7qydvxoBw5yZFBrqO4tF5HhB1fMC4DYsgk+lQn4pB7RBdqVFqy52GjzXj7j2i5EFh1I/EPw==}
+
   '@inquirer/confirm@3.2.0':
     resolution: {integrity: sha512-oOIwPs0Dvq5220Z8lGL/6LHRTEr9TgLHmiI99Rj1PJ1p1czTys+olrgBqZk4E2qC0YTzeHprxSQmoHioVdJ7Lw==}
     engines: {node: '>=18'}
@@ -1506,6 +1529,11 @@ packages:
     peerDependencies:
       react: '>= 16.14.0 < 19.0.0'
 
+  '@nivo/boxplot@0.87.0':
+    resolution: {integrity: sha512-JypbCxokhPqn+IG4nu+RgTwLQQizP2CONyFnk1RefT8j49ilCfqyN/qTT9kfWkbkCF/LHznEmIU2nXnm8B/qmA==}
+    peerDependencies:
+      react: '>= 16.14.0 < 19.0.0'
+
   '@nivo/colors@0.87.0':
     resolution: {integrity: sha512-S4pZzRGKK23t8XAjQMhML6wwsfKO9nH03xuyN4SvCodNA/Dmdys9xV+9Dg/VILTzvzsBTBGTX0dFBg65WoKfVg==}
     peerDependencies:
@@ -1521,11 +1549,21 @@ packages:
     peerDependencies:
       react: '>= 16.14.0 < 19.0.0'
 
+  '@nivo/line@0.87.0':
+    resolution: {integrity: sha512-Ki/WDd8ZU8VWScW4ZeKUFCXRdAEg8nrS+F+jdfJDPxyxUMHZJCAbrXrnsExcEQLOaDQ2aU/bijEMiDS8/dJzuA==}
+    peerDependencies:
+      react: '>= 16.14.0 < 19.0.0'
+
   '@nivo/scales@0.87.0':
     resolution: {integrity: sha512-IHdY9w2em/xpWurcbhUR3cUA1dgbY06rU8gmA/skFCwf3C4Da3Rqwr0XqvxmkDC+EdT/iFljMbLst7VYiCnSdw==}
 
   '@nivo/tooltip@0.87.0':
     resolution: {integrity: sha512-nZJWyRIt/45V/JBdJ9ksmNm1LFfj59G1Dy9wB63Icf2YwyBT+J+zCzOGXaY7gxCxgF1mnSL3dC7fttcEdXyN/g==}
+    peerDependencies:
+      react: '>= 16.14.0 < 19.0.0'
+
+  '@nivo/voronoi@0.87.0':
+    resolution: {integrity: sha512-Tg+9YnCX8LKsEwZMY1Q83mWiVFiyU2smxrO3JaC9vzjIh/2A/bkNPwC6BdmRaQMvY1jngKs+WKDnNxSQWFSOEg==}
     peerDependencies:
       react: '>= 16.14.0 < 19.0.0'
 
@@ -1987,6 +2025,9 @@ packages:
   '@types/d3-color@3.1.3':
     resolution: {integrity: sha512-iO90scth9WAbmgv7ogoq57O9YpKmFBbmoEoCHDB2xMBY0+/KVrqAaCDyCE16dUspeOvIxFFRI+0sEtqDqy2b4A==}
 
+  '@types/d3-delaunay@6.0.4':
+    resolution: {integrity: sha512-ZMaSKu4THYCU6sV64Lhg6qjf1orxBthaC161plr5KuPHo3CNm8DTHiLw/5Eq2b6TsNP0W0iJrUOFscY6Q450Hw==}
+
   '@types/d3-format@1.4.5':
     resolution: {integrity: sha512-mLxrC1MSWupOSncXN/HOlWUAAIffAEBaI4+PKy2uMPsKe4FNZlk7qrbTjmzJXITQQqBHivaks4Td18azgqnotA==}
 
@@ -2332,6 +2373,15 @@ packages:
     resolution: {integrity: sha512-Q+JC7Whu8HhmTdBph/Tq59IoRtoy6KAm5zzPv00WdujX82lbAL8K7WVjne7vdCsAmbF4AYaDOPyO3k0kl8qIrw==}
     engines: {node: '>=0.10.0'}
 
+  ast-types@0.16.1:
+    resolution: {integrity: sha512-6t10qk83GOG8p0vKmaCr8eiilZwO171AvbROMtvvNiwrTly62t+7XkA8RdIIVbpMhCASAsxgAzdRSwh6nw/5Dg==}
+    engines: {node: '>=4'}
+
+  astro-integration-kit@0.17.0:
+    resolution: {integrity: sha512-fe31CCKmrGYn/kkBd1J4b7P02gEdMdEIFBz14zdAud+YAmJeLtZD6wmrCz3LDau+lE1oM1hQnvmZXVSM/YveKw==}
+    peerDependencies:
+      astro: ^4.12.0 || ^5.0.0-beta
+
   astro-integration-lottie@0.3.1:
     resolution: {integrity: sha512-zmmVVlsDfvyA/4qAg+l6zrUB/4U99oS4SuVc/zuW1vYZ4pHjjYhW8JYwmCItT+AmE4l6mAkN/TvdXUQ92o4TSQ==}
     peerDependencies:
@@ -2627,6 +2677,10 @@ packages:
   config-chain@1.1.13:
     resolution: {integrity: sha512-qj+f8APARXHrM0hraqXYb2/bOVSV4PvJQlNZ/DVj0QrmNM2q2euizkeuVckQ57J+W0mRH6Hvi+k50M4Jul2VRQ==}
 
+  content-type@1.0.5:
+    resolution: {integrity: sha512-nTjqfcBFEipKdXCv4YDQWCfmcLZKm81ldF0pAopTvyrFGVbcR6P/VAAd5G7N+0tTr8QqiU0tFadD6FK4NtJwOA==}
+    engines: {node: '>= 0.6'}
+
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
@@ -2747,6 +2801,10 @@ packages:
 
   d3-color@3.1.0:
     resolution: {integrity: sha512-zg/chbXyeBtMQ1LbD/WSoW2DpC3I0mpmPdW+ynRTj/x2DAWYrIY7qeZIHidozwV24m4iavr15lNwIwLxRmOxhA==}
+    engines: {node: '>=12'}
+
+  d3-delaunay@6.0.4:
+    resolution: {integrity: sha512-mdjtIZ1XLAM8bm/hx3WwjfHt6Sggek7qH043O8KEjDXN40xi3vx/6pYSVTwLjEgiXQTbvaouWKynLBiUZ6SK6A==}
     engines: {node: '>=12'}
 
   d3-dispatch@1.0.6:
@@ -2879,6 +2937,9 @@ packages:
 
   defined@1.0.1:
     resolution: {integrity: sha512-hsBd2qSVCRE+5PmNdHt1uzyrFu5d3RwmFDKzyNZMFq/EwDNJF7Ee5+D5oEKF0hU6LhtoUF1macFvOe4AskQC1Q==}
+
+  delaunator@5.0.1:
+    resolution: {integrity: sha512-8nvh+XBe96aCESrGOqMp/84b13H9cdKbG5P2ejQCh4d4sK9RL4371qou9drQjMhvnPmhWl5hnmqbEE0fXr9Xnw==}
 
   depd@2.0.0:
     resolution: {integrity: sha512-g7nH6P6dyDioJogAAGprGpCtVImJhpPk/roCzdb3fIh61/s/nPsfR6onyMwkCAR/OlC3yBC0lESvUoQEAssIrw==}
@@ -4553,6 +4614,9 @@ packages:
     resolution: {integrity: sha512-gDKb8aZMDeD/tZWs9P6+q0J9Mwkdl6xMV8TjnGP3qJVJ06bdMgkbBlLU8IdfOsIsFz2BW1rNVT3XuNEl8zPAvw==}
     engines: {node: '>=8'}
 
+  pathe@1.1.2:
+    resolution: {integrity: sha512-whLdWMYL2TwI08hn8/ZqAbrVemu0LNaNNJZX73O6qaIdCTfXutsLhMkjdENX0qhsQ9uIimo4/aQOmXkoon2nDQ==}
+
   pbf@3.3.0:
     resolution: {integrity: sha512-XDF38WCH3z5OV/OVa8GKUNtLAyneuzbCisx7QUCF8Q6Nutx0WnJrQe5O+kOtBlLfRNUws98Y58Lblp+NJG5T4Q==}
     hasBin: true
@@ -4807,6 +4871,10 @@ packages:
     resolution: {integrity: sha512-yDMz9g+VaZkqBYS/ozoBJwaBhTbZo3UNYQHNRw1D3UFQB8oHB4uS/tAODO+ZLjGWmUbKnIlOWO+aaIiAxrUWHA==}
     engines: {node: '>= 14.16.0'}
 
+  recast@0.23.9:
+    resolution: {integrity: sha512-Hx/BGIbwj+Des3+xy5uAtAbdCyqK9y9wbBcDFDYanLS9JnMqf7OeF87HQwUimE87OEc72mr6tkKUKMBBL+hF9Q==}
+    engines: {node: '>= 4'}
+
   regenerate-unicode-properties@10.2.0:
     resolution: {integrity: sha512-DqHn3DwbmmPVzeKj9woBadqmXxLvQoQIwu7nopMc72ztvxVmVk2SBhSnx67zuye5TP+lJsb/TBQsjLKhnDf3MA==}
     engines: {node: '>=4'}
@@ -4941,6 +5009,9 @@ packages:
 
   rndm@1.2.0:
     resolution: {integrity: sha512-fJhQQI5tLrQvYIYFpOnFinzv9dwmR7hRnUz1XqP3OJ1jIweTNOd6aTO4jwQSgcBSFUB+/KHJxuGneime+FdzOw==}
+
+  robust-predicates@3.0.2:
+    resolution: {integrity: sha512-IXgzBWvWQwE6PrDI05OvmXUIruQTcoMDzRsOd5CDvHCVLcLHMTSYvOK5Cm46kWqlV3yAbuSpBZdJ5oP5OUoStg==}
 
   rollup-plugin-terser@7.0.2:
     resolution: {integrity: sha512-w3iIaU4OxcF52UUXiZNsNeuXIMDvFrr+ZXK6bFZ0Q60qyVfq4uLptoS4bbq3paG3x216eQllFZX7zt6TIImguQ==}
@@ -5335,6 +5406,9 @@ packages:
 
   through2@2.0.5:
     resolution: {integrity: sha512-/mrRod8xqpA+IHSLyGCQ2s8SPHiCDEeQJSep1jqLYeEUClOFG2Qsh+4FU6G9VeqpZnGW/Su8LQGc4YKni5rYSQ==}
+
+  tiny-invariant@1.3.3:
+    resolution: {integrity: sha512-+FbBPE1o9QAYvviau/qC5SE3caw21q3xkvWKBtja5vgqOWIHHJ3ioaq1VPfn/Szqctz2bU/oYeKd9/z5BL+PVg==}
 
   tinycolor2@1.6.0:
     resolution: {integrity: sha512-XPaBkWQJdsf3pLKJV9p4qN/S+fm2Oj8AIPo1BTUhg5oxkvm9+SVEGFdhyOz7tTdUTfvxMiAs4sp6/eZO2Ew+pw==}
@@ -7188,6 +7262,24 @@ snapshots:
   '@img/sharp-win32-x64@0.33.5':
     optional: true
 
+  '@inox-tools/request-nanostores@0.2.1(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2))(nanostores@0.11.3)':
+    dependencies:
+      '@inox-tools/request-state': 0.3.0(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2))
+      '@inox-tools/utils': 0.3.0
+      astro: 4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2)
+      astro-integration-kit: 0.17.0(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2))
+      nanostores: 0.11.3
+
+  '@inox-tools/request-state@0.3.0(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2))':
+    dependencies:
+      '@inox-tools/utils': 0.3.0
+      astro: 4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2)
+      astro-integration-kit: 0.17.0(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2))
+      content-type: 1.0.5
+      devalue: 5.1.1
+
+  '@inox-tools/utils@0.3.0': {}
+
   '@inquirer/confirm@3.2.0':
     dependencies:
       '@inquirer/core': 9.2.1
@@ -7445,6 +7537,25 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
+  '@nivo/boxplot@0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@nivo/annotations': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/axes': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/colors': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/core': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/legends': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/scales': 0.87.0
+      '@nivo/tooltip': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@react-spring/web': 9.7.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@types/d3-scale': 4.0.8
+      '@types/d3-shape': 3.1.6
+      d3-scale: 4.0.2
+      d3-shape: 3.2.0
+      lodash: 4.17.21
+      react: 18.2.0
+    transitivePeerDependencies:
+      - react-dom
+
   '@nivo/colors@0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
       '@nivo/core': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -7489,6 +7600,22 @@ snapshots:
     transitivePeerDependencies:
       - react-dom
 
+  '@nivo/line@0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@nivo/annotations': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/axes': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/colors': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/core': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/legends': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/scales': 0.87.0
+      '@nivo/tooltip': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/voronoi': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@react-spring/web': 9.7.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      d3-shape: 3.2.0
+      react: 18.2.0
+    transitivePeerDependencies:
+      - react-dom
+
   '@nivo/scales@0.87.0':
     dependencies:
       '@types/d3-scale': 4.0.8
@@ -7503,6 +7630,18 @@ snapshots:
     dependencies:
       '@nivo/core': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
       '@react-spring/web': 9.7.5(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      react: 18.2.0
+    transitivePeerDependencies:
+      - react-dom
+
+  '@nivo/voronoi@0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
+    dependencies:
+      '@nivo/core': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@nivo/tooltip': 0.87.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
+      '@types/d3-delaunay': 6.0.4
+      '@types/d3-scale': 4.0.8
+      d3-delaunay: 6.0.4
+      d3-scale: 4.0.2
       react: 18.2.0
     transitivePeerDependencies:
       - react-dom
@@ -8010,6 +8149,8 @@ snapshots:
 
   '@types/d3-color@3.1.3': {}
 
+  '@types/d3-delaunay@6.0.4': {}
+
   '@types/d3-format@1.4.5': {}
 
   '@types/d3-path@3.1.0': {}
@@ -8398,6 +8539,16 @@ snapshots:
 
   assign-symbols@1.0.0: {}
 
+  ast-types@0.16.1:
+    dependencies:
+      tslib: 2.7.0
+
+  astro-integration-kit@0.17.0(astro@4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2)):
+    dependencies:
+      astro: 4.16.9(@types/node@22.7.5)(rollup@2.79.2)(terser@5.34.1)(typescript@5.4.2)
+      pathe: 1.1.2
+      recast: 0.23.9
+
   astro-integration-lottie@0.3.1(lottie-web@5.12.2):
     dependencies:
       lottie-web: 5.12.2
@@ -8776,6 +8927,8 @@ snapshots:
       ini: 1.3.8
       proto-list: 1.2.4
 
+  content-type@1.0.5: {}
+
   convert-source-map@2.0.0: {}
 
   cookie@0.5.0: {}
@@ -8893,6 +9046,10 @@ snapshots:
   d3-collection@1.0.7: {}
 
   d3-color@3.1.0: {}
+
+  d3-delaunay@6.0.4:
+    dependencies:
+      delaunator: 5.0.1
 
   d3-dispatch@1.0.6: {}
 
@@ -9025,6 +9182,10 @@ snapshots:
       object-keys: 1.1.1
 
   defined@1.0.1: {}
+
+  delaunator@5.0.1:
+    dependencies:
+      robust-predicates: 3.0.2
 
   depd@2.0.0: {}
 
@@ -11009,6 +11170,8 @@ snapshots:
 
   path-type@4.0.0: {}
 
+  pathe@1.1.2: {}
+
   pbf@3.3.0:
     dependencies:
       ieee754: 1.2.1
@@ -11296,6 +11459,14 @@ snapshots:
 
   readdirp@4.0.2: {}
 
+  recast@0.23.9:
+    dependencies:
+      ast-types: 0.16.1
+      esprima: 4.0.1
+      source-map: 0.6.1
+      tiny-invariant: 1.3.3
+      tslib: 2.7.0
+
   regenerate-unicode-properties@10.2.0:
     dependencies:
       regenerate: 1.4.2
@@ -11519,6 +11690,8 @@ snapshots:
   right-now@1.0.0: {}
 
   rndm@1.2.0: {}
+
+  robust-predicates@3.0.2: {}
 
   rollup-plugin-terser@7.0.2(rollup@2.79.2):
     dependencies:
@@ -12070,6 +12243,8 @@ snapshots:
     dependencies:
       readable-stream: 2.3.8
       xtend: 4.0.2
+
+  tiny-invariant@1.3.3: {}
 
   tinycolor2@1.6.0: {}
 

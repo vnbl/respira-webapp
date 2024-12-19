@@ -1,4 +1,6 @@
 ---
+export const prerender = false;
+
 import { Image } from "astro:assets";
 import { FOOTER_IMAGES, SOCIAL_MEDIA_IMAGES } from "../../data/images";
 import Typography from "./Typography.astro";
@@ -49,6 +51,7 @@ const getRoute = (route: string | MenuItem[]): string => {
   <div class="flex grid w-full md:grid-cols-2 py-8 gap-4">
     {
       FOOTER_MENU.map((item) => {
+        if(!item) {return}
         if (typeof item.route !== "string") {
           return (
             <div>
