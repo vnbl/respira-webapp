@@ -17,6 +17,7 @@ import Pin from "./Pin";
 import { getColorRange } from "../../utils";
 import { MapTooltip } from "./MapTooltip";
 
+import { BASE_URL } from "../../data/constants";
 
 function debounce(fn: any, ms: number) {
   let timer: NodeJS.Timeout | undefined;
@@ -109,11 +110,11 @@ const MapComponent = () => {
           longitude={Number(popupInfo.coordinates[1])}
           latitude={Number(popupInfo.coordinates[0])}
           onClose={() => setPopupInfo(undefined)}
-        >
+        >            
           <div className="flex flex-col">
             <p className="font-bold text-[16px] text-white">Estación {popupInfo.id}</p>
             <p className="font-bold font-xs text-white">{popupInfo.name}</p>
-            {/* <a><p className="text-green font-bold underline">Ver estadisticas</p></a> */}
+            <a href={BASE_URL+ `/datos/${popupInfo.id}`}><p className="text-green font-bold underline">Ver estadisticas</p></a>
           </div>
         </Popup>
       )}
