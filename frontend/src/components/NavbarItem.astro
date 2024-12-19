@@ -6,6 +6,7 @@ import { BASE_URL } from "../data/constants";
 import { Dropdown, DropdownItems } from "astro-navbar";
 import { Image } from "astro:assets";
 import DropdownIcon from "../assets/icons/dropdown_icon.svg"
+import { DropdownData } from "./react/nav/DropdownData";
 const { title, route, type } = Astro.props;
 
 let isModal = type === "modal";
@@ -66,21 +67,7 @@ let isDropdown = type === "dropdown";
             <DropdownItems  class="md:relative">
               <div class="md:absolute md:top-8 bg-base md:p-3 p-1 rounded min-w-36">
                 <ul class="flex flex-col space-y-2">
-                {route.loading.get() && (
-                    <div class="animate-pulse flex flex-col space-y-4">
-                        <div class="h-10 w-full bg-basedark rounded"></div>
-                        <div class="h-10 w-full bg-basedark rounded"></div>
-                        <div class="h-10 w-full bg-basedark rounded"></div>
-                    </div>)
-                }
-                {!route.loading.get() &&  route.store.get() &&  route.store.get().map((val:any) => (
-                    <a href={route.baseRoute+"/"+val["id"]}>
-                    <li>
-                        <Typography variant="nav" >Estación {val[route.titleKey]} </Typography>
-                        <Typography variant="p-sm" >{val[route.subtitleKey]}</Typography>
-                    </li>
-                    </a>
-                ))}
+                    <DropdownData client:only="react" {...route}/>
                 </ul>
               </div>
             </DropdownItems>

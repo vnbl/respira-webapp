@@ -55,14 +55,13 @@ const GTAG=import.meta.env.PUBLIC_GTAG
   <title>Respira</title>
 
   <body class="bg-base h-full">
-    <script type="module" src="/src/scripts/cookieconsent-config.js"></script>
     <ShareModal client:only="react" />
     <RecommendationsModal client:only="react" />
     <AlertModal client:only="react">
       <TelegramCard slot="left" />
       <TwitterCard slot="right" customClass="rounded-br-lg" />
     </AlertModal>
-    <Navbar />
+    <Navbar/>
     <div
       class="bg-base overflow-auto overflow-x-hidden absolute md:bottom-0 top-20 w-full [&::-webkit-scrollbar]:w-2 [&::-webkit-scrollbar-track]:bg-gray-100 [&::-webkit-scrollbar-thumb]:bg-black-300"
     >
