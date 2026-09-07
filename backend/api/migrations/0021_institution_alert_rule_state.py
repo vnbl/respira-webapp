@@ -28,8 +28,7 @@ def _move_to_django_admin(apps, schema_editor):
             return
         source_schema = "public" if "public" in schemas else next(iter(schemas))
         cursor.execute(
-            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" '
-            'SET SCHEMA "django_admin"'
+            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" SET SCHEMA "django_admin"'
         )
 
 
@@ -38,24 +37,51 @@ def _reverse_noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0020_institution_alert_rule'),
+        ("api", "0020_institution_alert_rule"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='InstitutionAlertRuleState',
+            name="InstitutionAlertRuleState",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('is_firing', models.BooleanField(default=False, help_text='True while followers have been warned and the air has not yet fallen back below the rearm band.')),
-                ('last_aqi', models.FloatField(blank=True, help_text='The most recent reading this rule was evaluated against.', null=True)),
-                ('last_notified_at', models.DateTimeField(blank=True, null=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('rule', models.OneToOneField(on_delete=django.db.models.deletion.CASCADE, related_name='state', to='api.institutionalertrule')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "is_firing",
+                    models.BooleanField(
+                        default=False,
+                        help_text="True while followers have been warned and the air has not yet fallen back below the rearm band.",
+                    ),
+                ),
+                (
+                    "last_aqi",
+                    models.FloatField(
+                        blank=True,
+                        help_text="The most recent reading this rule was evaluated against.",
+                        null=True,
+                    ),
+                ),
+                ("last_notified_at", models.DateTimeField(blank=True, null=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "rule",
+                    models.OneToOneField(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="state",
+                        to="api.institutionalertrule",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'institution_alert_rule_state',
+                "db_table": "institution_alert_rule_state",
             },
         ),
         migrations.RunPython(_move_to_django_admin, _reverse_noop),

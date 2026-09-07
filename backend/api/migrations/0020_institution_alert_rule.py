@@ -34,8 +34,7 @@ def _move_to_django_admin(apps, schema_editor):
             return
         source_schema = "public" if "public" in schemas else next(iter(schemas))
         cursor.execute(
-            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" '
-            'SET SCHEMA "django_admin"'
+            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" SET SCHEMA "django_admin"'
         )
 
 
@@ -44,33 +43,81 @@ def _reverse_noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0019_move_to_owning_schemas'),
+        ("api", "0019_move_to_owning_schemas"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='InstitutionAlertRule',
+            name="InstitutionAlertRule",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('threshold', models.PositiveIntegerField(help_text="AQI value above which this rule notifies the station's followers. Any value — an institution may choose to alert its own community at a level the public alerts deliberately stay quiet for.")),
-                ('push_title', models.CharField(help_text='Notification title, as it appears on the device.', max_length=100)),
-                ('push_body', models.TextField(help_text="Notification body. {station} is replaced with the station's name.", max_length=500)),
-                ('is_active', models.BooleanField(default=True, help_text='Inactive rules are skipped by the scheduled sender.')),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('updated_at', models.DateTimeField(auto_now=True)),
-                ('institution', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='alert_rules', to='api.institution')),
-                ('station', models.ForeignKey(db_constraint=False, on_delete=django.db.models.deletion.DO_NOTHING, related_name='institution_alert_rules', to='api.stations')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "threshold",
+                    models.PositiveIntegerField(
+                        help_text="AQI value above which this rule notifies the station's followers. Any value — an institution may choose to alert its own community at a level the public alerts deliberately stay quiet for."
+                    ),
+                ),
+                (
+                    "push_title",
+                    models.CharField(
+                        help_text="Notification title, as it appears on the device.",
+                        max_length=100,
+                    ),
+                ),
+                (
+                    "push_body",
+                    models.TextField(
+                        help_text="Notification body. {station} is replaced with the station's name.",
+                        max_length=500,
+                    ),
+                ),
+                (
+                    "is_active",
+                    models.BooleanField(
+                        default=True,
+                        help_text="Inactive rules are skipped by the scheduled sender.",
+                    ),
+                ),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("updated_at", models.DateTimeField(auto_now=True)),
+                (
+                    "institution",
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name="alert_rules",
+                        to="api.institution",
+                    ),
+                ),
+                (
+                    "station",
+                    models.ForeignKey(
+                        db_constraint=False,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="institution_alert_rules",
+                        to="api.stations",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'institution_alert_rule',
-                'ordering': ('institution', 'threshold'),
+                "db_table": "institution_alert_rule",
+                "ordering": ("institution", "threshold"),
             },
         ),
         migrations.AddConstraint(
-            model_name='institutionalertrule',
-            constraint=models.UniqueConstraint(fields=('institution', 'station'), name='uniq_alert_rule_per_institution_station'),
+            model_name="institutionalertrule",
+            constraint=models.UniqueConstraint(
+                fields=("institution", "station"),
+                name="uniq_alert_rule_per_institution_station",
+            ),
         ),
         migrations.RunPython(_move_to_django_admin, _reverse_noop),
     ]

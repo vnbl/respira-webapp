@@ -5,19 +5,29 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0022_push_broadcast'),
+        ("api", "0022_push_broadcast"),
     ]
 
     operations = [
         migrations.AlterModelOptions(
-            name='institutionalertrule',
-            options={'ordering': ('institution', 'threshold'), 'verbose_name': 'institution alert', 'verbose_name_plural': 'institution alerts'},
+            name="institutionalertrule",
+            options={
+                "ordering": ("institution", "threshold"),
+                "verbose_name": "institution alert",
+                "verbose_name_plural": "institution alerts",
+            },
         ),
         migrations.AddField(
-            model_name='institutionalert',
-            name='rule',
-            field=models.ForeignKey(blank=True, help_text='The rule that fired this event, when one did. Null for events predating the rules, and kept null-able so deleting a rule preserves the history it produced.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='events', to='api.institutionalertrule'),
+            model_name="institutionalert",
+            name="rule",
+            field=models.ForeignKey(
+                blank=True,
+                help_text="The rule that fired this event, when one did. Null for events predating the rules, and kept null-able so deleting a rule preserves the history it produced.",
+                null=True,
+                on_delete=django.db.models.deletion.SET_NULL,
+                related_name="events",
+                to="api.institutionalertrule",
+            ),
         ),
     ]

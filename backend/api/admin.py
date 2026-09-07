@@ -926,13 +926,13 @@ class InstitutionAlertRuleAdmin(RoleBasedModelAdmin):
         """Records the broadcast, then delivers it."""
         scope = data["scope"]
 
-        if scope == PushBroadcast.SCOPE_ALL and not self.has_global_broadcast_permission(
-            request
+        if (
+            scope == PushBroadcast.SCOPE_ALL
+            and not self.has_global_broadcast_permission(request)
         ):
             self.message_user(
                 request,
-                "You do not have permission to notify every follower on the "
-                "platform.",
+                "You do not have permission to notify every follower on the platform.",
                 messages.ERROR,
             )
             return None

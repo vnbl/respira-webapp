@@ -30,8 +30,7 @@ def _move_to_django_admin(apps, schema_editor):
             return
         source_schema = "public" if "public" in schemas else next(iter(schemas))
         cursor.execute(
-            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" '
-            'SET SCHEMA "django_admin"'
+            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" SET SCHEMA "django_admin"'
         )
 
 
@@ -40,31 +39,96 @@ def _reverse_noop(apps, schema_editor):
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('api', '0021_institution_alert_rule_state'),
+        ("api", "0021_institution_alert_rule_state"),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PushBroadcast',
+            name="PushBroadcast",
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('scope', models.CharField(choices=[('station', "One station's followers"), ('institution', "All of an institution's stations"), ('all', 'Every follower on the platform')], max_length=16)),
-                ('push_title', models.CharField(max_length=100)),
-                ('push_body', models.TextField(max_length=500)),
-                ('recipients', models.PositiveIntegerField(default=0, help_text='How many devices the push service accepted this broadcast for.')),
-                ('failures', models.PositiveIntegerField(default=0, help_text='Messages the push service rejected for a reason worth retrying.')),
-                ('sent_at', models.DateTimeField(auto_now_add=True)),
-                ('institution', models.ForeignKey(blank=True, help_text='Set for institution-scoped sends; blank for a platform-wide one.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='broadcasts', to='api.institution')),
-                ('sent_by', models.ForeignKey(blank=True, help_text='Who sent it. Kept for the audit trail.', null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='push_broadcasts', to=settings.AUTH_USER_MODEL)),
-                ('station', models.ForeignKey(blank=True, db_constraint=False, help_text='Set for station-scoped sends.', null=True, on_delete=django.db.models.deletion.DO_NOTHING, related_name='broadcasts', to='api.stations')),
+                (
+                    "id",
+                    models.BigAutoField(
+                        auto_created=True,
+                        primary_key=True,
+                        serialize=False,
+                        verbose_name="ID",
+                    ),
+                ),
+                (
+                    "scope",
+                    models.CharField(
+                        choices=[
+                            ("station", "One station's followers"),
+                            ("institution", "All of an institution's stations"),
+                            ("all", "Every follower on the platform"),
+                        ],
+                        max_length=16,
+                    ),
+                ),
+                ("push_title", models.CharField(max_length=100)),
+                ("push_body", models.TextField(max_length=500)),
+                (
+                    "recipients",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="How many devices the push service accepted this broadcast for.",
+                    ),
+                ),
+                (
+                    "failures",
+                    models.PositiveIntegerField(
+                        default=0,
+                        help_text="Messages the push service rejected for a reason worth retrying.",
+                    ),
+                ),
+                ("sent_at", models.DateTimeField(auto_now_add=True)),
+                (
+                    "institution",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Set for institution-scoped sends; blank for a platform-wide one.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="broadcasts",
+                        to="api.institution",
+                    ),
+                ),
+                (
+                    "sent_by",
+                    models.ForeignKey(
+                        blank=True,
+                        help_text="Who sent it. Kept for the audit trail.",
+                        null=True,
+                        on_delete=django.db.models.deletion.SET_NULL,
+                        related_name="push_broadcasts",
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    "station",
+                    models.ForeignKey(
+                        blank=True,
+                        db_constraint=False,
+                        help_text="Set for station-scoped sends.",
+                        null=True,
+                        on_delete=django.db.models.deletion.DO_NOTHING,
+                        related_name="broadcasts",
+                        to="api.stations",
+                    ),
+                ),
             ],
             options={
-                'db_table': 'push_broadcast',
-                'ordering': ('-sent_at',),
-                'permissions': [('send_global_pushbroadcast', 'Can send a push notification to every follower on the platform')],
+                "db_table": "push_broadcast",
+                "ordering": ("-sent_at",),
+                "permissions": [
+                    (
+                        "send_global_pushbroadcast",
+                        "Can send a push notification to every follower on the platform",
+                    )
+                ],
             },
         ),
         migrations.RunPython(_move_to_django_admin, _reverse_noop),

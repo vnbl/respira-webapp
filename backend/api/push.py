@@ -509,7 +509,9 @@ def broadcast_tokens(broadcast: PushBroadcast) -> list[str]:
 
     # `order_by()` for the same reason as `_tokens_following`: the model's
     # default ordering would join `updated_at` into the DISTINCT and defeat it.
-    return list(installations.order_by().values_list("push_token", flat=True).distinct())
+    return list(
+        installations.order_by().values_list("push_token", flat=True).distinct()
+    )
 
 
 def send_broadcast(broadcast: PushBroadcast) -> Delivery:

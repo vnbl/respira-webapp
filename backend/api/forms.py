@@ -44,9 +44,9 @@ class InstitutionAlertRuleForm(forms.ModelForm):
                 institution_contract__institution=institution
             )
         self.fields["station"].required = False
-        self.fields["station"].help_text = (
-            "The sensor under contract to the selected institution."
-        )
+        self.fields[
+            "station"
+        ].help_text = "The sensor under contract to the selected institution."
 
     def _known_institution(self):
         """The institution this form is about, from the POST or the instance.

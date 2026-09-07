@@ -97,9 +97,7 @@ class BroadcastAudienceTests(TestCase):
         self._follower(INSTALLATION_A, "token-a", "RSP-001")
         self._follower(INSTALLATION_B, "token-b", "RSP-003")
 
-        broadcast = self._broadcast(
-            PushBroadcast.SCOPE_STATION, station=self.station_a
-        )
+        broadcast = self._broadcast(PushBroadcast.SCOPE_STATION, station=self.station_a)
         self.assertEqual(broadcast_tokens(broadcast), ["token-a"])
 
     def test_institution_scope_follows_the_contract(self):
@@ -144,9 +142,7 @@ class BroadcastAudienceTests(TestCase):
     def test_an_installation_without_a_token_is_skipped(self):
         self._follower(INSTALLATION_A, "", "RSP-001")
 
-        broadcast = self._broadcast(
-            PushBroadcast.SCOPE_STATION, station=self.station_a
-        )
+        broadcast = self._broadcast(PushBroadcast.SCOPE_STATION, station=self.station_a)
         self.assertEqual(broadcast_tokens(broadcast), [])
 
 
@@ -162,9 +158,7 @@ class SendBroadcastTests(TestCase):
 
     def _follower(self, installation_id, token):
         installation, _ = DeviceInstallation.register(installation_id, push_token=token)
-        DeviceFollower.objects.create(
-            installation=installation, station_code="RSP-001"
-        )
+        DeviceFollower.objects.create(installation=installation, station_code="RSP-001")
         return installation
 
     def _broadcast(self, **kwargs):

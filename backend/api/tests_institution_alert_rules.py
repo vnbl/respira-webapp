@@ -108,9 +108,7 @@ class SendInstitutionAlertsTests(TestCase):
             station=station or self.station,
             threshold=threshold,
             push_title=kwargs.pop("push_title", "Aire regular en el colegio"),
-            push_body=kwargs.pop(
-                "push_body", "El aire en {station} superó el umbral."
-            ),
+            push_body=kwargs.pop("push_body", "El aire en {station} superó el umbral."),
             **kwargs,
         )
 
@@ -138,9 +136,7 @@ class SendInstitutionAlertsTests(TestCase):
 
         self.assertEqual(len(capture.messages), 1)
         self.assertEqual(capture.messages[0]["title"], "Recreo suspendido")
-        self.assertEqual(
-            capture.messages[0]["body"], "Aire alto en Colegio San José."
-        )
+        self.assertEqual(capture.messages[0]["body"], "Aire alto en Colegio San José.")
 
     def test_a_threshold_below_the_public_alert_levels_still_fires(self):
         # AQI 45 is "good"/"moderate" territory, which the public path stays
@@ -280,9 +276,7 @@ class SendInstitutionAlertsTests(TestCase):
         self._reading(self.station, 55)
 
         def rejected(messages):
-            return [
-                {"status": "error", "message": "rate limited"} for _ in messages
-            ]
+            return [{"status": "error", "message": "rate limited"} for _ in messages]
 
         with patch("api.push._post_batch", rejected):
             result = send_institution_alerts()
@@ -381,18 +375,16 @@ class AlertRuleFormTests(TestCase):
     def test_the_picker_offers_only_the_contracted_sensor(self):
         # What the operator sees: one institution, one sensor. The queryset is
         # also what a posted value is validated against.
-        Stations.seed_for_tests(
-            name="Otra", region=self.region, station_code="RSP-002"
-        )
+        Stations.seed_for_tests(name="Otra", region=self.region, station_code="RSP-002")
         form = InstitutionAlertRuleForm(self._data())
-        self.assertEqual(
-            list(form.fields["station"].queryset), [self.station]
-        )
+        self.assertEqual(list(form.fields["station"].queryset), [self.station])
 
     def test_the_picker_is_empty_until_an_institution_is_chosen(self):
         # An empty list says "pick an institution first" rather than inviting a
         # choice that would have to be rejected.
-        self.assertEqual(list(InstitutionAlertRuleForm().fields["station"].queryset), [])
+        self.assertEqual(
+            list(InstitutionAlertRuleForm().fields["station"].queryset), []
+        )
 
     def test_another_institutions_sensor_is_rejected(self):
         # The narrowing is enforcement, not only presentation: forcing a
@@ -496,9 +488,7 @@ class EvaluateOnSaveTests(TestCase):
         installation, _ = DeviceInstallation.register(
             INSTALLATION_ID, push_token="token-a"
         )
-        DeviceFollower.objects.create(
-            installation=installation, station_code="RSP-001"
-        )
+        DeviceFollower.objects.create(installation=installation, station_code="RSP-001")
         self.user = get_user_model().objects.create_superuser(
             email="admin@example.com", password="x"
         )
