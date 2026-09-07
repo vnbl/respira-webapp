@@ -14,14 +14,22 @@ migration makes that safe by actually moving every accounts table into
 
 Purely a database-side move (no ``AlterModelTable``: ``db_table`` is not
 changing, so there is nothing for Django's migration state to record).
-RunPython, not RunSQL, so it can check each table's current schema first and
-skip it if it is already in ``django_admin`` — safe to run against a fresh
-test/dev/CI database (0001_initial just created these tables, unqualified,
-wherever search_path pointed at the time) and against a production database
-being upgraded in place.
+RunPython, not RunSQL, so every statement can be guarded by a read-only check
+first and skipped when the database is already in the target state — safe to
+run against a fresh test/dev/CI database (0001_initial just created these
+tables, unqualified, wherever search_path pointed at the time) and against a
+deployed database where the schemas were already separated by hand, which
+issues no DDL at all.
+
+That last case is a requirement, not an optimization: the role these
+migrations run as is scoped to ``django_admin`` and holds no ``CREATE``
+privilege on the database, so even ``CREATE SCHEMA IF NOT EXISTS`` raises
+``permission denied for database`` there. See api/schema_moves.py.
 """
 
 from django.db import migrations
+
+from api.schema_moves import ensure_schema, is_postgresql, move_tables
 
 TABLES = [
     "accounts_role",
@@ -32,31 +40,11 @@ TABLES = [
 
 
 def _move_tables(apps, schema_editor):
-    # SQLite (local dev, and any run without BACKEND_POSTGRES_* configured)
-    # has no notion of schemas: every table already lives in the single
-    # namespace search_path would otherwise disambiguate, so there is
-    # nothing to move.
-    if schema_editor.connection.vendor != "postgresql":
+    if not is_postgresql(schema_editor):
         return
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute('CREATE SCHEMA IF NOT EXISTS "django_admin"')
-        for table_name in TABLES:
-            cursor.execute(
-                """
-                SELECT table_schema FROM information_schema.tables
-                WHERE table_name = %s
-                  AND table_schema NOT IN ('pg_catalog', 'information_schema')
-                """,
-                [table_name],
-            )
-            schemas = {row[0] for row in cursor.fetchall()}
-            if "django_admin" in schemas or not schemas:
-                continue
-            source_schema = "public" if "public" in schemas else next(iter(schemas))
-            cursor.execute(
-                f'ALTER TABLE "{source_schema}"."{table_name}" '
-                f'SET SCHEMA "django_admin"'
-            )
+        ensure_schema(cursor, "django_admin")
+        move_tables(cursor, "django_admin", TABLES)
 
 
 def _reverse_noop(apps, schema_editor):

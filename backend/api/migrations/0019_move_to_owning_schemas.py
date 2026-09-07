@@ -33,17 +33,29 @@ cannot introduce ambiguity: reordering it would still resolve every table to
 the same place.
 
 Purely a database-side move — no ``AlterModelTable``, since ``db_table`` is
-not changing. RunPython, not RunSQL, so each table moves only if it is not
-already in its target schema:
+not changing. RunPython, not RunSQL, so every statement can be guarded by a
+read-only check and skipped when the database is already in the target state:
 
-* Fresh test/dev/CI databases: 0001_initial just created these tables
-  unqualified whever search_path pointed at the time, so this migration
-  creates ``django_admin`` (``respira_gold`` too, in case nothing has
-  materialized it yet) and moves everything into place.
-* Production/staging: ``django_admin`` is created (it did not exist before);
-  Django-owned tables move there. ``respira_gold`` tables are typically
-  already in ``respira_gold`` — dbt creates that schema itself and has been
-  materializing these tables there — so their move is a no-op.
+* Fresh test/dev/CI databases: 0001_initial created every table unqualified,
+  so they all landed in the first schema on search_path — ``django_admin``.
+  This migration creates that schema and then moves the pipeline-owned tables
+  out of it into ``respira_gold``, where they belong.
+* Production/staging/demo: the schemas were separated by hand before Django
+  Admin work started, so every table is already in place and this migration
+  issues no DDL whatsoever.
+
+That second case is not an optimization, it is a requirement. The role these
+migrations run as is scoped to ``django_admin`` and nothing else: it holds no
+``CREATE`` privilege on the database and does not own the ``respira_gold``
+tables. So this migration must never issue a statement it does not first
+establish is necessary — see api/schema_moves.py, which also explains why
+these checks read ``pg_catalog`` rather than ``information_schema``.
+
+``respira_gold`` is never created here. That schema belongs to the data
+pipeline: dbt creates it, owns it, and materializes into it. If it is
+missing, the fix is to run the pipeline, not to have the webapp conjure a
+schema it does not own. Its tables are still listed below so a fresh database
+that materialized them into ``public`` gets them filed correctly.
 
 Every operation is a no-op on non-PostgreSQL backends: SQLite (local dev
 without ``BACKEND_POSTGRES_*`` set) has no schemas at all, so there is
@@ -51,6 +63,8 @@ nothing to separate and ``CREATE SCHEMA`` is a syntax error there.
 """
 
 from django.db import migrations
+
+from api.schema_moves import ensure_schema, is_postgresql, move_tables
 
 DJANGO_ADMIN_TABLES = [
     "action_log",
@@ -82,36 +96,19 @@ RESPIRA_GOLD_TABLES = [
 ]
 
 
-def _ensure_schemas(apps, schema_editor):
-    if schema_editor.connection.vendor != "postgresql":
+def _ensure_django_admin_schema(apps, schema_editor):
+    if not is_postgresql(schema_editor):
         return
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute('CREATE SCHEMA IF NOT EXISTS "django_admin"')
-        cursor.execute('CREATE SCHEMA IF NOT EXISTS "respira_gold"')
+        ensure_schema(cursor, "django_admin")
 
 
 def _move_tables(target_schema, table_names):
     def _move(apps, schema_editor):
-        if schema_editor.connection.vendor != "postgresql":
+        if not is_postgresql(schema_editor):
             return
         with schema_editor.connection.cursor() as cursor:
-            for table_name in table_names:
-                cursor.execute(
-                    """
-                    SELECT table_schema FROM information_schema.tables
-                    WHERE table_name = %s
-                      AND table_schema NOT IN ('pg_catalog', 'information_schema')
-                    """,
-                    [table_name],
-                )
-                schemas = {row[0] for row in cursor.fetchall()}
-                if target_schema in schemas or not schemas:
-                    continue
-                source_schema = "public" if "public" in schemas else next(iter(schemas))
-                cursor.execute(
-                    f'ALTER TABLE "{source_schema}"."{table_name}" '
-                    f'SET SCHEMA "{target_schema}"'
-                )
+            move_tables(cursor, target_schema, table_names)
 
     return _move
 
@@ -126,7 +123,7 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RunPython(_ensure_schemas, _reverse_noop),
+        migrations.RunPython(_ensure_django_admin_schema, _reverse_noop),
         migrations.RunPython(
             _move_tables("django_admin", DJANGO_ADMIN_TABLES), _reverse_noop
         ),
