@@ -1,12 +1,19 @@
 from django.contrib import admin, messages
 from django.contrib.admin import helpers
 from django.db.models import Count, OuterRef, Subquery
+from django.http import JsonResponse
 from django.template.response import TemplateResponse
+from django.urls import path
 from django.utils import timezone
 
 from accounts.admin_base import ReadOnlyModelAdmin, RoleBasedModelAdmin
 
-from .forms import StationStatusOverrideForm
+from . import push
+from .forms import (
+    InstitutionAlertRuleForm,
+    PushBroadcastForm,
+    StationStatusOverrideForm,
+)
 from .models import (
     ActionLog,
     DeviceFollower,
@@ -16,10 +23,14 @@ from .models import (
     Institution,
     InstitutionAlert,
     InstitutionAlertConfig,
+    InstitutionAlertRule,
+    InstitutionAlertRuleState,
     InstitutionContract,
     InstitutionUser,
+    PushBroadcast,
     Regions,
     SensitiveGroup,
+    SensorAlert,
     StationDetails,
     StationOverride,
     Stations,
@@ -612,21 +623,455 @@ class DeviceFollowerAdmin(RoleBasedModelAdmin):
         return name or "unknown station"
 
 
-@admin.register(InstitutionAlert)
-class InstitutionAlertAdmin(RoleBasedModelAdmin):
-    """Poor-air-quality events recorded for an institution's station.
+class InstitutionAlertEventInline(admin.TabularInline):
+    """The times this alert has fired, shown under the alert that fires them.
 
-    Admin-owned for now: no generator writes these yet, so an operator records
-    the event an institution reacted to. ``search_fields`` is also what lets
-    ``ActionLogAdmin`` offer this model as an autocomplete target.
+    Configuration and history are one page rather than two sections, because
+    "AQI > 40 at this school" and "AQI 55 at this school on Tuesday" read as the
+    same words and nobody should have to learn which menu entry holds which. The
+    events stay their own model — ``ActionLog`` points at them, and the
+    institutional dashboard reads them — but an operator never has to know that.
+
+    Read-only, and no add form: an event records that a threshold was actually
+    crossed, so a hand-typed row would be indistinguishable from a measured one
+    in the audit trail the institution's own action log points at.
+    """
+
+    model = InstitutionAlert
+    extra = 0
+    can_delete = False
+    verbose_name = "Time it fired"
+    verbose_name_plural = "History — times this alert fired"
+    fields = ("triggered_at", "aqi_value", "alert_threshold", "resolved_at")
+    readonly_fields = fields
+    ordering = ("-triggered_at",)
+    # The most recent handful. An alert that has fired for months would
+    # otherwise render its entire history on the configuration page.
+    max_num = 10
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+
+@admin.register(InstitutionAlertRule)
+class InstitutionAlertRuleAdmin(RoleBasedModelAdmin):
+    """Institutional alerts: what triggers one, what it says, and when it fired.
+
+    The single page for the feature. The fields configure the alert — threshold,
+    wording, on/off — and the inline below shows the history of it actually
+    firing, so an operator sets one up and audits it in the same place.
+
+    Editing here changes what followers receive on the next scheduled run, with
+    no deploy involved, which is the whole reason the model exists.
+    """
+
+    form = InstitutionAlertRuleForm
+    inlines = (InstitutionAlertEventInline,)
+    list_display = (
+        "institution",
+        "station",
+        "threshold",
+        "push_title",
+        "is_active",
+        "firing_state",
+        "updated_at",
+    )
+    list_filter = ("is_active", "institution")
+    search_fields = (
+        "institution__legal_name",
+        "institution__display_name",
+        "station__name",
+        "push_title",
+        "push_body",
+    )
+    ordering = ("institution", "threshold")
+    # `state` included so `firing_state` does not issue a query per row.
+    list_select_related = ("institution", "station", "state")
+    # `station` deliberately stays a plain select rather than an autocomplete:
+    # the form narrows it to the chosen institution's single contracted sensor,
+    # and an autocomplete widget would go back to the server for its options and
+    # undo that narrowing.
+    autocomplete_fields = ("institution",)
+    readonly_fields = ("created_at", "updated_at")
+    actions = ("send_manual_push",)
+    broadcast_template = "admin/api/institutionalertrule/broadcast_confirmation.html"
+
+    class Media:
+        # Repopulates the station select when the institution changes, so the
+        # narrowing is visible while filling the form rather than only enforced
+        # on submit. Progressive enhancement: the form is correct without it.
+        js = ("admin/js/institution_alert_rule.js",)
+
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": ("institution", "station", "is_active"),
+                "description": (
+                    "Choose the institution first — the sensor list then holds "
+                    "only the one under contract to it."
+                ),
+            },
+        ),
+        (
+            "AQI condition",
+            {
+                "fields": ("threshold",),
+                "description": (
+                    "Followers are notified when this station's AQI rises above "
+                    "this value. Any value may be used — an institution may "
+                    "choose to alert its own community at a level the public "
+                    "alerts deliberately stay quiet for."
+                ),
+            },
+        ),
+        (
+            "Notification",
+            {
+                "fields": ("push_title", "push_body"),
+                "description": (
+                    "What the notification says on the device. Write "
+                    "{station} in the message to have the station's name "
+                    "substituted."
+                ),
+            },
+        ),
+        ("Audit", {"fields": ("created_at", "updated_at")}),
+    )
+
+    def get_urls(self):
+        """Adds the lookup the station select is repopulated from."""
+        return [
+            path(
+                "contracted-station/",
+                self.admin_site.admin_view(self.contracted_station_view),
+                name="api_institutionalertrule_contracted_station",
+            ),
+            *super().get_urls(),
+        ]
+
+    def contracted_station_view(self, request):
+        """The station under contract to one institution, as JSON.
+
+        Wrapped in ``admin_view`` so it is behind the admin login like every
+        other page here, and gated on the same permission as the form it
+        serves: this reports which sensor an institution leases, which is not
+        public information.
+        """
+        if not (
+            self.has_add_permission(request) or self.has_change_permission(request)
+        ):
+            return JsonResponse({"detail": "Not permitted."}, status=403)
+
+        contract = (
+            InstitutionContract.objects.filter(
+                institution_id=request.GET.get("institution") or 0
+            )
+            .select_related("station")
+            .first()
+        )
+        if contract is None or contract.station is None:
+            return JsonResponse({"station": None})
+        return JsonResponse(
+            {"station": {"id": contract.station_id, "name": contract.station.name}}
+        )
+
+    @admin.display(description="State", ordering="state__is_firing")
+    def firing_state(self, obj):
+        """Whether this alert is currently holding an episode open.
+
+        Surfaced here because the state model itself is out of the menu, and
+        this answers the question an operator actually has — "did it already
+        notify, and why has it gone quiet?" — which the configuration fields
+        alone cannot.
+        """
+        state = getattr(obj, "state", None)
+        if state is None or not state.is_firing:
+            return "Idle"
+        if state.last_aqi is None:
+            return "Firing"
+        return f"Firing (AQI {state.last_aqi:.0f})"
+
+    def save_model(self, request, obj, form, change):
+        """Saves the alert, then evaluates it right away when that is warranted.
+
+        Why evaluate here at all: the scheduled sender reacts to *readings*
+        changing, so configuring an alert for air that is already over its
+        threshold would notify nobody until the next run — silence about air
+        that is bad right now, which is the case the feature exists for. The
+        same reasoning already drives ``push.catch_up_follower`` for somebody
+        who follows a sensor mid-episode.
+
+        Only on creation, and on a lowered threshold. Fixing a typo in the
+        message is not a reason to interrupt anybody, while lowering the
+        threshold is exactly the "I want to hear about this sooner" change that
+        should take effect now rather than at the next run.
+
+        Delivery failure never blocks the save: the alert is configuration, and
+        an unreachable push service is not a reason to lose it.
+        """
+        lowered = (
+            change
+            and "threshold" in form.changed_data
+            and form.initial.get("threshold") is not None
+            and obj.threshold < form.initial["threshold"]
+        )
+        super().save_model(request, obj, form, change)
+
+        if not (not change or lowered):
+            return
+        if not push.is_configured():
+            # Said out loud rather than skipped quietly: an alert saved for air
+            # that is already over its threshold and then sitting at "Idle"
+            # looks broken, and the reason is an environment flag the operator
+            # cannot see from this page.
+            self.message_user(
+                request,
+                "Saved. Push notifications are switched off in this "
+                "environment (BACKEND_SENSOR_ALERTS_ENABLED), so nothing was "
+                "sent even though the air may already be over this threshold.",
+                messages.WARNING,
+            )
+            return
+
+        try:
+            delivery = push.evaluate_rule(obj)
+        except Exception as error:  # noqa: BLE001 - reported, never fatal
+            self.message_user(
+                request,
+                f"Saved, but the immediate check could not be delivered: {error}",
+                messages.WARNING,
+            )
+            return
+
+        if delivery is None:
+            return
+        if delivery.accepted:
+            self.message_user(
+                request,
+                f"The air is already over this threshold — notified "
+                f"{delivery.accepted} device(s) now.",
+                messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                "The air is already over this threshold, but no device "
+                "accepted the notification. It may be that nobody follows "
+                "this sensor yet.",
+                messages.WARNING,
+            )
+
+    def has_broadcast_permission(self, request):
+        """Gate for the manual send (``permissions=["broadcast"]``).
+
+        Keyed on ``PushBroadcast`` rather than on this model: the action sends
+        a notification and records a broadcast, and changes no rule at all.
+        """
+        return request.user.has_perm("api.add_pushbroadcast")
+
+    def has_global_broadcast_permission(self, request):
+        """Whether this user may notify every follower on the platform.
+
+        Deliberately a permission of its own. A platform-wide push reaches
+        people who never followed the sensor in question and cannot be
+        recalled, so being trusted to notify one institution's followers is not
+        the same as being trusted to notify everybody.
+        """
+        return request.user.has_perm("api.send_global_pushbroadcast")
+
+    @admin.action(
+        description="Send a manual push notification", permissions=["broadcast"]
+    )
+    def send_manual_push(self, request, queryset):
+        """Compose and send one notification, outside any AQI condition.
+
+        Two passes like ``StationsViewer._override_status``: the first renders
+        the composer, the second (carrying ``confirm``) sends it. The rules
+        selected only seed the default audience — the scope chosen on the form
+        is what actually decides who receives it, so an operator can widen a
+        station-scoped selection without leaving the page.
+        """
+        rules = list(queryset.select_related("institution", "station"))
+        confirmed = bool(request.POST.get("confirm"))
+
+        if confirmed:
+            form = PushBroadcastForm(request.POST)
+            if form.is_valid():
+                return self._send_broadcast(request, form.cleaned_data)
+        else:
+            initial = {}
+            if len(rules) == 1 and rules[0].station_id:
+                initial = {
+                    "scope": PushBroadcast.SCOPE_STATION,
+                    "station": rules[0].station_id,
+                    "institution": rules[0].institution_id,
+                }
+            form = PushBroadcastForm(initial=initial)
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Send a push notification",
+            "opts": self.opts,
+            "media": self.media + form.media,
+            "form": form,
+            "selection": rules,
+            "action": "send_manual_push",
+            "may_send_to_everyone": self.has_global_broadcast_permission(request),
+            "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
+        }
+        return TemplateResponse(request, self.broadcast_template, context)
+
+    def _send_broadcast(self, request, data):
+        """Records the broadcast, then delivers it."""
+        scope = data["scope"]
+
+        if (
+            scope == PushBroadcast.SCOPE_ALL
+            and not self.has_global_broadcast_permission(request)
+        ):
+            self.message_user(
+                request,
+                "You do not have permission to notify every follower on the platform.",
+                messages.ERROR,
+            )
+            return None
+
+        if not push.is_configured():
+            # Checked before the row is written, so a disabled environment does
+            # not accumulate broadcasts that never went anywhere.
+            self.message_user(
+                request,
+                "SENSOR_ALERTS_ENABLED is off in this environment; nothing sent.",
+                messages.WARNING,
+            )
+            return None
+
+        # Created before delivery, so an attempt that fails halfway is still on
+        # record rather than looking like it never happened.
+        broadcast = PushBroadcast.objects.create(
+            scope=scope,
+            institution=data.get("institution"),
+            station=data.get("station"),
+            push_title=data["push_title"],
+            push_body=data["push_body"],
+            sent_by=request.user,
+        )
+
+        try:
+            delivery = push.send_broadcast(broadcast)
+        except Exception as error:  # noqa: BLE001 - surfaced to the operator
+            self.message_user(request, f"Delivery failed: {error}", messages.ERROR)
+            return None
+
+        if delivery.accepted:
+            note = (
+                f"; {delivery.retriable_failures} rejected"
+                if delivery.retriable_failures
+                else ""
+            )
+            self.message_user(
+                request,
+                f"Notification accepted for {delivery.accepted} device(s){note}.",
+                messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                "No device accepted the notification. It may be that nobody "
+                "follows the selected sensor(s).",
+                messages.WARNING,
+            )
+        return None
+
+
+@admin.register(PushBroadcast)
+class PushBroadcastAdmin(ReadOnlyModelAdmin):
+    """The record of every manual notification sent.
+
+    Read-only: a broadcast is an event that already happened, and editing its
+    text afterwards would make this log disagree with what the devices actually
+    showed. New ones are sent from the alert-rule page, where the confirmation
+    step and the permission checks live.
     """
 
     list_display = (
+        "sent_at",
+        "scope",
+        "institution",
+        "station",
+        "push_title",
+        "recipients",
+        "failures",
+        "sent_by",
+    )
+    list_filter = ("scope", "sent_at", "institution")
+    search_fields = ("push_title", "push_body")
+    ordering = ("-sent_at",)
+    list_select_related = ("institution", "station", "sent_by")
+
+
+@admin.register(SensorAlert)
+class SensorAlertAdmin(ReadOnlyModelAdmin):
+    """Delivery log for the automatic alerts, institutional ones included.
+
+    Here so that "did this alert actually go out, and to how many devices?" is
+    answerable from the backoffice rather than only from the container's logs.
+    """
+
+    list_display = ("sent_at", "station_code", "level", "trend", "aqi", "recipients")
+    list_filter = ("trend", "level", "sent_at")
+    search_fields = ("station_code",)
+    ordering = ("-sent_at",)
+
+
+@admin.register(InstitutionAlertRuleState)
+class InstitutionAlertRuleStateAdmin(ReadOnlyModelAdmin):
+    """Per-alert sender state, for diagnosing one that is not firing.
+
+    Kept out of the menu like the events: this is the sender's own bookkeeping,
+    not something an operator manages. The alert page already reports whether
+    an alert is currently firing, which is the part worth knowing; this remains
+    reachable by URL when a "why has this not fired again?" needs answering.
+
+    Read-only because it *is* that memory: editing ``is_firing`` by hand would
+    either suppress a real alert or replay one followers already received.
+    """
+
+    list_display = ("rule", "is_firing", "last_aqi", "last_notified_at", "updated_at")
+    list_filter = ("is_firing",)
+    search_fields = ("rule__institution__legal_name", "rule__station__name")
+    list_select_related = ("rule", "rule__institution", "rule__station")
+
+    def has_module_permission(self, request):
+        return False
+
+
+@admin.register(InstitutionAlert)
+class InstitutionAlertEventAdmin(ReadOnlyModelAdmin):
+    """The individual firings, registered but kept out of the menu.
+
+    Still registered for two reasons that have nothing to do with browsing it:
+    ``ActionLogAdmin`` offers it as an autocomplete target, which requires a
+    registered admin with ``search_fields``; and the changelist remains
+    reachable by URL for anyone who needs the unfiltered history.
+
+    Hidden from the index (``has_module_permission``) because the operator-facing
+    page is ``InstitutionAlertRuleAdmin``, which shows each alert's own firings
+    inline. Two menu entries whose names differ only by the word "rule" is the
+    confusion this removes.
+
+    Read-only for everyone: the scheduled sender writes these, and a hand-typed
+    row would be indistinguishable from a measured one in the audit trail that
+    ``ActionLog`` entries point at.
+    """
+
+    list_display = (
+        "triggered_at",
         "institution",
         "station",
         "aqi_value",
         "alert_threshold",
-        "triggered_at",
         "resolved_at",
     )
     list_filter = ("institution", "station", "triggered_at")
@@ -636,13 +1081,15 @@ class InstitutionAlertAdmin(RoleBasedModelAdmin):
         "station__name",
     )
     ordering = ("-triggered_at",)
-    list_select_related = ("institution", "station")
-    autocomplete_fields = ("institution", "station")
-    fieldsets = (
-        (None, {"fields": ("institution", "station")}),
-        ("Measurement", {"fields": ("aqi_value", "alert_threshold")}),
-        ("Timeline", {"fields": ("triggered_at", "resolved_at")}),
-    )
+    list_select_related = ("institution", "station", "rule")
+
+    def has_module_permission(self, request):
+        """Keeps this out of the admin index without unregistering it.
+
+        Autocomplete and the direct URL both keep working; only the menu entry
+        goes away.
+        """
+        return False
 
 
 class AlertLinkFilter(admin.SimpleListFilter):
