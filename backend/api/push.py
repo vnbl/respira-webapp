@@ -424,9 +424,16 @@ def catch_up_follower(installation: DeviceInstallation, station: Stations) -> bo
     exactly the case the feature exists for: air that is bad right now.
 
     Deliberately one device and one message. It does not touch the station's
-    state, because that state is what every *other* follower's next
-    notification is judged against — advancing it here would suppress a real
-    warning for all of them.
+    state — neither the level path's nor a rule's — because that state is what
+    every *other* follower's next notification is judged against, and advancing
+    it here would suppress a real warning for all of them.
+
+    An institution's own alert is consulted first and, when one is firing, its
+    wording is what gets sent. Without that this catch-up would answer the
+    question "is this air worth interrupting somebody for?" with the public
+    thresholds only, and a sensor whose institution alerts from AQI 40 would
+    stay silent for its newest follower while actively firing for everybody
+    else — the leased sensor notifying *less* than a public one.
 
     Returns whether a message was accepted, and raises nothing the caller has
     to handle: a follow must succeed even when the push service does not.
@@ -442,14 +449,27 @@ def catch_up_follower(installation: DeviceInstallation, station: Stations) -> bo
     if latest is None:
         return False
     level, aqi = latest
+
+    copy_override = _firing_rule_copy(station, aqi)
     # Only air worth interrupting somebody for. Following a healthy sensor is
     # not news, and a "the air is fine" push on every follow would be noise.
-    if level not in ALERT_LEVELS:
+    # A firing institutional alert is that institution declaring this air worth
+    # interrupting for, which is the judgement the level table cannot make.
+    if copy_override is None and level not in ALERT_LEVELS:
         return False
 
     try:
         tickets = _post_batch(
-            [_message(installation.push_token, station, level, aqi, CATCH_UP)]
+            [
+                _message(
+                    installation.push_token,
+                    station,
+                    level,
+                    aqi,
+                    CATCH_UP,
+                    copy_override,
+                )
+            ]
         )
     except requests.RequestException as error:
         # The follow itself already succeeded and is what the user asked for.
@@ -612,6 +632,41 @@ def rule_transition(is_firing: bool, aqi: float, threshold: int) -> str | None:
     if is_firing and aqi < rearm_threshold(threshold):
         return "rearm"
     return None
+
+
+def _firing_rule_copy(station: Stations, aqi: float) -> tuple[str, str] | None:
+    """The wording of the institutional alert this station is currently over.
+
+    For :func:`catch_up_follower`, which has one device to tell and needs to
+    know what the followers who were already here have been told.
+
+    Judged on the reading rather than on ``is_firing``: a new follower has to
+    hear about air that is over the threshold right now, and the state flag
+    answers a different question — whether the *others* have been notified
+    already, which for this one device is not relevant. Reading the flag would
+    also make the catch-up depend on the scheduled run having happened yet.
+
+    The *highest* matching threshold wins, and deliberately only one is sent.
+    An institution may configure escalating advice — a caution at one AQI, an
+    evacuation at a higher one — and the followers who were already here
+    received those one at a time as the air crossed each in turn. Somebody
+    arriving mid-episode cannot be given that history retroactively, so they
+    get the one that describes the air as it is now: the most severe alert it
+    is currently over. Sending every matching alert instead would open a
+    catch-up with a string of notifications, the newest follower being the only
+    person interrupted several times for a single reading.
+
+    ``station_id`` is safe to match on here (unlike in stored rows) because it
+    is read and used within the same request.
+    """
+    rule = (
+        InstitutionAlertRule.objects.filter(
+            is_active=True, station_id=station.id, threshold__lt=aqi
+        )
+        .order_by("-threshold")
+        .first()
+    )
+    return rule.message_for(station.name) if rule else None
 
 
 def evaluate_rule(rule: InstitutionAlertRule) -> Delivery | None:

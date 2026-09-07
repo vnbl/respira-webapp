@@ -11,7 +11,7 @@ Expo is the only thing stubbed, as in the sibling module — the tests assert on
 what would be sent.
 """
 
-from datetime import date
+from datetime import date, timedelta
 from unittest.mock import patch
 
 import requests
@@ -338,6 +338,140 @@ class SendInstitutionAlertsTests(TestCase):
         )
 
 
+@override_settings(SENSOR_ALERTS_ENABLED=True)
+class EscalatingAlertTests(TestCase):
+    """Several alerts on one sensor, each with its own threshold and wording.
+
+    Air-quality guidance escalates — a caution, then a stronger instruction —
+    and an institution that configured both meant both to arrive. Collapsing
+    them to one message per sensor would lose the middle step.
+    """
+
+    def setUp(self):
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
+            name="Colegio San José",
+            region=self.region,
+            station_code="RSP-001",
+            is_station_on=True,
+        )
+        self.institution = Institution.objects.create(legal_name="Colegio San José")
+
+    def _rule(self, threshold=40, **kwargs):
+        return InstitutionAlertRule.objects.create(
+            institution=self.institution,
+            station=self.station,
+            threshold=threshold,
+            push_title=kwargs.pop("push_title", "Aire regular en el colegio"),
+            push_body=kwargs.pop("push_body", "El aire en {station} superó el umbral."),
+            **kwargs,
+        )
+
+    def _reading(self, station, aqi):
+        return StationReadingsGold.seed_for_tests(
+            station=station, date_utc=timezone.now(), aqi_pm2_5=aqi
+        )
+
+    def _follower(self, station_code, token):
+        installation, _ = DeviceInstallation.register(INSTALLATION_ID, push_token=token)
+        DeviceFollower.objects.create(
+            installation=installation, station_code=station_code
+        )
+        return installation
+
+    def test_an_institution_may_configure_more_than_one_alert_per_sensor(self):
+        self._rule(threshold=40, push_title="Precaución")
+        self._rule(threshold=100, push_title="No salir al patio")
+
+        self.assertEqual(InstitutionAlertRule.objects.count(), 2)
+
+    def test_two_alerts_at_the_same_threshold_are_refused(self):
+        # They would fire together on every reading and send one follower two
+        # notifications about a single measurement.
+        from django.db.utils import IntegrityError
+
+        self._rule(threshold=40)
+        with self.assertRaises(IntegrityError):
+            self._rule(threshold=40, push_title="Otro aviso")
+
+    def test_air_over_both_thresholds_sends_both_messages(self):
+        self._rule(threshold=40, push_title="Precaución")
+        self._rule(threshold=100, push_title="No salir al patio")
+        self._reading(self.station, 165)
+        self._follower("RSP-001", "token-a")
+
+        capture = Capture()
+        with patch("api.push._post_batch", capture):
+            send_institution_alerts()
+
+        self.assertEqual(
+            sorted(message["title"] for message in capture.messages),
+            ["No salir al patio", "Precaución"],
+        )
+
+    def test_air_over_only_the_lower_threshold_sends_only_that_one(self):
+        self._rule(threshold=40, push_title="Precaución")
+        self._rule(threshold=100, push_title="No salir al patio")
+        self._reading(self.station, 55)
+        self._follower("RSP-001", "token-a")
+
+        capture = Capture()
+        with patch("api.push._post_batch", capture):
+            send_institution_alerts()
+
+        self.assertEqual(
+            [message["title"] for message in capture.messages], ["Precaución"]
+        )
+
+    def test_each_alert_keeps_its_own_state(self):
+        # The escalation has to be able to fire while the caution stays quiet:
+        # one shared state would have the second crossing suppressed as
+        # "already notified".
+        low = self._rule(threshold=40, push_title="Precaución")
+        high = self._rule(threshold=100, push_title="No salir al patio")
+
+        self._reading(self.station, 55)
+        self._follower("RSP-001", "token-a")
+        with patch("api.push._post_batch", Capture()):
+            send_institution_alerts()
+
+        self.assertTrue(InstitutionAlertRuleState.objects.get(rule=low).is_firing)
+        self.assertFalse(InstitutionAlertRuleState.objects.get(rule=high).is_firing)
+
+        # The air worsens past the second threshold: only the escalation is new.
+        # A later reading rather than a replaced one, since the sender reads the
+        # most recent row and the pipeline only ever appends.
+        StationReadingsGold.seed_for_tests(
+            station=self.station,
+            date_utc=timezone.now() + timedelta(hours=1),
+            aqi_pm2_5=165,
+        )
+        capture = Capture()
+        with patch("api.push._post_batch", capture):
+            send_institution_alerts()
+
+        self.assertEqual(
+            [message["title"] for message in capture.messages], ["No salir al patio"]
+        )
+
+    def test_deactivating_one_alert_leaves_the_other_running(self):
+        low = self._rule(threshold=40, push_title="Precaución")
+        self._rule(threshold=100, push_title="No salir al patio")
+        low.is_active = False
+        low.save(update_fields=["is_active"])
+
+        self._reading(self.station, 165)
+        self._follower("RSP-001", "token-a")
+
+        capture = Capture()
+        with patch("api.push._post_batch", capture):
+            send_institution_alerts()
+
+        self.assertEqual(
+            [message["title"] for message in capture.messages], ["No salir al patio"]
+        )
+
+
 class AlertRuleFormTests(TestCase):
     """The station is derived from the institution, never chosen."""
 
@@ -624,3 +758,101 @@ class EvaluateOnSaveTests(TestCase):
         # And says so: an alert saved for air already over its threshold, then
         # sitting at "Idle" with no explanation, reads as a broken feature.
         self.assertContains(response, "switched off in this environment")
+
+
+class AlertDeletionTests(TestCase):
+    """Retiring an alert has to be possible, and has to keep the history.
+
+    Both halves matter. An alert nobody can delete accumulates as clutter an
+    operator cannot clear; an alert whose deletion takes its recorded firings
+    with it would erase the audit trail that ``ActionLog`` entries point at.
+    """
+
+    def setUp(self):
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
+            name="Colegio San José",
+            region=self.region,
+            station_code="RSP-001",
+            is_station_on=True,
+        )
+        self.institution = Institution.objects.create(legal_name="Colegio San José")
+        self.rule = InstitutionAlertRule.objects.create(
+            institution=self.institution,
+            station=self.station,
+            threshold=40,
+            push_title="Aire regular",
+            push_body="Cuidado en {station}.",
+        )
+        self.user = get_user_model().objects.create_superuser(
+            email="admin@example.com", password="x"
+        )
+        self.client.force_login(self.user)
+
+    def _delete(self, viewname, pk):
+        return self.client.post(
+            reverse(viewname, args=[pk]), {"post": "yes"}, follow=True
+        )
+
+    def test_an_alert_can_be_deleted(self):
+        self._delete("admin:api_institutionalertrule_delete", self.rule.pk)
+
+        self.assertFalse(InstitutionAlertRule.objects.filter(pk=self.rule.pk).exists())
+
+    def test_deleting_an_alert_takes_its_state_with_it(self):
+        # The sender's memory of one alert means nothing without the alert.
+        InstitutionAlertRuleState.objects.create(rule=self.rule, is_firing=True)
+
+        self._delete("admin:api_institutionalertrule_delete", self.rule.pk)
+
+        self.assertFalse(
+            InstitutionAlertRuleState.objects.filter(rule_id=self.rule.pk).exists()
+        )
+
+    def test_deleting_an_alert_keeps_the_events_it_fired(self):
+        event = InstitutionAlert.objects.create(
+            institution=self.institution,
+            station=self.station,
+            aqi_value=55,
+            rule=self.rule,
+        )
+
+        self._delete("admin:api_institutionalertrule_delete", self.rule.pk)
+
+        event.refresh_from_db()
+        self.assertIsNone(event.rule_id)
+
+    def test_a_state_row_cannot_be_deleted_on_its_own(self):
+        # Removing the memory of an alert that is currently firing would replay
+        # it to followers on the next run.
+        state = InstitutionAlertRuleState.objects.create(rule=self.rule, is_firing=True)
+
+        response = self._delete("admin:api_institutionalertrulestate_delete", state.pk)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(InstitutionAlertRuleState.objects.filter(pk=state.pk).exists())
+
+    def test_a_recorded_firing_cannot_be_deleted_on_its_own(self):
+        event = InstitutionAlert.objects.create(
+            institution=self.institution, station=self.station, aqi_value=55
+        )
+
+        response = self._delete("admin:api_institutionalert_delete", event.pk)
+
+        self.assertEqual(response.status_code, 403)
+        self.assertTrue(InstitutionAlert.objects.filter(pk=event.pk).exists())
+
+    def test_deleting_an_institution_takes_its_alerts_and_history(self):
+        InstitutionAlertRuleState.objects.create(rule=self.rule)
+        InstitutionAlert.objects.create(
+            institution=self.institution,
+            station=self.station,
+            aqi_value=55,
+            rule=self.rule,
+        )
+
+        self._delete("admin:api_institution_delete", self.institution.pk)
+
+        self.assertFalse(Institution.objects.filter(pk=self.institution.pk).exists())
+        self.assertFalse(InstitutionAlertRule.objects.exists())
+        self.assertFalse(InstitutionAlert.objects.exists())
