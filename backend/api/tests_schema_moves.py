@@ -115,9 +115,7 @@ class MoveTablesTests(SimpleTestCase):
             existing={"stations": {"public"}, "regions": {"public"}},
         )
         move_tables(cursor, "respira_gold", ["stations", "regions"])
-        self.assertEqual(
-            cursor.executed.count('CREATE SCHEMA "respira_gold"'), 1
-        )
+        self.assertEqual(cursor.executed.count('CREATE SCHEMA "respira_gold"'), 1)
 
     def test_gold_table_already_in_respira_gold_is_untouched(self):
         # The migration role does not own these tables; attempting the move

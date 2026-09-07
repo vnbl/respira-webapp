@@ -113,6 +113,5 @@ def move_tables(cursor, target_schema, table_names):
             ensure_schema(cursor, target_schema)
             target_ready = True
         cursor.execute(
-            f'ALTER TABLE "{source_schema}"."{table_name}" '
-            f'SET SCHEMA "{target_schema}"'
+            f'ALTER TABLE "{source_schema}"."{table_name}" SET SCHEMA "{target_schema}"'
         )
