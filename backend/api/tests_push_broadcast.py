@@ -12,7 +12,7 @@ from unittest.mock import patch
 import requests
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import Permission
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 from .forms import PushBroadcastForm
@@ -316,10 +316,7 @@ class GlobalBroadcastPermissionTests(TestCase):
         self.user = User.objects.create_user(
             "operator", password="x", is_staff=True, is_superuser=False
         )
-        for codename in (
-            "view_institutionalertrule",
-            "add_pushbroadcast",
-        ):
+        for codename in ("view_pushbroadcast", "add_pushbroadcast"):
             self.user.user_permissions.add(Permission.objects.get(codename=codename))
         self.client.force_login(self.user)
 
@@ -332,14 +329,11 @@ class GlobalBroadcastPermissionTests(TestCase):
     def test_a_platform_wide_send_is_refused_without_it(self):
         with patch("api.push.send_broadcast") as sender:
             response = self.client.post(
-                reverse("admin:api_institutionalertrule_changelist"),
+                reverse("admin:api_pushbroadcast_send"),
                 {
-                    "action": "send_manual_push",
-                    "confirm": "yes",
                     "scope": PushBroadcast.SCOPE_ALL,
                     "push_title": "Aviso",
                     "push_body": "Mensaje.",
-                    "_selected_action": [],
                 },
                 follow=True,
             )
@@ -347,3 +341,78 @@ class GlobalBroadcastPermissionTests(TestCase):
         self.assertEqual(response.status_code, 200)
         sender.assert_not_called()
         self.assertFalse(PushBroadcast.objects.exists())
+
+
+@override_settings(SENSOR_ALERTS_ENABLED=True)
+class SendPageTests(TestCase):
+    """The operational notice has a page of its own, reachable without an alert.
+
+    An announcement about maintenance has no AQI threshold, so requiring an
+    operator to pick one of the AQI alerts on the way to sending it would be
+    asking for a number that has no bearing on the message.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(
+            "operator", password="x", is_staff=True, is_superuser=False
+        )
+        for codename in ("view_pushbroadcast", "add_pushbroadcast"):
+            self.user.user_permissions.add(Permission.objects.get(codename=codename))
+        self.client.force_login(self.user)
+
+        region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
+            name="Respira: Villa Morra",
+            region=region,
+            station_code="RSP-001",
+            is_station_on=True,
+        )
+        installation, _ = DeviceInstallation.register(
+            "8f14e45f-ceea-467e-bd97-1a2b3c4d5e6f", push_token="token-a"
+        )
+        DeviceFollower.objects.create(
+            installation=installation, station_code="RSP-001"
+        )
+
+    def test_the_page_opens_without_selecting_an_alert(self):
+        response = self.client.get(reverse("admin:api_pushbroadcast_send"))
+        self.assertEqual(response.status_code, 200)
+
+    def test_a_maintenance_notice_reaches_the_sensors_followers(self):
+        with patch("api.push._post_batch", side_effect=ok_tickets) as post:
+            response = self.client.post(
+                reverse("admin:api_pushbroadcast_send"),
+                {
+                    "scope": PushBroadcast.SCOPE_STATION,
+                    "station": self.station.pk,
+                    "push_title": "Mantenimiento programado",
+                    "push_body": "El sensor estará fuera de servicio el martes.",
+                },
+                follow=True,
+            )
+
+        self.assertEqual(response.status_code, 200)
+        [messages_sent] = [call.args[0] for call in post.call_args_list]
+        self.assertEqual(messages_sent[0]["to"], "token-a")
+        self.assertEqual(messages_sent[0]["title"], "Mantenimiento programado")
+
+        broadcast = PushBroadcast.objects.get()
+        self.assertEqual(broadcast.recipients, 1)
+        self.assertEqual(broadcast.sent_by, self.user)
+
+    def test_an_operator_without_the_permission_cannot_reach_the_page(self):
+        self.user.user_permissions.remove(
+            Permission.objects.get(codename="add_pushbroadcast")
+        )
+        # Permissions are cached on the instance for the length of a request.
+        self.client.force_login(User.objects.get(pk=self.user.pk))
+
+        response = self.client.get(reverse("admin:api_pushbroadcast_send"))
+        self.assertEqual(response.status_code, 403)
+
+    def test_the_log_stays_read_only(self):
+        # The record of a send is not an editable draft: Django's own add page
+        # for this model must stay closed, so the only way to create a row is
+        # actually sending one.
+        response = self.client.get(reverse("admin:api_pushbroadcast_add"))
+        self.assertEqual(response.status_code, 403)

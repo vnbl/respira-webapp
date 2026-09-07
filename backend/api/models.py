@@ -459,9 +459,20 @@ class InstitutionAlertRule(models.Model):
         verbose_name = "institution alert"
         verbose_name_plural = "institution alerts"
         constraints = [
+            # Several alerts per sensor on purpose: an institution that wants a
+            # caution at one AQI and an evacuation at a higher one has said so
+            # twice, deliberately, and both are meant to arrive. Escalating
+            # advice is how air-quality guidance is normally written, and
+            # collapsing it to one message per sensor would lose the middle
+            # step.
+            #
+            # Only an exact duplicate is refused, since two alerts at the same
+            # threshold could never say anything the other did not — they would
+            # fire together, every time, and send the same follower two
+            # notifications about one reading.
             models.UniqueConstraint(
-                fields=["institution", "station"],
-                name="uniq_alert_rule_per_institution_station",
+                fields=["institution", "station", "threshold"],
+                name="uniq_alert_rule_per_threshold",
             )
         ]
 

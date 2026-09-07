@@ -12,8 +12,10 @@
 
 {% block content %}
 <p class="help">
-  This sends immediately to every device following the audience you choose below.
-  A push notification cannot be recalled once sent.
+  This is for messages that have nothing to do with air quality — planned
+  maintenance, an outage, anything operational. It sends immediately to every
+  device following the audience you choose, and a push notification cannot be
+  recalled once sent.
 </p>
 
 {% if not may_send_to_everyone %}
@@ -44,15 +46,9 @@
     {% endfor %}
   </fieldset>
 
-  {% for rule in selection %}
-    <input type="hidden" name="{{ action_checkbox_name }}" value="{{ rule.pk }}">
-  {% endfor %}
-  <input type="hidden" name="action" value="{{ action }}">
-  <input type="hidden" name="confirm" value="yes">
-
   <div class="submit-row">
     <input type="submit" class="default" value="Send notification">
-    <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% translate "No, take me back" %}</a>
+    <a href="{% url opts|admin_urlname:'changelist' %}" class="button cancel-link">{% translate "Cancel" %}</a>
   </div>
 </form>
 {% endblock %}

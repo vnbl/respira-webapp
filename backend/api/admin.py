@@ -1,9 +1,11 @@
 from django.contrib import admin, messages
 from django.contrib.admin import helpers
+from django.core.exceptions import PermissionDenied
 from django.db.models import Count, OuterRef, Subquery
 from django.http import JsonResponse
+from django.shortcuts import redirect
 from django.template.response import TemplateResponse
-from django.urls import path
+from django.urls import path, reverse
 from django.utils import timezone
 
 from accounts.admin_base import ReadOnlyModelAdmin, RoleBasedModelAdmin
@@ -693,8 +695,6 @@ class InstitutionAlertRuleAdmin(RoleBasedModelAdmin):
     # undo that narrowing.
     autocomplete_fields = ("institution",)
     readonly_fields = ("created_at", "updated_at")
-    actions = ("send_manual_push",)
-    broadcast_template = "admin/api/institutionalertrule/broadcast_confirmation.html"
 
     class Media:
         # Repopulates the station select when the institution changes, so the
@@ -862,137 +862,22 @@ class InstitutionAlertRuleAdmin(RoleBasedModelAdmin):
                 messages.WARNING,
             )
 
-    def has_broadcast_permission(self, request):
-        """Gate for the manual send (``permissions=["broadcast"]``).
-
-        Keyed on ``PushBroadcast`` rather than on this model: the action sends
-        a notification and records a broadcast, and changes no rule at all.
-        """
-        return request.user.has_perm("api.add_pushbroadcast")
-
-    def has_global_broadcast_permission(self, request):
-        """Whether this user may notify every follower on the platform.
-
-        Deliberately a permission of its own. A platform-wide push reaches
-        people who never followed the sensor in question and cannot be
-        recalled, so being trusted to notify one institution's followers is not
-        the same as being trusted to notify everybody.
-        """
-        return request.user.has_perm("api.send_global_pushbroadcast")
-
-    @admin.action(
-        description="Send a manual push notification", permissions=["broadcast"]
-    )
-    def send_manual_push(self, request, queryset):
-        """Compose and send one notification, outside any AQI condition.
-
-        Two passes like ``StationsViewer._override_status``: the first renders
-        the composer, the second (carrying ``confirm``) sends it. The rules
-        selected only seed the default audience — the scope chosen on the form
-        is what actually decides who receives it, so an operator can widen a
-        station-scoped selection without leaving the page.
-        """
-        rules = list(queryset.select_related("institution", "station"))
-        confirmed = bool(request.POST.get("confirm"))
-
-        if confirmed:
-            form = PushBroadcastForm(request.POST)
-            if form.is_valid():
-                return self._send_broadcast(request, form.cleaned_data)
-        else:
-            initial = {}
-            if len(rules) == 1 and rules[0].station_id:
-                initial = {
-                    "scope": PushBroadcast.SCOPE_STATION,
-                    "station": rules[0].station_id,
-                    "institution": rules[0].institution_id,
-                }
-            form = PushBroadcastForm(initial=initial)
-
-        context = {
-            **self.admin_site.each_context(request),
-            "title": "Send a push notification",
-            "opts": self.opts,
-            "media": self.media + form.media,
-            "form": form,
-            "selection": rules,
-            "action": "send_manual_push",
-            "may_send_to_everyone": self.has_global_broadcast_permission(request),
-            "action_checkbox_name": helpers.ACTION_CHECKBOX_NAME,
-        }
-        return TemplateResponse(request, self.broadcast_template, context)
-
-    def _send_broadcast(self, request, data):
-        """Records the broadcast, then delivers it."""
-        scope = data["scope"]
-
-        if (
-            scope == PushBroadcast.SCOPE_ALL
-            and not self.has_global_broadcast_permission(request)
-        ):
-            self.message_user(
-                request,
-                "You do not have permission to notify every follower on the platform.",
-                messages.ERROR,
-            )
-            return None
-
-        if not push.is_configured():
-            # Checked before the row is written, so a disabled environment does
-            # not accumulate broadcasts that never went anywhere.
-            self.message_user(
-                request,
-                "SENSOR_ALERTS_ENABLED is off in this environment; nothing sent.",
-                messages.WARNING,
-            )
-            return None
-
-        # Created before delivery, so an attempt that fails halfway is still on
-        # record rather than looking like it never happened.
-        broadcast = PushBroadcast.objects.create(
-            scope=scope,
-            institution=data.get("institution"),
-            station=data.get("station"),
-            push_title=data["push_title"],
-            push_body=data["push_body"],
-            sent_by=request.user,
-        )
-
-        try:
-            delivery = push.send_broadcast(broadcast)
-        except Exception as error:  # noqa: BLE001 - surfaced to the operator
-            self.message_user(request, f"Delivery failed: {error}", messages.ERROR)
-            return None
-
-        if delivery.accepted:
-            note = (
-                f"; {delivery.retriable_failures} rejected"
-                if delivery.retriable_failures
-                else ""
-            )
-            self.message_user(
-                request,
-                f"Notification accepted for {delivery.accepted} device(s){note}.",
-                messages.SUCCESS,
-            )
-        else:
-            self.message_user(
-                request,
-                "No device accepted the notification. It may be that nobody "
-                "follows the selected sensor(s).",
-                messages.WARNING,
-            )
-        return None
-
 
 @admin.register(PushBroadcast)
 class PushBroadcastAdmin(ReadOnlyModelAdmin):
-    """The record of every manual notification sent.
+    """Send a notification that has nothing to do with air quality, and the log of them.
 
-    Read-only: a broadcast is an event that already happened, and editing its
-    text afterwards would make this log disagree with what the devices actually
-    showed. New ones are sent from the alert-rule page, where the confirmation
-    step and the permission checks live.
+    The page for messages an AQI threshold cannot express — planned maintenance,
+    an outage, anything operational. It carries its own "Send a notification"
+    button rather than living as an action on the alert page, because reaching
+    a send through a list of AQI alerts would mean picking a threshold that has
+    no bearing on the message.
+
+    The rows themselves stay read-only: a broadcast is something that already
+    happened, and editing its text afterwards would make this log disagree with
+    what the devices actually showed. A send is composed on the page below and
+    written only once it is attempted, which is also what stops the same
+    announcement going out twice.
     """
 
     list_display = (
@@ -1009,6 +894,136 @@ class PushBroadcastAdmin(ReadOnlyModelAdmin):
     search_fields = ("push_title", "push_body")
     ordering = ("-sent_at",)
     list_select_related = ("institution", "station", "sent_by")
+    compose_template = "admin/api/pushbroadcast/compose.html"
+    change_list_template = "admin/api/pushbroadcast/change_list.html"
+
+    def get_urls(self):
+        """Adds the compose page under this model's own admin URLs.
+
+        Before ``super()``'s patterns, since those end in a catch-all for object
+        ids that would otherwise swallow ``send/``.
+        """
+        return [
+            path(
+                "send/",
+                self.admin_site.admin_view(self.send_view),
+                name="api_pushbroadcast_send",
+            ),
+            *super().get_urls(),
+        ]
+
+    def has_send_permission(self, request):
+        """Whether this user may send to one station's or one institution's followers."""
+        return request.user.has_perm("api.add_pushbroadcast")
+
+    def has_global_send_permission(self, request):
+        """Whether this user may notify every follower on the platform.
+
+        Deliberately a permission of its own. A platform-wide push reaches
+        people who never followed any particular sensor and cannot be recalled,
+        so being trusted to notify one institution's followers is not the same
+        as being trusted to notify everybody.
+        """
+        return request.user.has_perm("api.send_global_pushbroadcast")
+
+    def changelist_view(self, request, extra_context=None):
+        # Drives the "Send a notification" button in the template, so it is
+        # absent rather than dead for a user who may not send.
+        extra_context = {
+            **(extra_context or {}),
+            "may_send": self.has_send_permission(request),
+        }
+        return super().changelist_view(request, extra_context)
+
+    def send_view(self, request):
+        """Composes and sends one notification, independent of any AQI value.
+
+        Two passes like ``StationsViewer._override_status``: a GET renders the
+        composer, and the POST it submits sends. There is no draft in between —
+        the ``PushBroadcast`` row is written at send time, so a resubmitted page
+        cannot deliver an announcement that was already delivered.
+        """
+        if not self.has_send_permission(request):
+            raise PermissionDenied
+
+        if request.method == "POST":
+            form = PushBroadcastForm(request.POST)
+            if form.is_valid():
+                self._send(request, form.cleaned_data)
+                return redirect("admin:api_pushbroadcast_changelist")
+        else:
+            form = PushBroadcastForm()
+
+        context = {
+            **self.admin_site.each_context(request),
+            "title": "Send a notification",
+            "opts": self.opts,
+            "media": self.media + form.media,
+            "form": form,
+            "may_send_to_everyone": self.has_global_send_permission(request),
+        }
+        return TemplateResponse(request, self.compose_template, context)
+
+    def _send(self, request, data):
+        """Records the broadcast, then delivers it."""
+        scope = data["scope"]
+
+        if scope == PushBroadcast.SCOPE_ALL and not self.has_global_send_permission(
+            request
+        ):
+            self.message_user(
+                request,
+                "You do not have permission to notify every follower on the platform.",
+                messages.ERROR,
+            )
+            return
+
+        if not push.is_configured():
+            # Checked before the row is written, so a disabled environment does
+            # not accumulate broadcasts that never went anywhere.
+            self.message_user(
+                request,
+                "Push notifications are switched off in this environment "
+                "(BACKEND_SENSOR_ALERTS_ENABLED); nothing sent.",
+                messages.WARNING,
+            )
+            return
+
+        # Created before delivery, so an attempt that fails halfway is still on
+        # record rather than looking like it never happened.
+        broadcast = PushBroadcast.objects.create(
+            scope=scope,
+            institution=data.get("institution"),
+            station=data.get("station"),
+            push_title=data["push_title"],
+            push_body=data["push_body"],
+            sent_by=request.user,
+        )
+
+        try:
+            delivery = push.send_broadcast(broadcast)
+        except Exception as error:  # noqa: BLE001 - surfaced to the operator
+            self.message_user(request, f"Delivery failed: {error}", messages.ERROR)
+            return
+
+        if delivery.accepted:
+            note = (
+                f"; {delivery.retriable_failures} rejected"
+                if delivery.retriable_failures
+                else ""
+            )
+            self.message_user(
+                request,
+                f"Notification accepted for {delivery.accepted} device(s){note}.",
+                messages.SUCCESS,
+            )
+        else:
+            self.message_user(
+                request,
+                "No device accepted the notification. It may be that nobody "
+                "follows the selected sensor(s) yet.",
+                messages.WARNING,
+            )
 
 
 @admin.register(SensorAlert)
@@ -1045,6 +1060,34 @@ class InstitutionAlertRuleStateAdmin(ReadOnlyModelAdmin):
 
     def has_module_permission(self, request):
         return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Deletable as a consequence of deleting its alert, never on its own.
+
+        ``ReadOnlyModelAdmin`` refuses deletion outright, which is right for the
+        pipeline-owned tables it was written for but wrong here: this row is a
+        ``CASCADE`` dependent of ``InstitutionAlertRule``, so Django consults
+        this admin while working out what deleting an alert would take with it,
+        and a flat ``False`` fails that check and blocks deleting the alert
+        itself — for everyone, superusers included, since no permission can
+        override a hardcoded refusal.
+
+        A state row is the sender's memory of one alert and means nothing
+        without it, so it must go when the alert goes.
+
+        The two cases are told apart by which admin is being asked, not by
+        ``obj``: ``get_deleted_objects`` passes each *concrete* row it is about
+        to remove, so an ``obj is not None`` test refuses the cascade it means
+        to allow. What actually separates them is the request — a deletion
+        started from this model's own pages is a hand-typed one and stays
+        refused, since removing the memory of an alert that is currently firing
+        replays it to followers on the next run.
+        """
+        if request.path.startswith(
+            reverse("admin:api_institutionalertrulestate_changelist")
+        ):
+            return False
+        return RoleBasedModelAdmin.has_delete_permission(self, request, obj)
 
 
 @admin.register(InstitutionAlert)
@@ -1090,6 +1133,34 @@ class InstitutionAlertEventAdmin(ReadOnlyModelAdmin):
         goes away.
         """
         return False
+
+    def has_delete_permission(self, request, obj=None):
+        """Never deletable on its own, but never in the way of deleting an alert.
+
+        Same shape as ``InstitutionAlertRuleStateAdmin``, for a different
+        relationship. ``InstitutionAlert.institution`` cascades, so Django
+        consults this admin while working out what deleting an *institution*
+        would take with it, and ``ReadOnlyModelAdmin``'s flat refusal fails
+        that check and blocks the deletion outright — for everyone, superusers
+        included, since no permission overrides a hardcoded ``False``.
+
+        Told apart by which admin is being asked, not by ``obj``:
+        ``get_deleted_objects`` passes each concrete row it is about to remove,
+        so an ``obj is not None`` test would refuse the very cascade it means to
+        allow. A deletion started from this model's own pages is a hand-typed
+        one and stays refused — the firings are the audit trail an ``ActionLog``
+        entry points at, so they go when their institution goes and never one at
+        a time.
+
+        Note this is not what a deleted *alert* does to its firings:
+        ``InstitutionAlert.rule`` is ``SET_NULL``, so retiring an alert keeps
+        every event it ever fired and merely forgets which alert produced it.
+        """
+        if request.path.startswith(
+            reverse("admin:api_institutionalert_changelist")
+        ):
+            return False
+        return RoleBasedModelAdmin.has_delete_permission(self, request, obj)
 
 
 class AlertLinkFilter(admin.SimpleListFilter):
