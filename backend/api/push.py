@@ -28,6 +28,10 @@ from .aqi import classify_aqi
 from .models import (
     DeviceFollower,
     DeviceInstallation,
+    InstitutionAlert,
+    InstitutionAlertRule,
+    InstitutionAlertRuleState,
+    PushBroadcast,
     SensorAlert,
     SensorAlertState,
     StationReadingsGold,
@@ -286,16 +290,33 @@ def _tokens_following(station_code: str) -> list[str]:
     return list(tokens)
 
 
-def _message(token: str, station: Stations, level: str, aqi: float, trend: str) -> dict:
+def _message(
+    token: str,
+    station: Stations,
+    level: str,
+    aqi: float,
+    trend: str,
+    copy_override: tuple[str, str] | None = None,
+) -> dict:
     # `LEVEL_COPY` covers a catch-up as well as a warning: its wording is
     # present tense ("{station} registra aire insalubre"), which is true either
     # way. Only the all-clear needs to talk about a change.
-    copy = RECOVERY_COPY if trend == IMPROVING else LEVEL_COPY
-    title, body = copy[level]
+    #
+    # `copy_override` is an institution's own wording for its own sensor
+    # (`InstitutionAlertRule`). It *replaces* the level table rather than being
+    # sent alongside it: a follower would otherwise receive two near-identical
+    # notifications about one reading, which is the failure this module exists
+    # to avoid. Its `{station}` is already resolved by `rule.message_for`.
+    if copy_override is not None:
+        title, body = copy_override
+    else:
+        copy = RECOVERY_COPY if trend == IMPROVING else LEVEL_COPY
+        title, body = copy[level]
+        body = body.format(station=station.name)
     return {
         "to": token,
         "title": title,
-        "body": body.format(station=station.name),
+        "body": body,
         "sound": "default",
         "data": {
             # Still `sensor_alert` for an all-clear. The shipped app routes on
@@ -356,7 +377,11 @@ def _post_batch(messages: list[dict]) -> list[dict]:
 
 
 def notify_followers(
-    station: Stations, level: str, aqi: float, trend: str = WORSENING
+    station: Stations,
+    level: str,
+    aqi: float,
+    trend: str = WORSENING,
+    copy_override: tuple[str, str] | None = None,
 ) -> Delivery:
     """Sends one notification about ``station`` to everyone following it."""
     delivery = Delivery()
@@ -368,7 +393,10 @@ def notify_followers(
 
     for start in range(0, len(tokens), EXPO_BATCH_SIZE):
         batch = tokens[start : start + EXPO_BATCH_SIZE]
-        messages = [_message(token, station, level, aqi, trend) for token in batch]
+        messages = [
+            _message(token, station, level, aqi, trend, copy_override)
+            for token in batch
+        ]
         tickets = _post_batch(messages)
         delivery.accepted += sum(1 for t in tickets if t.get("status") == "ok")
         delivery.cleared += _clear_dead_tokens(batch, tickets)
@@ -440,6 +468,317 @@ def catch_up_follower(installation: DeviceInstallation, station: Stations) -> bo
     if accepted:
         SensorAlert.record(station.station_code, level, aqi, accepted, trend=CATCH_UP)
     return bool(accepted)
+
+
+def _broadcast_station_codes(broadcast: PushBroadcast) -> list[str] | None:
+    """Which stations a broadcast addresses, or ``None`` for every one of them.
+
+    ``None`` rather than a list of every code because the two mean different
+    things downstream: a platform-wide send takes every follower whatever they
+    follow, and enumerating stations to reach them would silently drop the
+    followers of a station the pipeline has since removed.
+    """
+    if broadcast.scope == PushBroadcast.SCOPE_ALL:
+        return None
+    if broadcast.scope == PushBroadcast.SCOPE_STATION:
+        return [broadcast.station.station_code] if broadcast.station else []
+    if broadcast.institution is None:
+        return []
+    stations = Stations.objects.filter(
+        institution_contract__institution=broadcast.institution
+    ).values_list("station_code", flat=True)
+    return [code for code in stations if code]
+
+
+def broadcast_tokens(broadcast: PushBroadcast) -> list[str]:
+    """Push tokens for a broadcast's audience, deduplicated.
+
+    Deduplication matters more here than on the per-station path: somebody
+    following three of an institution's sensors is one person who should read
+    one announcement, not three copies of it.
+    """
+    codes = _broadcast_station_codes(broadcast)
+
+    installations = DeviceInstallation.objects.exclude(push_token="")
+    if codes is None:
+        installations = installations.filter(follows__isnull=False)
+    else:
+        if not codes:
+            return []
+        installations = installations.filter(follows__station_code__in=codes)
+
+    # `order_by()` for the same reason as `_tokens_following`: the model's
+    # default ordering would join `updated_at` into the DISTINCT and defeat it.
+    return list(installations.order_by().values_list("push_token", flat=True).distinct())
+
+
+def send_broadcast(broadcast: PushBroadcast) -> Delivery:
+    """Delivers one manual broadcast to its audience.
+
+    The row already exists when this is called — it is the record that a send
+    was attempted, and creating it first is what stops one announcement being
+    sent twice. This fills in what the push service did with it.
+
+    A failed batch is recorded rather than raised: a broadcast that reached
+    most of its audience is not something to retry wholesale, since retrying
+    would re-notify everyone the first attempt did reach.
+    """
+    delivery = Delivery()
+    tokens = broadcast_tokens(broadcast)
+
+    if not tokens:
+        logger.info("Broadcast %s matched no registered tokens", broadcast.pk)
+        return delivery
+
+    message_base = {
+        "title": broadcast.push_title,
+        "body": broadcast.push_body,
+        "sound": "default",
+        "data": {
+            # `screen`, with no `type` at all — the exact shape the shipped app
+            # recognises as a general notification. Its `parseNotificationPayload`
+            # requires `type === null` before it will read `screen`, and maps
+            # anything else it does not know to `unknown`, which
+            # `shouldPresentNotification` then suppresses in the foreground. A
+            # `type: "broadcast"` was tried and silently hidden that way, and a
+            # `type: "forecast"` would be hidden just the same.
+            #
+            # Not `sensor_alert` either: that routes a tap to one station's
+            # screen, and an announcement may not be about a single station at
+            # all.
+            #
+            # The consequence to accept: this is what the app understands
+            # *today*, so it works on installs already out in the world. Giving
+            # broadcasts a routing of their own means teaching respira-mobile a
+            # new type first and waiting for that release to land.
+            "screen": "forecast",
+            "broadcast_id": broadcast.pk,
+        },
+    }
+
+    for start in range(0, len(tokens), EXPO_BATCH_SIZE):
+        batch = tokens[start : start + EXPO_BATCH_SIZE]
+        messages = [{"to": token, **message_base} for token in batch]
+        try:
+            tickets = _post_batch(messages)
+        except requests.RequestException as error:
+            # One batch failing must not discard the batches already delivered.
+            logger.error("Broadcast %s batch failed: %s", broadcast.pk, error)
+            delivery.retriable_failures += len(batch)
+            continue
+
+        delivery.accepted += sum(1 for t in tickets if t.get("status") == "ok")
+        delivery.cleared += _clear_dead_tokens(batch, tickets)
+        delivery.retriable_failures += len(batch) - len(tickets[: len(batch)])
+        delivery.retriable_failures += sum(
+            1
+            for ticket in tickets[: len(batch)]
+            if ticket.get("status") != "ok" and not _is_dead(ticket)
+        )
+
+    PushBroadcast.objects.filter(pk=broadcast.pk).update(
+        recipients=delivery.accepted, failures=delivery.retriable_failures
+    )
+    return delivery
+
+
+# How far the air must fall back below a rule's threshold before that rule may
+# fire again, as a fraction of the threshold. A sensor sitting near its
+# threshold otherwise re-alerts on every scheduled run: at a threshold of 40,
+# readings of 41, 39, 42 are three separate crossings.
+#
+# Proportional rather than a fixed number of AQI points, so it holds at
+# whatever threshold an institution picks — 12% of 40 is a meaningful drop, and
+# so is 12% of 150, where a fixed 5-point band would be within the noise.
+REARM_FRACTION = 0.12
+
+
+def rearm_threshold(threshold: int) -> float:
+    """The level a firing rule must fall under before it may alert again."""
+    return threshold * (1 - REARM_FRACTION)
+
+
+def rule_transition(is_firing: bool, aqi: float, threshold: int) -> str | None:
+    """What this reading does to a rule: ``"fire"``, ``"rearm"``, or nothing.
+
+    One place to ask, so the sender and the dry run cannot answer differently.
+    Firing is a strict crossing of the threshold; rearming needs the fall all
+    the way through the band below it, never merely back under the threshold.
+    """
+    if not is_firing and aqi > threshold:
+        return "fire"
+    if is_firing and aqi < rearm_threshold(threshold):
+        return "rearm"
+    return None
+
+
+def evaluate_rule(rule: InstitutionAlertRule) -> Delivery | None:
+    """Evaluates one alert against its sensor's latest reading, and notifies.
+
+    The single place a rule is judged, so the scheduled run and the immediate
+    evaluation on save cannot drift apart — including the state locking, which
+    is what stops the two firing the same alert twice if they overlap.
+
+    Returns the delivery when a notification was attempted, and ``None`` when
+    there was nothing to do: an inactive rule, a station the pipeline dropped
+    or turned off, no reading to judge, an unchanged state, or a rearm (which
+    is deliberately silent — see :func:`send_institution_alerts`).
+
+    Raises ``requests.RequestException`` if the push service is unreachable;
+    callers decide whether that is fatal.
+    """
+    if not rule.is_active:
+        return None
+
+    station = rule.station
+    if station is None or not station.station_code or not station.is_station_on:
+        return None
+
+    latest = _latest_level(station)
+    if latest is None:
+        return None
+    level, aqi = latest
+
+    with transaction.atomic():
+        # Held for the whole send. Two overlapping evaluations — two scheduled
+        # runs, or a run and a save — would otherwise both read an idle rule,
+        # both decide to notify, and both call Expo before either wrote back.
+        state = InstitutionAlertRuleState.lock(rule.id)
+        transition = rule_transition(state.is_firing, aqi, rule.threshold)
+
+        if transition is None:
+            state.last_aqi = aqi
+            state.save(update_fields=["last_aqi", "updated_at"])
+            return None
+
+        if transition == "rearm":
+            # Silent, but recorded: clearing the flag is what lets the next
+            # genuine crossing notify instead of being suppressed forever.
+            state.is_firing = False
+            state.last_aqi = aqi
+            state.save(update_fields=["is_firing", "last_aqi", "updated_at"])
+            return None
+
+        delivery = notify_followers(
+            station,
+            level,
+            aqi,
+            WORSENING,
+            copy_override=rule.message_for(station.name),
+        )
+
+        if delivery.accepted:
+            SensorAlert.record(station.station_code, level, aqi, delivery.accepted)
+            InstitutionAlert.objects.create(
+                institution=rule.institution,
+                station=station,
+                aqi_value=aqi,
+                # Copied, not referenced: editing the rule's threshold later
+                # must not rewrite what this event fired at. The `rule` link is
+                # for grouping the history under its rule, not for reading the
+                # threshold back.
+                alert_threshold=rule.threshold,
+                rule=rule,
+            )
+
+        if delivery.delivered:
+            state.is_firing = True
+            state.last_aqi = aqi
+            state.last_notified_at = timezone.now()
+            state.save(
+                update_fields=[
+                    "is_firing",
+                    "last_aqi",
+                    "last_notified_at",
+                    "updated_at",
+                ]
+            )
+        else:
+            # Left idle on purpose, so the next run retries this crossing
+            # rather than treating followers as warned.
+            state.last_aqi = aqi
+            state.save(update_fields=["last_aqi", "updated_at"])
+
+        return delivery
+
+
+def send_institution_alerts(dry_run: bool = False) -> SendResult:
+    """Evaluates every active institutional rule and notifies on the crossings.
+
+    The configurable half of the feature: where :func:`send_sensor_alerts`
+    applies one fixed table of AQI levels to every station on the platform,
+    this applies each institution's own threshold and wording to its own
+    sensor.
+
+    A rule notifies once per episode. It fires when the air first exceeds its
+    threshold and then stays quiet — however many runs the episode lasts —
+    until the air falls back through :func:`rearm_threshold`. That is what
+    stops a sensor hovering at its threshold from notifying on every run.
+
+    Rearming is silent. An institution's threshold is its own operational
+    trigger rather than a health level, so there is no meaningful all-clear to
+    announce; the recovery notifications belong to the level path, which knows
+    what the air actually became.
+    """
+    result = SendResult()
+
+    rules = (
+        InstitutionAlertRule.objects.filter(is_active=True)
+        .select_related("institution", "station")
+        .order_by("institution_id", "threshold")
+    )
+
+    for rule in rules:
+        station = rule.station
+        if station is None or not station.station_code:
+            continue
+        if not station.is_station_on:
+            continue
+
+        latest = _latest_level(station)
+        if latest is None:
+            continue
+        level, aqi = latest
+
+        result.considered += 1
+
+        if dry_run:
+            state = InstitutionAlertRuleState.objects.filter(rule=rule).first()
+            firing = state.is_firing if state else False
+            if rule_transition(firing, aqi, rule.threshold) == "fire":
+                result.alerted_stations += 1
+            continue
+
+        try:
+            delivery = evaluate_rule(rule)
+            if delivery is None:
+                # Nothing to notify: unchanged, or a silent rearm. Either way
+                # `evaluate_rule` has already recorded what it saw.
+                continue
+        except requests.RequestException as error:
+            # One rule's delivery failing must not stop the others, and the
+            # state is deliberately left untouched so the next run retries it.
+            message = f"rule {rule.id} ({station.station_code}): {error}"
+            logger.error("Institution alert delivery failed for %s", message)
+            result.errors.append(message)
+            continue
+
+        result.tokens_cleared += delivery.cleared
+
+        if not delivery.delivered:
+            message = (
+                f"rule {rule.id} ({station.station_code}): "
+                f"{delivery.retriable_failures} message(s) rejected, none "
+                "accepted; will retry"
+            )
+            logger.warning("Institution alert not accepted for %s", message)
+            result.errors.append(message)
+            continue
+
+        result.alerted_stations += 1
+        result.messages_sent += delivery.accepted
+
+    return result
 
 
 def send_sensor_alerts(dry_run: bool = False) -> SendResult:
