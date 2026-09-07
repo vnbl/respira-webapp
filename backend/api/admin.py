@@ -1156,9 +1156,7 @@ class InstitutionAlertEventAdmin(ReadOnlyModelAdmin):
         ``InstitutionAlert.rule`` is ``SET_NULL``, so retiring an alert keeps
         every event it ever fired and merely forgets which alert produced it.
         """
-        if request.path.startswith(
-            reverse("admin:api_institutionalert_changelist")
-        ):
+        if request.path.startswith(reverse("admin:api_institutionalert_changelist")):
             return False
         return RoleBasedModelAdmin.has_delete_permission(self, request, obj)
 

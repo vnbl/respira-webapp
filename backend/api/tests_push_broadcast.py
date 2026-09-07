@@ -370,9 +370,7 @@ class SendPageTests(TestCase):
         installation, _ = DeviceInstallation.register(
             "8f14e45f-ceea-467e-bd97-1a2b3c4d5e6f", push_token="token-a"
         )
-        DeviceFollower.objects.create(
-            installation=installation, station_code="RSP-001"
-        )
+        DeviceFollower.objects.create(installation=installation, station_code="RSP-001")
 
     def test_the_page_opens_without_selecting_an_alert(self):
         response = self.client.get(reverse("admin:api_pushbroadcast_send"))

@@ -746,7 +746,9 @@ class CatchUpFollowerTests(TestCase):
         self.assertEqual(alert.level, "unhealthy")
         self.assertEqual(alert.recipients, 1)
 
-    def _alert_rule(self, threshold, title="Aire regular", body="Cuidado en {station}."):
+    def _alert_rule(
+        self, threshold, title="Aire regular", body="Cuidado en {station}."
+    ):
         institution = Institution.objects.create(legal_name="Colegio San Juan")
         return InstitutionAlertRule.objects.create(
             institution=institution,

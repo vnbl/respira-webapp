@@ -373,9 +373,7 @@ class EscalatingAlertTests(TestCase):
         )
 
     def _follower(self, station_code, token):
-        installation, _ = DeviceInstallation.register(
-            INSTALLATION_ID, push_token=token
-        )
+        installation, _ = DeviceInstallation.register(INSTALLATION_ID, push_token=token)
         DeviceFollower.objects.create(
             installation=installation, station_code=station_code
         )
@@ -799,9 +797,7 @@ class AlertDeletionTests(TestCase):
     def test_an_alert_can_be_deleted(self):
         self._delete("admin:api_institutionalertrule_delete", self.rule.pk)
 
-        self.assertFalse(
-            InstitutionAlertRule.objects.filter(pk=self.rule.pk).exists()
-        )
+        self.assertFalse(InstitutionAlertRule.objects.filter(pk=self.rule.pk).exists())
 
     def test_deleting_an_alert_takes_its_state_with_it(self):
         # The sender's memory of one alert means nothing without the alert.
@@ -829,18 +825,12 @@ class AlertDeletionTests(TestCase):
     def test_a_state_row_cannot_be_deleted_on_its_own(self):
         # Removing the memory of an alert that is currently firing would replay
         # it to followers on the next run.
-        state = InstitutionAlertRuleState.objects.create(
-            rule=self.rule, is_firing=True
-        )
+        state = InstitutionAlertRuleState.objects.create(rule=self.rule, is_firing=True)
 
-        response = self._delete(
-            "admin:api_institutionalertrulestate_delete", state.pk
-        )
+        response = self._delete("admin:api_institutionalertrulestate_delete", state.pk)
 
         self.assertEqual(response.status_code, 403)
-        self.assertTrue(
-            InstitutionAlertRuleState.objects.filter(pk=state.pk).exists()
-        )
+        self.assertTrue(InstitutionAlertRuleState.objects.filter(pk=state.pk).exists())
 
     def test_a_recorded_firing_cannot_be_deleted_on_its_own(self):
         event = InstitutionAlert.objects.create(
@@ -863,8 +853,6 @@ class AlertDeletionTests(TestCase):
 
         self._delete("admin:api_institution_delete", self.institution.pk)
 
-        self.assertFalse(
-            Institution.objects.filter(pk=self.institution.pk).exists()
-        )
+        self.assertFalse(Institution.objects.filter(pk=self.institution.pk).exists())
         self.assertFalse(InstitutionAlertRule.objects.exists())
         self.assertFalse(InstitutionAlert.objects.exists())

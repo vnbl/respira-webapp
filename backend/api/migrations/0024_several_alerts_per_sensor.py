@@ -4,18 +4,20 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ('api', '0023_alert_event_rule_link'),
+        ("api", "0023_alert_event_rule_link"),
     ]
 
     operations = [
         migrations.RemoveConstraint(
-            model_name='institutionalertrule',
-            name='uniq_alert_rule_per_institution_station',
+            model_name="institutionalertrule",
+            name="uniq_alert_rule_per_institution_station",
         ),
         migrations.AddConstraint(
-            model_name='institutionalertrule',
-            constraint=models.UniqueConstraint(fields=('institution', 'station', 'threshold'), name='uniq_alert_rule_per_threshold'),
+            model_name="institutionalertrule",
+            constraint=models.UniqueConstraint(
+                fields=("institution", "station", "threshold"),
+                name="uniq_alert_rule_per_threshold",
+            ),
         ),
     ]
