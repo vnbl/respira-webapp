@@ -7,35 +7,26 @@ table left behind in ``public`` would still be found today (it is last in the
 search_path) but breaks the ownership invariant asserted by
 ``api/tests_schema_ownership.py``.
 
-The move is a no-op on SQLite, which has no schemas at all.
+The move is a no-op on SQLite, which has no schemas at all, and on any
+database where the table already sits in ``django_admin``. It has to be: the
+role that runs migrations in deployed environments is scoped to that schema
+and holds no CREATE privilege on the database, so nothing here may issue DDL
+it has not first established is necessary — see api/schema_moves.py.
 """
 
 from django.db import migrations, models
 import django.db.models.deletion
 
+from api.schema_moves import is_postgresql, move_tables
+
 TABLE_NAME = "institution_alert_rule"
 
 
 def _move_to_django_admin(apps, schema_editor):
-    if schema_editor.connection.vendor != "postgresql":
+    if not is_postgresql(schema_editor):
         return
     with schema_editor.connection.cursor() as cursor:
-        cursor.execute('CREATE SCHEMA IF NOT EXISTS "django_admin"')
-        cursor.execute(
-            """
-            SELECT table_schema FROM information_schema.tables
-            WHERE table_name = %s
-              AND table_schema NOT IN ('pg_catalog', 'information_schema')
-            """,
-            [TABLE_NAME],
-        )
-        schemas = {row[0] for row in cursor.fetchall()}
-        if "django_admin" in schemas or not schemas:
-            return
-        source_schema = "public" if "public" in schemas else next(iter(schemas))
-        cursor.execute(
-            f'ALTER TABLE "{source_schema}"."{TABLE_NAME}" SET SCHEMA "django_admin"'
-        )
+        move_tables(cursor, "django_admin", [TABLE_NAME])
 
 
 def _reverse_noop(apps, schema_editor):
