@@ -52,7 +52,9 @@ services:
       BACKEND_POSTGRES_PASSWORD: ${BACKEND_POSTGRES_PASSWORD}
       BACKEND_POSTGRES_HOST: ${BACKEND_POSTGRES_HOST}
       BACKEND_POSTGRES_PORT: ${BACKEND_POSTGRES_PORT:-5432}
-      BACKEND_POSTGRES_SCHEMA: ${BACKEND_POSTGRES_SCHEMA:-respira_gold}
+      # Extra schemas appended to search_path after the fixed
+      # django_admin, respira_gold, public prefix — see docs/backend-env-vars.md
+      BACKEND_POSTGRES_SCHEMA: ${BACKEND_POSTGRES_SCHEMA:-}
       # Database SSL (optional)
       BACKEND_POSTGRES_SSLMODE: ${BACKEND_POSTGRES_SSLMODE:-}
       BACKEND_POSTGRES_SSLROOTCERT: ${BACKEND_POSTGRES_SSLROOTCERT:-}

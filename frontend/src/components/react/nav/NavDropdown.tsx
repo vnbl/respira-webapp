@@ -1,11 +1,13 @@
 import { useEffect, useRef, useState } from "react";
 import { useStore } from "@nanostores/react";
 import { loadingStations, stations, type STATION } from "../../../store/map";
-import { useClientTranslations } from "../../../i18n/client";
+import type { Lang } from "../../../i18n/config";
+import { useTranslations } from "../../../i18n/utils";
 
 type NavDropdownProps = {
   title: string;
   baseRoute: string;
+  lang: Lang;
 };
 
 const SkeletonItem = () => (
@@ -15,12 +17,22 @@ const SkeletonItem = () => (
   </li>
 );
 
-const NavDropdown = ({ title, baseRoute }: NavDropdownProps) => {
+const NavDropdown = ({ title, baseRoute, lang }: NavDropdownProps) => {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
   const data = useStore(stations);
   const loading = useStore(loadingStations);
-  const t = useClientTranslations();
+  const t = useTranslations(lang);
+
+  // The station stores only come alive in the browser: `isBackendAvailable`
+  // mounts on subscription and `fetchStations` flips `loadingStations` to true
+  // synchronously, so the client's first render would already show skeletons
+  // while the server rendered an empty list. That mismatch aborts hydration
+  // (React errors #418/#423). Rendering the server's empty list until after
+  // mount keeps the two first renders identical; the effect below then lets the
+  // real state through on the next commit.
+  const [hydrated, setHydrated] = useState(false);
+  useEffect(() => setHydrated(true), []);
 
   useEffect(() => {
     if (!open) return;
@@ -78,24 +90,28 @@ const NavDropdown = ({ title, baseRoute }: NavDropdownProps) => {
         aria-label={`${title} stations`}
       >
         <ul className="flex flex-col divide-y divide-basedark/30">
-          {loading
-            ? Array.from({ length: 3 }).map((_, i) => <SkeletonItem key={i} />)
-            : data?.map((station: STATION) => (
-                <li key={station.id} className="py-2" role="option">
-                  <a
-                    href={`${baseRoute}/${station.id}`}
-                    onClick={() => setOpen(false)}
-                    className="block hover:opacity-70 transition-opacity"
-                  >
-                    <p className="font-serif font-bold text-[1rem] text-black">
-                      {t("stats.station")} {station.id}
-                    </p>
-                    <p className="font-sans text-[0.75rem] text-black">
-                      {station.name}
-                    </p>
-                  </a>
-                </li>
-              ))}
+          {!hydrated
+            ? null
+            : loading
+              ? Array.from({ length: 3 }).map((_, i) => (
+                  <SkeletonItem key={i} />
+                ))
+              : data?.map((station: STATION) => (
+                  <li key={station.id} className="py-2" role="option">
+                    <a
+                      href={`${baseRoute}/${station.id}`}
+                      onClick={() => setOpen(false)}
+                      className="block hover:opacity-70 transition-opacity"
+                    >
+                      <p className="font-serif font-bold text-[1rem] text-black">
+                        {t("stats.station")} {station.id}
+                      </p>
+                      <p className="font-sans text-[0.75rem] text-black">
+                        {station.name}
+                      </p>
+                    </a>
+                  </li>
+                ))}
         </ul>
       </div>
     </div>

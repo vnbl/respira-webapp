@@ -103,11 +103,11 @@ class DeviceInstallationModelTests(TestCase):
 
 class DeviceFollowerModelTests(TestCase):
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=self.region, station_code="RSP-001"
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: San Lorenzo", region=self.region, station_code="RSP-002"
         )
         self.installation, _ = DeviceInstallation.register(INSTALLATION_ID)
@@ -160,8 +160,8 @@ class DeviceFollowerModelTests(TestCase):
 
         # dbt renumbers stations on every run: the same code comes back under
         # a different id, and the follow has to track the code.
-        self.station.delete()
-        renumbered = Stations.objects.create(
+        self.station.delete_for_tests()
+        renumbered = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=self.region, station_code="RSP-001"
         )
 
@@ -180,11 +180,11 @@ class DeviceFollowerAPITests(APITestCase):
         # The endpoints are throttled per IP and every test client shares
         # 127.0.0.1, so the throttle history is reset between tests.
         cache.clear()
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=self.region, station_code="RSP-001"
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: San Lorenzo", region=self.region, station_code="RSP-002"
         )
         self.url = reverse("device-followers")
@@ -263,8 +263,8 @@ class DeviceFollowerAPITests(APITestCase):
         # episode somebody else was already warned about matches no change and
         # the scheduled sender would say nothing to this device.
         self.station.is_station_on = True
-        self.station.save(update_fields=["is_station_on"])
-        StationReadingsGold.objects.create(
+        self.station.update_for_tests(update_fields=["is_station_on"])
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=timezone.now(), aqi_pm2_5=165
         )
 
@@ -291,8 +291,8 @@ class DeviceFollowerAPITests(APITestCase):
         # The app retries on a flaky network. A retry that re-sent the push
         # would notify the same device twice for one follow.
         self.station.is_station_on = True
-        self.station.save(update_fields=["is_station_on"])
-        StationReadingsGold.objects.create(
+        self.station.update_for_tests(update_fields=["is_station_on"])
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=timezone.now(), aqi_pm2_5=165
         )
 
@@ -317,8 +317,8 @@ class DeviceFollowerAPITests(APITestCase):
     def test_a_failing_catch_up_push_never_fails_the_follow(self):
         # The follow is the user's action and must succeed on its own.
         self.station.is_station_on = True
-        self.station.save(update_fields=["is_station_on"])
-        StationReadingsGold.objects.create(
+        self.station.update_for_tests(update_fields=["is_station_on"])
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=timezone.now(), aqi_pm2_5=165
         )
 
@@ -358,7 +358,7 @@ class DeviceFollowerAPITests(APITestCase):
 
     def test_the_cap_is_enforced(self):
         for index in range(MAX_FOLLOWS_PER_INSTALLATION):
-            station = Stations.objects.create(
+            station = Stations.seed_for_tests(
                 name=f"Respira: {index}",
                 region=self.region,
                 station_code=f"CAP-{index:03d}",
@@ -374,7 +374,7 @@ class DeviceFollowerAPITests(APITestCase):
         self.assertEqual(response.data["max"], MAX_FOLLOWS_PER_INSTALLATION)
 
     def test_the_two_kinds_of_400_are_distinguishable(self):
-        codeless = Stations.objects.create(
+        codeless = Stations.seed_for_tests(
             name="Respira: sin código", region=self.region, station_code=""
         )
         not_followable = self._follow(codeless)
@@ -388,7 +388,7 @@ class DeviceFollowerAPITests(APITestCase):
         # not turn a harmless retry into an error.
         stations = []
         for index in range(MAX_FOLLOWS_PER_INSTALLATION):
-            station = Stations.objects.create(
+            station = Stations.seed_for_tests(
                 name=f"Respira: {index}",
                 region=self.region,
                 station_code=f"CAP-{index:03d}",
@@ -406,7 +406,7 @@ class DeviceFollowerAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
 
     def test_a_station_without_a_station_code_cannot_be_followed(self):
-        codeless = Stations.objects.create(
+        codeless = Stations.seed_for_tests(
             name="Respira: sin código", region=self.region, station_code=""
         )
         response = self._follow(codeless)
@@ -455,8 +455,8 @@ class DeviceFollowerAPITests(APITestCase):
     def test_listing_returns_the_current_station_id_after_renumbering(self):
         self._follow(self.station)
         original_id = self.station.id
-        self.station.delete()
-        renumbered = Stations.objects.create(
+        self.station.delete_for_tests()
+        renumbered = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=self.region, station_code="RSP-001"
         )
 
@@ -467,7 +467,7 @@ class DeviceFollowerAPITests(APITestCase):
 
     def test_listing_reports_a_station_that_no_longer_exists_as_null(self):
         self._follow(self.station)
-        self.station.delete()
+        self.station.delete_for_tests()
 
         response = self.client.get(self.url, headers=self._header())
 
@@ -516,7 +516,7 @@ class DeviceFollowerAPITests(APITestCase):
         # The caller asked for that station not to be followed, and it is not.
         self._follow(self.station)
         station_id = self.station.id
-        self.station.delete()
+        self.station.delete_for_tests()
 
         response = self.client.delete(
             f"{self.url}?station={station_id}", headers=self._header()
@@ -527,7 +527,7 @@ class DeviceFollowerAPITests(APITestCase):
         # By id this is impossible — there is no station row left to resolve —
         # yet it is exactly the follow a user most wants off their list.
         self._follow(self.station)
-        self.station.delete()
+        self.station.delete_for_tests()
 
         response = self.client.delete(
             f"{self.url}?station_code=RSP-001", headers=self._header()
@@ -686,8 +686,8 @@ class DeviceFollowerAPITests(APITestCase):
 
 class DeviceFollowerAdminTests(TestCase):
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=self.region, station_code="RSP-001"
         )
         # Realistic length: the admin masks a token down to its last 8

@@ -51,7 +51,6 @@ class User(AbstractUser):
         blank=True,
         related_name="users",
     )
-
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS: list[str] = []
 

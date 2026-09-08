@@ -61,7 +61,7 @@ class BackendEndpointTests(TestCase):
         started_at=None,
     ):
         started_at = started_at or (run_date - timedelta(minutes=5))
-        return InferenceRuns.objects.create(
+        return InferenceRuns.seed_for_tests(
             id=run_id,
             run_date=run_date,
             flow_run_id=flow_run_id,
@@ -83,7 +83,7 @@ class BackendEndpointTests(TestCase):
     def setUp(self):
         self.client = APIClient()
 
-        self.region = Regions.objects.create(
+        self.region = Regions.seed_for_tests(
             id=1,
             name="Gran Asuncion",
             region_code="GRAN_ASUNCION",
@@ -91,7 +91,7 @@ class BackendEndpointTests(TestCase):
             has_weather_data=True,
             has_pattern_station=False,
         )
-        self.other_region = Regions.objects.create(
+        self.other_region = Regions.seed_for_tests(
             id=2,
             name="Central",
             region_code="CENTRAL",
@@ -100,7 +100,7 @@ class BackendEndpointTests(TestCase):
             has_pattern_station=True,
         )
 
-        self.station = Stations.objects.create(
+        self.station = Stations.seed_for_tests(
             id=101,
             name="FIUNA: Campus",
             region=self.region,
@@ -109,7 +109,7 @@ class BackendEndpointTests(TestCase):
             is_station_on=True,
             is_pattern_station=False,
         )
-        self.region_station_2 = Stations.objects.create(
+        self.region_station_2 = Stations.seed_for_tests(
             id=102,
             name="AireLibre: Centro",
             region=self.region,
@@ -118,7 +118,7 @@ class BackendEndpointTests(TestCase):
             is_station_on=True,
             is_pattern_station=False,
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             id=201,
             name="AireLibre: Other",
             region=self.other_region,
@@ -129,22 +129,22 @@ class BackendEndpointTests(TestCase):
         )
 
         latest_reading_time = datetime(2026, 3, 31, 12, 0, tzinfo=timezone.utc)
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station,
             date_utc=latest_reading_time,
             aqi_pm2_5=84.0,
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.region_station_2,
             date_utc=latest_reading_time,
             aqi_pm2_5=60.0,
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.other_station,
             date_utc=latest_reading_time,
             aqi_pm2_5=150.0,
         )
-        RegionReadings.objects.create(
+        RegionReadings.seed_for_tests(
             region=self.region,
             date_utc=latest_reading_time,
             aqi_region_avg=72.0,
@@ -182,28 +182,28 @@ class BackendEndpointTests(TestCase):
             started_at=self.base_run_payload["started_at"],
         )
 
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=self.older_run,
             station=self.station,
             forecasts_6h=[{"timestamp": "2026-03-31 05:00:00", "value": 10}],
             forecasts_12h=[{"timestamp": "2026-03-31 05:00:00", "value": 15}],
             aqi_input=[{"timestamp": "2026-03-31 04:00:00", "value": 50}],
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=self.latest_run,
             station=self.station,
             forecasts_6h=[{"timestamp": "2026-03-31 12:00:00", "value": 20}],
             forecasts_12h=[{"timestamp": "2026-03-31 12:00:00", "value": 25}],
             aqi_input=[{"timestamp": "2026-03-31 11:00:00", "value": 84}],
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=self.latest_run,
             station=self.region_station_2,
             forecasts_6h=[{"timestamp": "2026-03-31 12:00:00", "value": 40}],
             forecasts_12h=[{"timestamp": "2026-03-31 12:00:00", "value": 45}],
             aqi_input=[{"timestamp": "2026-03-31 11:00:00", "value": 60}],
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=self.latest_run,
             station=self.other_station,
             forecasts_6h=[{"timestamp": "2026-03-31 12:00:00", "value": 90}],
@@ -285,14 +285,14 @@ class BackendEndpointTests(TestCase):
             flow_run_id="flow-run-failed",
             status=InferenceRuns.Status.FAILED,
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=failed_run,
             station=self.station,
             forecasts_6h=[{"timestamp": "2026-03-31 13:00:00", "value": 999}],
             forecasts_12h=[{"timestamp": "2026-03-31 13:00:00", "value": 999}],
             aqi_input=[{"timestamp": "2026-03-31 12:00:00", "value": 84}],
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=failed_run,
             station=self.region_station_2,
             forecasts_6h=[{"timestamp": "2026-03-31 13:00:00", "value": 999}],
@@ -322,7 +322,7 @@ class BackendEndpointTests(TestCase):
             flow_run_id="flow-run-region-newest",
             status=InferenceRuns.Status.SUCCESS,
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=newest_success_run,
             station=self.region_station_2,
             forecasts_6h=[{"timestamp": "2026-03-31 13:30:00", "value": 55}],
@@ -352,14 +352,14 @@ class BackendEndpointTests(TestCase):
             flow_run_id="flow-run-region-empty",
             status=InferenceRuns.Status.SUCCESS,
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=newest_success_run,
             station=self.station,
             forecasts_6h=[],
             forecasts_12h=[],
             aqi_input=[{"timestamp": "2026-03-31 14:00:00", "value": 84}],
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=newest_success_run,
             station=self.region_station_2,
             forecasts_6h=[],
@@ -389,14 +389,14 @@ class BackendEndpointTests(TestCase):
             flow_run_id="flow-run-success-newest",
             status=InferenceRuns.Status.SUCCESS,
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=newest_success_run,
             station=self.station,
             forecasts_6h=[],
             forecasts_12h=[],
             aqi_input=[{"timestamp": "2026-03-31 13:00:00", "value": 84}],
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=newest_success_run,
             station=self.region_station_2,
             forecasts_6h=[{"timestamp": "2026-03-31 13:30:00", "value": 55}],
@@ -458,7 +458,7 @@ class BackendEndpointTests(TestCase):
             flow_run_id="flow-run-failed-station-endpoint",
             status=InferenceRuns.Status.FAILED,
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=failed_run,
             station=self.station,
             forecasts_6h=[{"timestamp": "2026-03-31 14:00:00", "value": 999}],
@@ -481,7 +481,7 @@ class BackendEndpointTests(TestCase):
             flow_run_id="flow-run-success-empty-forecast",
             status=InferenceRuns.Status.SUCCESS,
         )
-        InferenceResults.objects.create(
+        InferenceResults.seed_for_tests(
             inference_run=newer_success_run,
             station=self.station,
             forecasts_6h=[],

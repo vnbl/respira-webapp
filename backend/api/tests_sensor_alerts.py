@@ -20,6 +20,9 @@ from django.utils import timezone
 from .models import (
     DeviceFollower,
     DeviceInstallation,
+    Institution,
+    InstitutionAlertRule,
+    InstitutionAlertRuleState,
     Regions,
     SensorAlert,
     SensorAlertState,
@@ -104,14 +107,14 @@ class NotificationForTests(TestCase):
 
 class SendSensorAlertsTests(TestCase):
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=self.region,
             station_code="RSP-001",
             is_station_on=True,
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: San Lorenzo",
             region=self.region,
             station_code="RSP-002",
@@ -119,7 +122,7 @@ class SendSensorAlertsTests(TestCase):
         )
 
     def _reading(self, station, aqi):
-        return StationReadingsGold.objects.create(
+        return StationReadingsGold.seed_for_tests(
             station=station, date_utc=timezone.now(), aqi_pm2_5=aqi
         )
 
@@ -240,7 +243,7 @@ class SendSensorAlertsTests(TestCase):
         # alert on air of unknown age.
         self._follower("RSP-001", "token-a")
         self._reading(self.station, 20)
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=None, aqi_pm2_5=320
         )
 
@@ -315,7 +318,7 @@ class SendSensorAlertsTests(TestCase):
         self._follower("RSP-001", "token-a")
         self._reading(self.station, 300)
         self.station.is_station_on = False
-        self.station.save(update_fields=["is_station_on"])
+        self.station.update_for_tests(update_fields=["is_station_on"])
 
         capture = Capture()
         with patch("api.push._post_batch", side_effect=capture):
@@ -613,8 +616,8 @@ class CatchUpFollowerTests(TestCase):
     """
 
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=self.region,
             station_code="RSP-001",
@@ -622,7 +625,7 @@ class CatchUpFollowerTests(TestCase):
         )
 
     def _reading(self, aqi):
-        return StationReadingsGold.objects.create(
+        return StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=timezone.now(), aqi_pm2_5=aqi
         )
 
@@ -684,7 +687,7 @@ class CatchUpFollowerTests(TestCase):
     def test_a_station_switched_off_says_nothing(self):
         self._reading(165)
         self.station.is_station_on = False
-        self.station.save(update_fields=["is_station_on"])
+        self.station.update_for_tests(update_fields=["is_station_on"])
 
         capture = Capture()
         with patch("api.push._post_batch", side_effect=capture):
@@ -742,6 +745,156 @@ class CatchUpFollowerTests(TestCase):
         self.assertEqual(alert.trend, "catch_up")
         self.assertEqual(alert.level, "unhealthy")
         self.assertEqual(alert.recipients, 1)
+
+    def _alert_rule(
+        self, threshold, title="Aire regular", body="Cuidado en {station}."
+    ):
+        institution = Institution.objects.create(legal_name="Colegio San Juan")
+        return InstitutionAlertRule.objects.create(
+            institution=institution,
+            station=self.station,
+            threshold=threshold,
+            push_title=title,
+            push_body=body,
+        )
+
+    def test_a_firing_institutional_alert_catches_up_below_the_public_levels(self):
+        # The whole point of a configurable threshold: an institution alerting
+        # from AQI 40 is declaring that air worth interrupting for. Judging a
+        # new follower by the public levels alone would leave the leased sensor
+        # notifying *less* than a public one.
+        self._alert_rule(40)
+        self._reading(55)  # "moderate" — silent on the public path
+        installation = self._installation()
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            sent = catch_up_follower(installation, self.station)
+
+        self.assertTrue(sent)
+        [message] = capture.messages
+        self.assertEqual(message["title"], "Aire regular")
+        self.assertEqual(message["body"], "Cuidado en Respira: Villa Morra.")
+
+    def test_air_below_the_institutions_threshold_still_says_nothing(self):
+        self._alert_rule(40)
+        self._reading(30)
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            self.assertFalse(catch_up_follower(self._installation(), self.station))
+
+        self.assertEqual(capture.messages, [])
+
+    def test_an_inactive_alert_does_not_catch_anybody_up(self):
+        rule = self._alert_rule(40)
+        rule.is_active = False
+        rule.save(update_fields=["is_active"])
+        self._reading(55)
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            self.assertFalse(catch_up_follower(self._installation(), self.station))
+
+        self.assertEqual(capture.messages, [])
+
+    def test_another_stations_alert_does_not_apply(self):
+        # The audience rule the whole feature turns on, in the catch-up path:
+        # a rule configured for one sensor must not put words in another's
+        # notification.
+        other = Stations.seed_for_tests(
+            name="Respira: San Lorenzo",
+            region=self.region,
+            station_code="RSP-002",
+            is_station_on=True,
+        )
+        institution = Institution.objects.create(legal_name="Otra")
+        InstitutionAlertRule.objects.create(
+            institution=institution,
+            station=other,
+            threshold=40,
+            push_title="No es para acá",
+            push_body="No corresponde.",
+        )
+        self._reading(55)
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            self.assertFalse(catch_up_follower(self._installation(), self.station))
+
+        self.assertEqual(capture.messages, [])
+
+    def test_an_institutions_wording_wins_over_the_public_copy(self):
+        # Air bad enough for both paths: the follower gets one notification,
+        # in the institution's words, never two near-identical ones.
+        self._alert_rule(40, title="Aviso del colegio", body="Recreo suspendido.")
+        self._reading(165)
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            self.assertTrue(catch_up_follower(self._installation(), self.station))
+
+        [message] = capture.messages
+        self.assertEqual(message["title"], "Aviso del colegio")
+        self.assertEqual(message["body"], "Recreo suspendido.")
+        # The payload still routes the app to the station, whoever wrote the copy.
+        self.assertEqual(message["data"]["station_code"], "RSP-001")
+        self.assertEqual(message["data"]["trend"], "catch_up")
+
+    def test_the_most_severe_matching_alert_is_the_one_caught_up_on(self):
+        # An institution's escalating advice, joined mid-episode. The followers
+        # who were already here got the caution when the air crossed 40 and the
+        # evacuation when it crossed 100; somebody arriving now cannot be given
+        # that sequence retroactively, so they get the one that describes the
+        # air as it stands.
+        institution = Institution.objects.create(legal_name="Colegio San Juan")
+        for threshold, title in ((40, "Precaución"), (100, "No salir al patio")):
+            InstitutionAlertRule.objects.create(
+                institution=institution,
+                station=self.station,
+                threshold=threshold,
+                push_title=title,
+                push_body="x",
+            )
+        self._reading(165)
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            catch_up_follower(self._installation(), self.station)
+
+        self.assertEqual(len(capture.messages), 1)
+        self.assertEqual(capture.messages[0]["title"], "No salir al patio")
+
+    def test_a_catch_up_only_matches_alerts_the_air_is_actually_over(self):
+        institution = Institution.objects.create(legal_name="Colegio San Juan")
+        for threshold, title in ((40, "Precaución"), (100, "No salir al patio")):
+            InstitutionAlertRule.objects.create(
+                institution=institution,
+                station=self.station,
+                threshold=threshold,
+                push_title=title,
+                push_body="x",
+            )
+        self._reading(55)  # over the first, under the second
+
+        capture = Capture()
+        with patch("api.push._post_batch", side_effect=capture):
+            catch_up_follower(self._installation(), self.station)
+
+        self.assertEqual(capture.messages[0]["title"], "Precaución")
+
+    def test_a_catch_up_does_not_advance_the_alerts_state(self):
+        # Same reasoning as the station state: the alert's state is what every
+        # other follower's next notification is judged against.
+        rule = self._alert_rule(40)
+        self._reading(55)
+
+        with patch("api.push._post_batch", side_effect=Capture()):
+            catch_up_follower(self._installation(), self.station)
+
+        self.assertFalse(
+            InstitutionAlertRuleState.objects.filter(rule=rule, is_firing=True).exists()
+        )
 
     def test_the_next_scheduled_run_still_warns_the_original_followers(self):
         # The whole point of not touching the state: a device that joined must

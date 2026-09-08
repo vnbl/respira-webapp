@@ -3,7 +3,13 @@ export const prerender = false;
 
 import Typography from "./atoms/Typography.astro";
 import { NavDropdown } from "./react/nav/NavDropdown";
+import { getLangFromLocals } from "../i18n/utils";
 const { title, route, type } = Astro.props;
+
+// The dropdown hydrates, so its language has to be the one the server rendered
+// with. Resolving it in the browser instead (from the cookie) makes a visitor
+// on English or Portuguese hydrate over Spanish markup.
+const lang = getLangFromLocals(Astro.locals);
 
 let isModal = type === "modal";
 let isDropdown = type === "dropdown";
@@ -64,7 +70,12 @@ let isDropdown = type === "dropdown";
 
 {
   !isModal && isDropdown && (
-    <NavDropdown client:load title={title} baseRoute={route.baseRoute} />
+    <NavDropdown
+      client:load
+      title={title}
+      baseRoute={route.baseRoute}
+      lang={lang}
+    />
   )
 }
 

@@ -18,6 +18,25 @@ jobs:
   test:
     name: Backend Tests
     runs-on: ubuntu-latest
+
+    # Tests run against PostgreSQL, not SQLite: table ownership is expressed
+    # as django_admin / respira_gold schemas (see backend/settings.py and
+    # api/tests_schema_ownership.py), which SQLite cannot represent at all.
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_DB: respira_test
+          POSTGRES_USER: respira
+          POSTGRES_PASSWORD: respira
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 #v7.0.1
@@ -41,3 +60,11 @@ jobs:
           # Non-production run: keeps SECURE_SSL_REDIRECT/HSTS off so the
           # Django test client (plain HTTP) isn't redirected with 301s.
           BACKEND_DEBUG: "true"
+          # Selects the PostgreSQL branch of settings.DATABASES, which pins
+          # search_path to django_admin,respira_gold,public. Django creates
+          # and drops test_respira_test itself.
+          BACKEND_POSTGRES_DB: respira_test
+          BACKEND_POSTGRES_USER: respira
+          BACKEND_POSTGRES_PASSWORD: respira
+          BACKEND_POSTGRES_HOST: localhost
+          BACKEND_POSTGRES_PORT: "5432"

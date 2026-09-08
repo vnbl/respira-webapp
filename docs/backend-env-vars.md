@@ -54,7 +54,9 @@ All five core vars must be set together to enable PostgreSQL. If any is missing 
 | `BACKEND_POSTGRES_PASSWORD` | Yes (PostgreSQL) | —              | `backend/backend/settings.py` | Database password.                                                      |
 | `BACKEND_POSTGRES_HOST`     | Yes (PostgreSQL) | —              | `backend/backend/settings.py` | Database host.                                                          |
 | `BACKEND_POSTGRES_PORT`     | Yes (PostgreSQL) | —              | `backend/backend/settings.py` | Database port.                                                          |
-| `BACKEND_POSTGRES_SCHEMA`   | No               | `respira_gold` | `backend/backend/settings.py` | Comma-separated schemas for `search_path`. `public` is always appended. |
+| `BACKEND_POSTGRES_SCHEMA`   | No               | (empty)        | `backend/backend/settings.py` | Extra schemas appended to `search_path`, after the fixed `django_admin, respira_gold, public` prefix. Does **not** control table resolution — see below. |
+
+Table ownership between Django-owned data (`django_admin`) and the data pipeline's tables (`respira_gold`) is a fixed contract, not something `BACKEND_POSTGRES_SCHEMA` can change: `search_path` always resolves `django_admin` first, then `respira_gold`, then `public`, regardless of what this variable is set to. Every gold model (`Regions`, `Stations`, `StationReadingsGold`, `RegionReadings`, `InferenceRuns`, `InferenceResults`) additionally mixes in `api.gold.ReadOnlyGoldModel`, which rejects writes from the backend ORM outright — the pipeline (dbt, or the Prefect inference flow) is the only writer. `BACKEND_POSTGRES_SCHEMA` exists only to append unrelated extra schemas (e.g. a Postgres extension's schema) after that fixed prefix.
 
 ---
 

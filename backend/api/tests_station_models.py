@@ -15,8 +15,8 @@ from .models import Regions, StationDetails, StationOverride, Stations
 
 class StationDetailsModelTests(TestCase):
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=self.region,
             latitude=-25.29,

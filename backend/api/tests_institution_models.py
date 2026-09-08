@@ -68,14 +68,14 @@ class InstitutionModelTests(TestCase):
 
 class InstitutionContractModelTests(TestCase):
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asuncion", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asuncion", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=self.region,
             latitude=-25.29,
             longitude=-57.57,
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: Recoleta",
             region=self.region,
             latitude=-25.28,

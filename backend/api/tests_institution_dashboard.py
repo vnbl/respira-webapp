@@ -39,8 +39,8 @@ class InstitutionDashboardTests(APITestCase):
             legal_name="Colegio San Jose S.A."
         )
 
-        region = Regions.objects.create(name="Gran Asuncion", region_code="GA")
-        station = Stations.objects.create(
+        region = Regions.seed_for_tests(name="Gran Asuncion", region_code="GA")
+        station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=region,
             latitude=-25.29,
@@ -309,10 +309,10 @@ class InstitutionDashboardDataTests(APITestCase):
         self.client = APIClient()
         self.now = timezone.now()
 
-        region = Regions.objects.create(name="Gran Asuncion", region_code="GA")
+        region = Regions.seed_for_tests(name="Gran Asuncion", region_code="GA")
 
         self.institution = Institution.objects.create(legal_name="Hospital Bautista")
-        self.station = Stations.objects.create(
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=region,
             latitude=-25.29,
@@ -342,7 +342,7 @@ class InstitutionDashboardDataTests(APITestCase):
         self.other_institution = Institution.objects.create(
             legal_name="Colegio San Jose S.A."
         )
-        other_station = Stations.objects.create(
+        other_station = Stations.seed_for_tests(
             name="Respira: Centro",
             region=region,
             latitude=-25.28,
@@ -363,7 +363,7 @@ class InstitutionDashboardDataTests(APITestCase):
         InstitutionUser.objects.create(
             user=self.other_user, institution=self.other_institution
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=other_station, date_utc=self.now, aqi_pm2_5=42.0
         )
 
@@ -401,7 +401,7 @@ class InstitutionDashboardDataTests(APITestCase):
         self.assertEqual(response.status_code, 404)
 
     def test_dashboard_never_leaks_another_institutions_data(self):
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=self.now, aqi_pm2_5=42.0
         )
 
@@ -415,7 +415,7 @@ class InstitutionDashboardDataTests(APITestCase):
     # --- Successful response structure ----------------------------------
 
     def test_successful_response_includes_all_sections(self):
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=self.now, aqi_pm2_5=42.0
         )
 
@@ -437,7 +437,7 @@ class InstitutionDashboardDataTests(APITestCase):
         )
 
     def test_sensor_section_reflects_the_assigned_station(self):
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=self.now, aqi_pm2_5=42.0
         )
 
@@ -455,7 +455,7 @@ class InstitutionDashboardDataTests(APITestCase):
 
     def test_sensor_status_reflects_an_offline_station(self):
         self.station.is_station_on = False
-        self.station.save(update_fields=["is_station_on"])
+        self.station.update_for_tests(update_fields=["is_station_on"])
 
         self.client.force_authenticate(self.user)
         body = self.client.get(self.dashboard_url).json()
@@ -465,12 +465,12 @@ class InstitutionDashboardDataTests(APITestCase):
     # --- Air quality classification --------------------------------------
 
     def test_air_quality_uses_the_latest_reading_and_classification(self):
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station,
             date_utc=self.now - relativedelta(days=1),
             aqi_pm2_5=30.0,
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=self.now, aqi_pm2_5=120.0
         )
 
@@ -498,12 +498,12 @@ class InstitutionDashboardDataTests(APITestCase):
     # --- History (three-month window) -------------------------------------
 
     def test_history_excludes_readings_older_than_three_months(self):
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station,
             date_utc=self.now - relativedelta(months=4),
             aqi_pm2_5=99.0,
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station,
             date_utc=self.now - relativedelta(months=1),
             aqi_pm2_5=55.0,
@@ -516,17 +516,17 @@ class InstitutionDashboardDataTests(APITestCase):
         self.assertEqual(history[0]["aqi"], 55.0)
 
     def test_history_is_returned_in_chronological_order(self):
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station,
             date_utc=self.now - relativedelta(months=2),
             aqi_pm2_5=40.0,
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station,
             date_utc=self.now - relativedelta(months=1),
             aqi_pm2_5=60.0,
         )
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=self.now, aqi_pm2_5=80.0
         )
 

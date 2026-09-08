@@ -41,15 +41,15 @@ class InstitutionExportTestCase(APITestCase):
     def setUp(self):
         self.client = APIClient()
 
-        region = Regions.objects.create(name="Gran Asuncion", region_code="GA")
-        self.station = Stations.objects.create(
+        region = Regions.seed_for_tests(name="Gran Asuncion", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=region,
             latitude=-25.28,
             longitude=-57.57,
             is_station_on=True,
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: Sajonia", region=region, is_station_on=True
         )
 
@@ -71,7 +71,7 @@ class InstitutionExportTestCase(APITestCase):
         self.july_days = [date(2026, 7, 1), date(2026, 7, 2), date(2026, 7, 3)]
         for index, day in enumerate(self.july_days):
             for hour, aqi in ((8, 40 + index * 30), (20, 60 + index * 30)):
-                StationReadingsGold.objects.create(
+                StationReadingsGold.seed_for_tests(
                     station=self.station,
                     date_utc=_at(day, hour),
                     pm1=5.0,
@@ -82,7 +82,7 @@ class InstitutionExportTestCase(APITestCase):
                 )
 
         # A reading on somebody else's sensor, same month: it must never appear.
-        StationReadingsGold.objects.create(
+        StationReadingsGold.seed_for_tests(
             station=self.other_station,
             date_utc=_at(date(2026, 7, 2), 12),
             aqi_pm2_5=500.0,

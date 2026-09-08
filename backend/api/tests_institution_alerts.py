@@ -31,11 +31,11 @@ class InstitutionAlertsTests(APITestCase):
     def setUp(self):
         self.client = APIClient()
 
-        region = Regions.objects.create(name="Gran Asuncion", region_code="GA")
-        self.station = Stations.objects.create(
+        region = Regions.seed_for_tests(name="Gran Asuncion", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=region, is_station_on=True
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: Sajonia", region=region, is_station_on=True
         )
 

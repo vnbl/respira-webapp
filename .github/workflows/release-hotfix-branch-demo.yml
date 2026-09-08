@@ -446,7 +446,9 @@ jobs:
           echo "[4/9] Show Django migration plan"
           run_compose_migration run --rm -T --no-deps backend python manage.py migrate --plan
           # Mirrors backend/entrypoint.sh: adopts the pre-existing dbt tables (regions, stations,
-          # *_readings_gold, ...) instead of recreating them empty in the first search_path schema.
+          # *_readings_gold, ...) in respira_gold instead of recreating them empty there. Table
+          # ownership is a fixed django_admin/respira_gold search_path split (see settings.py),
+          # not something search_path order can make ambiguous.
           echo "[5/9] Adopt pre-existing api tables"
           run_compose_migration run --rm -T --no-deps backend python manage.py migrate api --fake-initial --noinput
           echo "[6/9] Apply migrations"

@@ -26,17 +26,17 @@ class StationAdminTests(TestCase):
         )
         self.client.force_login(self.superuser)
 
-        self.asuncion = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.encarnacion = Regions.objects.create(name="Encarnación", region_code="EN")
+        self.asuncion = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.encarnacion = Regions.seed_for_tests(name="Encarnación", region_code="EN")
 
-        self.station = Stations.objects.create(
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=self.asuncion,
             latitude=-25.29,
             longitude=-57.57,
             is_station_on=True,
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="MADES: Costanera",
             region=self.encarnacion,
             latitude=-27.33,
@@ -234,8 +234,8 @@ class StationStatusOverrideActionTests(TestCase):
         # the seeding itself is covered by tests_station_migrations.
         StationOverride.objects.all().delete()
 
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
-        self.station = Stations.objects.create(
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             station_code="airelibre_d87553",
             region=self.region,
@@ -352,7 +352,7 @@ class StationStatusOverrideActionTests(TestCase):
     def test_a_station_without_a_code_cannot_be_overridden(self):
         # Only possible before the pipeline has rebuilt `stations` with the
         # station_code column.
-        unmapped = Stations.objects.create(name="MADES: Costanera", region=self.region)
+        unmapped = Stations.seed_for_tests(name="MADES: Costanera", region=self.region)
 
         response = self._post("deactivate_stations", stations=[self.station, unmapped])
 
@@ -367,7 +367,7 @@ class StationStatusOverrideActionTests(TestCase):
         )
 
     def test_several_stations_are_overridden_at_once(self):
-        other = Stations.objects.create(
+        other = Stations.seed_for_tests(
             name="MADES: Costanera",
             station_code="mades_open_ic08p0002",
             region=self.region,
@@ -513,7 +513,7 @@ class RegionsAdminTests(TestCase):
             email="admin@example.com", password="pw-Str0ng!42"
         )
         self.client.force_login(self.superuser)
-        Regions.objects.create(name="Gran Asunción", region_code="GA")
+        Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
 
     def test_changelist_renders(self):
         response = self.client.get(reverse("admin:api_regions_changelist"))

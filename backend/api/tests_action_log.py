@@ -37,10 +37,10 @@ class ActionLogTestCase(APITestCase):
         self.client = APIClient()
         self.url = reverse("action-logs-list")
 
-        region = Regions.objects.create(name="Gran Asuncion", region_code="GA")
+        region = Regions.seed_for_tests(name="Gran Asuncion", region_code="GA")
 
         self.institution = Institution.objects.create(legal_name="Hospital Bautista")
-        self.station = Stations.objects.create(
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra",
             region=region,
             latitude=-25.29,
@@ -70,7 +70,7 @@ class ActionLogTestCase(APITestCase):
         self.other_institution = Institution.objects.create(
             legal_name="Colegio San Jose S.A."
         )
-        self.other_station = Stations.objects.create(
+        self.other_station = Stations.seed_for_tests(
             name="Respira: Centro",
             region=region,
             latitude=-25.28,
@@ -472,7 +472,7 @@ class ActionLogSideEffectTests(ActionLogTestCase):
         self.assertEqual(InstitutionAlert.objects.count(), 2)
 
     def test_creating_an_action_does_not_modify_stations_or_measurements(self):
-        reading = StationReadingsGold.objects.create(
+        reading = StationReadingsGold.seed_for_tests(
             station=self.station, date_utc=timezone.now(), aqi_pm2_5=155.0
         )
 

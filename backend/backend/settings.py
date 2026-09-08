@@ -232,19 +232,39 @@ if all(postgres_config.values()):
         }
     }
 
-    db_schemas = [
+    # search_path is a FIXED contract, not a configurable one: django_admin
+    # (Django-owned tables: auth, admin, accounts, and every operational
+    # model in api/models.py) always resolves before respira_gold (tables
+    # the data pipeline owns and writes — dbt SQL for
+    # stations/regions/*_readings_gold, the Prefect inference flow for
+    # inference_runs/inference_results; see api.gold.ReadOnlyGoldModel,
+    # which blocks writes to these from the backend regardless of
+    # search_path). `public` stays last for extensions and any table this
+    # project does not itself define.
+    #
+    # This order can never create ambiguity: django_admin and respira_gold
+    # do not share a single table name (verified — see the regression test
+    # in api/tests_schema_ownership.py), so which one search_path checks
+    # first cannot change which table a query resolves to. That test is
+    # exactly what would fail if a future table name collided.
+    #
+    # BACKEND_POSTGRES_SCHEMA no longer controls resolution order — it used
+    # to, and that was the bug: an operator-configurable order is exactly
+    # what let an unqualified table name resolve to the wrong schema. It is
+    # kept only so extra, unrelated schemas (custom Postgres extensions,
+    # say) can still be appended after the fixed prefix.
+    _fixed_schemas = {"django_admin", "respira_gold", "public"}
+    extra_schemas = [
         schema.strip()
-        for schema in os.getenv("BACKEND_POSTGRES_SCHEMA", "respira_gold").split(",")
-        if schema.strip()
+        for schema in os.getenv("BACKEND_POSTGRES_SCHEMA", "").split(",")
+        if schema.strip() and schema.strip().lower() not in _fixed_schemas
     ]
-
-    if db_schemas:
-        quoted_schemas = [_quote_postgres_identifier(schema) for schema in db_schemas]
-        if "public" not in {schema.lower() for schema in db_schemas}:
-            quoted_schemas.append("public")
-        default_db = DATABASES["default"]
-        db_options_map = default_db.setdefault("OPTIONS", {})
-        db_options_map["options"] = f"-c search_path={','.join(quoted_schemas)}"
+    quoted_schemas = ['"django_admin"', '"respira_gold"', '"public"'] + [
+        _quote_postgres_identifier(schema) for schema in extra_schemas
+    ]
+    default_db = DATABASES["default"]
+    db_options_map = default_db.setdefault("OPTIONS", {})
+    db_options_map["options"] = f"-c search_path={','.join(quoted_schemas)}"
 else:
     DATABASES = {
         "default": {

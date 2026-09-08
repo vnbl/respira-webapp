@@ -6,6 +6,8 @@ from django.conf import settings
 from django.db import IntegrityError, models, transaction
 from django.utils import timezone
 
+from .gold import ReadOnlyGoldModel
+
 
 def _column_env_or_default(key: str, default: str) -> str:
     return (os.getenv(key) or "").strip() or default
@@ -55,7 +57,7 @@ def user_role(user) -> str:
     return UserRole.VIEWER
 
 
-class Regions(models.Model):
+class Regions(ReadOnlyGoldModel):
     name = models.CharField(max_length=255)
     region_code = models.CharField(max_length=255)
     bbox = models.CharField(max_length=255, blank=True, null=True)
@@ -71,7 +73,7 @@ class Regions(models.Model):
         return self.name
 
 
-class Stations(models.Model):
+class Stations(ReadOnlyGoldModel):
     name = models.CharField(max_length=255)
     # The pipeline's stable natural key (``dim_stations.code``), exposed on the
     # gold table so operational records can address a station by something that
@@ -360,6 +362,18 @@ class InstitutionAlert(models.Model):
             "configuration don't rewrite history."
         ),
     )
+    rule = models.ForeignKey(
+        "InstitutionAlertRule",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="events",
+        help_text=(
+            "The rule that fired this event, when one did. Null for events "
+            "predating the rules, and kept null-able so deleting a rule "
+            "preserves the history it produced."
+        ),
+    )
     triggered_at = models.DateTimeField(default=timezone.now)
     resolved_at = models.DateTimeField(
         blank=True,
@@ -373,6 +387,255 @@ class InstitutionAlert(models.Model):
 
     def __str__(self):
         return f"{self.institution} — AQI {self.aqi_value} at {self.triggered_at:%Y-%m-%d %H:%M}"
+
+
+class InstitutionAlertRule(models.Model):
+    """An institution's configurable push alert for one of its stations.
+
+    What makes institutional alerts *configurable* rather than compiled in: the
+    threshold and the wording live here, editable from the admin, instead of in
+    ``push.LEVEL_COPY``'s fixed table of AQI levels. Editing a rule changes what
+    followers receive on the next scheduled run, with no deploy involved.
+
+    Why a numeric threshold and not a level. The public alert path deliberately
+    only fires from ``unhealthySensitive`` upward — waking people for good air
+    trains them to ignore the alerts that matter. An institution leasing its own
+    sensor has a different audience: a school may well want to tell its
+    community at an AQI the general public should not be interrupted for. A
+    number expresses that; a level cannot.
+
+    Separate from :class:`InstitutionAlertConfig` rather than an extension of
+    it. That model is one row per institution holding institution-wide
+    preferences (``sensitive_groups``), is a ``OneToOneField``, and is already
+    read by the institutional dashboard through
+    ``InstitutionAlertConfigSerializer``. Widening it to one row per station
+    would change what a single row means and break that serializer's
+    assumption, for a gain this model provides on its own.
+
+    ``station`` mirrors :class:`InstitutionContract`: ``db_constraint=False``
+    because dbt drops and recreates ``stations`` on every gold run, so a
+    physical FOREIGN KEY would not survive it.
+    """
+
+    institution = models.ForeignKey(
+        "Institution", on_delete=models.CASCADE, related_name="alert_rules"
+    )
+    station = models.ForeignKey(
+        "Stations",
+        on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        related_name="institution_alert_rules",
+    )
+    threshold = models.PositiveIntegerField(
+        help_text=(
+            "AQI value above which this rule notifies the station's followers. "
+            "Any value — an institution may choose to alert its own community "
+            "at a level the public alerts deliberately stay quiet for."
+        ),
+    )
+    push_title = models.CharField(
+        max_length=100,
+        help_text="Notification title, as it appears on the device.",
+    )
+    push_body = models.TextField(
+        max_length=500,
+        help_text="Notification body. {station} is replaced with the station's name.",
+    )
+    is_active = models.BooleanField(
+        default=True,
+        help_text="Inactive rules are skipped by the scheduled sender.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "institution_alert_rule"
+        ordering = ("institution", "threshold")
+        # "Institution alert" in the admin, because this is the one page an
+        # operator uses for the feature. The events it produces
+        # (:class:`InstitutionAlert`) are shown inline on this page rather than
+        # as a section of their own — two menu entries whose names differ by the
+        # word "rule" is a distinction nobody should have to learn.
+        verbose_name = "institution alert"
+        verbose_name_plural = "institution alerts"
+        constraints = [
+            # Several alerts per sensor on purpose: an institution that wants a
+            # caution at one AQI and an evacuation at a higher one has said so
+            # twice, deliberately, and both are meant to arrive. Escalating
+            # advice is how air-quality guidance is normally written, and
+            # collapsing it to one message per sensor would lose the middle
+            # step.
+            #
+            # Only an exact duplicate is refused, since two alerts at the same
+            # threshold could never say anything the other did not — they would
+            # fire together, every time, and send the same follower two
+            # notifications about one reading.
+            models.UniqueConstraint(
+                fields=["institution", "station", "threshold"],
+                name="uniq_alert_rule_per_threshold",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.institution} — AQI > {self.threshold}"
+
+    def message_for(self, station_name: str) -> tuple[str, str]:
+        """This rule's copy, with ``{station}`` resolved.
+
+        ``format_map`` over ``format`` so an operator who types a stray brace
+        into the body gets their literal text through rather than a
+        ``KeyError`` at send time, when there is no admin around to see it.
+        """
+
+        class _Defaults(dict):
+            def __missing__(self, key):
+                return "{" + key + "}"
+
+        return (
+            self.push_title,
+            self.push_body.format_map(_Defaults(station=station_name)),
+        )
+
+
+class InstitutionAlertRuleState(models.Model):
+    """Whether one rule is currently holding an alert open, run to run.
+
+    A numeric threshold needs its own memory and cannot borrow
+    :class:`SensorAlertState`: that model records AQI *level* keys, so with a
+    threshold of 40 a station oscillating 38→42→39→41 sits at ``good``
+    throughout and no level ever changes. Every crossing would be invisible to
+    it.
+
+    ``is_firing`` is the crossing itself. It turns on when a reading first
+    exceeds ``threshold`` and turns off only once the air falls back under
+    ``push.rearm_threshold`` — a band below it. Without that band a sensor
+    hovering at its threshold re-alerts on every scheduled run, which is the
+    duplicate-notification failure the level path avoids by requiring a
+    *worsening*, expressed here in the terms a bare number allows.
+
+    One row per rule, taken with ``select_for_update`` for the length of a
+    send, which is also what stops two overlapping runs from both notifying.
+    """
+
+    rule = models.OneToOneField(
+        "InstitutionAlertRule", on_delete=models.CASCADE, related_name="state"
+    )
+    is_firing = models.BooleanField(
+        default=False,
+        help_text=(
+            "True while followers have been warned and the air has not yet "
+            "fallen back below the rearm band."
+        ),
+    )
+    last_aqi = models.FloatField(
+        blank=True,
+        null=True,
+        help_text="The most recent reading this rule was evaluated against.",
+    )
+    last_notified_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = "institution_alert_rule_state"
+
+    def __str__(self):
+        return f"{self.rule_id}: {'firing' if self.is_firing else 'idle'}"
+
+    @classmethod
+    def lock(cls, rule_id: int) -> "InstitutionAlertRuleState":
+        """The rule's state row, locked until the caller's transaction ends.
+
+        Created first and locked second, for the same reason as
+        :meth:`SensorAlertState.lock`: there is no row to lock on a rule's very
+        first run.
+        """
+        cls.objects.get_or_create(rule_id=rule_id)
+        return cls.objects.select_for_update().get(rule_id=rule_id)
+
+
+class PushBroadcast(models.Model):
+    """One manually sent push, and the record that it was sent.
+
+    Separate from :class:`InstitutionAlertRule` because the two are different
+    kinds of thing. A rule is standing configuration the scheduled sender
+    evaluates over and over; a broadcast is written once, sent once, and never
+    fires again. Modelling both as rows of one table would leave half the
+    columns meaningless in either case, and "active" meaning two different
+    things.
+
+    This is what carries an operational message — "no hay clases mañana",
+    "mantenimiento del sensor el martes" — that has nothing to do with the
+    current AQI, which is why it has no threshold and no state.
+
+    A row exists only once a send has been attempted: there is no draft to
+    submit twice, and ``sent_at`` is stamped on creation. That is what stops
+    the same announcement going out repeatedly.
+
+    ``scope`` is the audience. ``ALL`` reaches every follower of every station
+    and is not an institutional alert at all — it is a platform announcement,
+    which is why this model has no required institution and why the admin gates
+    that scope behind a permission of its own.
+    """
+
+    SCOPE_STATION = "station"
+    SCOPE_INSTITUTION = "institution"
+    SCOPE_ALL = "all"
+    SCOPE_CHOICES = (
+        (SCOPE_STATION, "One station's followers"),
+        (SCOPE_INSTITUTION, "All of an institution's stations"),
+        (SCOPE_ALL, "Every follower on the platform"),
+    )
+
+    scope = models.CharField(max_length=16, choices=SCOPE_CHOICES)
+    institution = models.ForeignKey(
+        "Institution",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="broadcasts",
+        help_text="Set for institution-scoped sends; blank for a platform-wide one.",
+    )
+    station = models.ForeignKey(
+        "Stations",
+        on_delete=models.DO_NOTHING,
+        db_constraint=False,
+        blank=True,
+        null=True,
+        related_name="broadcasts",
+        help_text="Set for station-scoped sends.",
+    )
+    push_title = models.CharField(max_length=100)
+    push_body = models.TextField(max_length=500)
+    recipients = models.PositiveIntegerField(
+        default=0,
+        help_text="How many devices the push service accepted this broadcast for.",
+    )
+    failures = models.PositiveIntegerField(
+        default=0,
+        help_text="Messages the push service rejected for a reason worth retrying.",
+    )
+    sent_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name="push_broadcasts",
+        help_text="Who sent it. Kept for the audit trail.",
+    )
+    sent_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = "push_broadcast"
+        ordering = ("-sent_at",)
+        permissions = [
+            (
+                "send_global_pushbroadcast",
+                "Can send a push notification to every follower on the platform",
+            )
+        ]
+
+    def __str__(self):
+        return f"{self.get_scope_display()} — {self.push_title}"
 
 
 class ActionLog(models.Model):
@@ -794,7 +1057,7 @@ class SensorAlertState(models.Model):
         return cls.objects.select_for_update().get(station_code=station_code)
 
 
-class RegionReadings(models.Model):
+class RegionReadings(ReadOnlyGoldModel):
     region = models.ForeignKey("Regions", on_delete=models.DO_NOTHING)
     date_utc = models.DateTimeField()
     pm2_5_region_avg = models.FloatField(blank=True, null=True)
@@ -811,7 +1074,7 @@ class RegionReadings(models.Model):
         db_table = "region_readings_gold"
 
 
-class StationReadingsGold(models.Model):
+class StationReadingsGold(ReadOnlyGoldModel):
     station = models.ForeignKey("Stations", on_delete=models.DO_NOTHING)
     airnow_id = models.IntegerField(blank=True, null=True)
     date_utc = models.DateTimeField(
@@ -840,7 +1103,7 @@ class StationReadingsGold(models.Model):
         db_table = "station_readings_gold"
 
 
-class InferenceRuns(models.Model):
+class InferenceRuns(ReadOnlyGoldModel):
     class Status(models.TextChoices):
         RUNNING = "running", "running"
         SUCCESS = "success", "success"
@@ -874,8 +1137,13 @@ class InferenceRuns(models.Model):
         db_table = "inference_runs"
 
 
-class InferenceResults(models.Model):
+class InferenceResults(ReadOnlyGoldModel):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    # Written by the same Prefect/Python inference pipeline as InferenceRuns
+    # (not dbt SQL), so it is gold data too — see ReadOnlyGoldModel. The FKs
+    # below intentionally omit db_constraint=False: unlike stations/regions,
+    # inference_runs/inference_results are append-only and never dropped and
+    # recreated wholesale by the pipeline, so a physical FK is safe here.
     inference_run = models.ForeignKey("InferenceRuns", on_delete=models.DO_NOTHING)
     station = models.ForeignKey("Stations", on_delete=models.DO_NOTHING)
     forecasts_6h = models.JSONField(

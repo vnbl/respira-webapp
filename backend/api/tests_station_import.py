@@ -26,9 +26,9 @@ HEADERS = (
 
 class ImportStationDetailsTests(TestCase):
     def setUp(self):
-        self.region = Regions.objects.create(name="Gran Asunción", region_code="GA")
+        self.region = Regions.seed_for_tests(name="Gran Asunción", region_code="GA")
         # The gold pipeline prefixes names by source; the sheet holds the bare name.
-        self.station = Stations.objects.create(
+        self.station = Stations.seed_for_tests(
             name="Respira: Villa Morra", region=self.region, is_station_on=True
         )
 
@@ -64,7 +64,7 @@ class ImportStationDetailsTests(TestCase):
         self.assertEqual(details.notes, "Requiere escalera.")
 
     def test_rows_are_linked_to_the_right_station(self):
-        other = Stations.objects.create(name="MADES: Costanera", region=self.region)
+        other = Stations.seed_for_tests(name="MADES: Costanera", region=self.region)
 
         self._run("Estación,N° de serie\nVilla Morra,SN-001\nCostanera,SN-002\n")
 
@@ -133,7 +133,7 @@ class ImportStationDetailsTests(TestCase):
 
     def test_an_ambiguous_name_is_skipped_rather_than_guessed(self):
         # Two stations whose names both end in ": Villa Morra".
-        Stations.objects.create(name="MADES: Villa Morra", region=self.region)
+        Stations.seed_for_tests(name="MADES: Villa Morra", region=self.region)
 
         out, err = self._run("Estación,N° de serie\nVilla Morra,SN-001\n")
 
