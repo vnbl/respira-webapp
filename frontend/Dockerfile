@@ -1,10 +1,12 @@
-FROM node:24-bookworm-slim AS base
+FROM node:26-bookworm-slim AS base
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
 WORKDIR /app
 
 # Pin pnpm to 11.8.0 for lockfile v9.0 support and consistent CI/local behavior.
-RUN corepack enable && corepack prepare pnpm@11.8.0 --activate
+# Installed via npm rather than corepack: corepack is no longer bundled with the
+# official Node images as of Node 26.
+RUN npm install --global pnpm@11.8.0
 
 FROM base AS deps
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
@@ -19,7 +21,7 @@ COPY . .
 RUN pnpm run build \
 	&& find ./dist/client -type f -name "*.map" -delete
 
-FROM node:24-bookworm-slim AS runtime
+FROM node:26-bookworm-slim AS runtime
 WORKDIR /app
 
 RUN apt-get update \

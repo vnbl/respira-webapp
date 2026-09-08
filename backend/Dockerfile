@@ -1,4 +1,4 @@
-ARG PYTHON_VERSION=3.10-slim-bookworm
+ARG PYTHON_VERSION=3.12-slim-bookworm
 
 FROM python:${PYTHON_VERSION} AS builder
 

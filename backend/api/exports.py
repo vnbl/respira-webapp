@@ -21,6 +21,7 @@ from __future__ import annotations
 import io
 import zoneinfo
 from datetime import date, datetime, time, timedelta
+from datetime import timezone as dt_timezone
 from typing import Any
 
 from dateutil.relativedelta import relativedelta
@@ -98,7 +99,7 @@ def _localise(value: datetime | None) -> datetime | None:
     if value is None:
         return None
     if timezone.is_naive(value):
-        value = timezone.make_aware(value, timezone.utc)
+        value = timezone.make_aware(value, dt_timezone.utc)
     return value.astimezone(REPORT_TIME_ZONE)
 
 
