@@ -125,7 +125,12 @@ export function ActionLogPanel({
   };
 
   return (
-    <div className="grid grid-cols-1 gap-5 lg:grid-cols-12">
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-12">
+      {/* `items-start`, not stretched: forcing both cards to one height means a
+          history with two entries is padded out to the height of a six-field
+          form, and the empty half reads as something failing to load. Each card
+          takes the height its content needs; the shared top edge is what makes
+          them a pair. */}
       <div className="lg:col-span-7">
         <ActionLogList
           state={list}
@@ -166,9 +171,9 @@ function ActionLogList({
 }) {
   const copy = useInstitutionCopy(lang);
   return (
-    <Card>
+    <Card tone="main">
       <CardHead>
-        <CardTitle>{copy.actionsTitle}</CardTitle>
+        <CardTitle level="main">{copy.actionsTitle}</CardTitle>
         {state.status === "ready" && state.items.length > 0 && (
           <span className="ml-auto">
             <Pill>{state.items.length}</Pill>
@@ -223,7 +228,10 @@ function ActionLogList({
             body={copy.actionsEmptyBody}
           />
         ) : (
-          <>
+          /* Capped and scrollable, like the notifications feed: the history
+             only grows, and past a point it should not be what decides how tall
+             this half of the page is. */
+          <div className="-mx-1 max-h-[26rem] overflow-y-auto overscroll-contain px-1">
             <ul className="m-0 flex list-none flex-col p-0">
               {state.items.map((item) => (
                 <li
@@ -261,15 +269,18 @@ function ActionLogList({
               ))}
             </ul>
             {state.hasMore && (
-              <Button
-                variant="void"
-                onClick={onLoadMore}
-                disabled={loadingMore}
-              >
-                {loadingMore ? copy.actionsLoadingMore : copy.actionsLoadMore}
-              </Button>
+              <div className="pt-2">
+                <Button
+                  variant="void"
+                  onClick={onLoadMore}
+                  disabled={loadingMore}
+                  block
+                >
+                  {loadingMore ? copy.actionsLoadingMore : copy.actionsLoadMore}
+                </Button>
+              </div>
             )}
-          </>
+          </div>
         ))}
     </Card>
   );
@@ -359,9 +370,9 @@ function ActionLogForm({
 
   if (stationId == null) {
     return (
-      <Card>
+      <Card tone="main">
         <CardHead>
-          <CardTitle>{copy.actionFormTitle}</CardTitle>
+          <CardTitle level="main">{copy.actionFormTitle}</CardTitle>
         </CardHead>
         <p className="m-0 text-[13px] text-gray">{copy.actionFormNoStation}</p>
       </Card>
@@ -369,9 +380,9 @@ function ActionLogForm({
   }
 
   return (
-    <Card>
+    <Card tone="main">
       <CardHead>
-        <CardTitle>{copy.actionFormTitle}</CardTitle>
+        <CardTitle level="main">{copy.actionFormTitle}</CardTitle>
       </CardHead>
 
       <form className="flex flex-col gap-4" onSubmit={handleSubmit} noValidate>

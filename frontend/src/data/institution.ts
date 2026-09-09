@@ -30,6 +30,11 @@ export const INSTITUTION_ENDPOINTS = {
   // platform, never authored by an institution.
   alerts: "/institution/alerts/",
 
+  // What the platform sent *about* the sensor, as opposed to what the
+  // institution did about it. Merges the AQI-triggered alerts and the manual
+  // announcements server-side, so this is one paginated, ordered feed.
+  notifications: "/institution/notifications/",
+
   monthlyReport: "/institution/report/monthly/",
   rawExport: "/institution/export/",
 } as const;
@@ -157,6 +162,41 @@ export type ActionLogDraft = {
   station: number;
   note: string;
   alert?: number | null;
+};
+
+// --- Sensor notifications ---------------------------------------------------
+
+/** Which feed a notification came from; see `InstitutionNotification`. */
+export type NotificationType = "aqi" | "general";
+
+/**
+ * One notification the platform sent about the institution's sensor.
+ *
+ * Mirrors `InstitutionNotificationSerializer`, which normalises two backend
+ * models into this one shape: `InstitutionAlert` for the AQI-triggered ones and
+ * `PushBroadcast` for the manual announcements.
+ *
+ * Everything AQI-specific is nullable, because a manual announcement has no
+ * reading behind it. Read `type` rather than testing those fields for presence.
+ */
+export type InstitutionNotification = {
+  /** Prefixed by source (`"alert-12"`, `"broadcast-7"`): the two tables number rows independently. */
+  id: string;
+  type: NotificationType;
+  title: string;
+  body: string;
+  sent_at: string;
+  /** Null on an institution-wide announcement, which names no single station. */
+  station: number | null;
+  station_name: string | null;
+  /** Null on every general notification. */
+  aqi: number | null;
+  /** A key of `CATEGORY_EMOJI` / `AQI_LEVELS`, e.g. `"unhealthy"`. */
+  aqi_category: string | null;
+  aqi_category_label: string | null;
+  alert_threshold: number | null;
+  /** The `InstitutionAlert` behind it, so it can be tied to an action's alert. */
+  alert: number | null;
 };
 
 export type Paginated<T> = {

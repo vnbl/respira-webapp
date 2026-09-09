@@ -40,6 +40,7 @@ from .models import (
     InferenceRuns,
     Institution,
     InstitutionAlert,
+    PushBroadcast,
     RegionReadings,
     Regions,
     StationReadingsGold,
@@ -65,6 +66,7 @@ from .serializers import (
     InstitutionAlertSerializer,
     InstitutionDashboardSerializer,
     InstitutionLoginSerializer,
+    InstitutionNotificationSerializer,
     InstitutionPasswordResetConfirmSerializer,
     InstitutionPasswordResetSerializer,
     InstitutionSerializer,
@@ -774,6 +776,114 @@ def _build_institution_dashboard(institution):
     }
 
 
+def _notification_from_alert(alert):
+    """One AQI-triggered alert, as a notification.
+
+    The wording is read back from the rule that fired it rather than stored on
+    the event: ``InstitutionAlertRule`` owns the copy an institution configured,
+    and ``message_for`` is the same call the sender used, so the dashboard shows
+    what the devices were sent. The trade-off is deliberate — editing a rule
+    later also changes how its past notifications read here.
+
+    ``rule`` is ``SET_NULL``, so events survive the rule that produced them and
+    rows predating the rules have none at all. Both fall back to the AQI level's
+    own label and message, which is what the notification was about anyway.
+    """
+    station = alert.station
+    level = classify_aqi(alert.aqi_value)
+
+    if alert.rule is not None:
+        title, body = alert.rule.message_for(station.name if station else "")
+    elif level is not None:
+        title, body = level["label"], level["message"]
+    else:
+        title, body = "", ""
+
+    return {
+        "id": f"alert-{alert.id}",
+        "type": InstitutionNotificationSerializer.TYPE_AQI,
+        "title": title,
+        "body": body,
+        "sent_at": alert.triggered_at,
+        "station": alert.station_id,
+        "station_name": station.name if station else None,
+        "aqi": alert.aqi_value,
+        "aqi_category": level["key"] if level else None,
+        "aqi_category_label": level["label"] if level else None,
+        "alert_threshold": alert.alert_threshold,
+        "alert": alert.id,
+    }
+
+
+def _notification_from_broadcast(broadcast):
+    """One manually sent broadcast, as a notification.
+
+    Everything AQI-shaped is null: a broadcast carries an operational message —
+    "mantenimiento del sensor el martes" — that has nothing to do with a
+    reading, which is why the model has no threshold and no level.
+
+    ``station`` is null for institution-scoped sends, which reach every station
+    the institution holds. The dashboard shows one sensor, so there is nothing
+    more specific to name.
+    """
+    station = broadcast.station
+    return {
+        "id": f"broadcast-{broadcast.id}",
+        "type": InstitutionNotificationSerializer.TYPE_GENERAL,
+        "title": broadcast.push_title,
+        "body": broadcast.push_body,
+        "sent_at": broadcast.sent_at,
+        "station": broadcast.station_id,
+        "station_name": station.name if station else None,
+        "aqi": None,
+        "aqi_category": None,
+        "aqi_category_label": None,
+        "alert_threshold": None,
+        "alert": None,
+    }
+
+
+def _institution_notifications(institution):
+    """Both notification feeds for one institution, merged newest-first.
+
+    Merged in memory rather than in the database: the two tables share no
+    columns worth a UNION, and an institution's notification history is small
+    enough (one sensor, one institution) that reading both and sorting is
+    cheaper than the machinery a database-level merge would need.
+
+    Platform-wide broadcasts (``scope="all"``) are left out. They carry no
+    institution and are announcements to every follower on the platform, so
+    they are not notifications *about this sensor* — which is what this section
+    promises to show.
+    """
+    if institution is None:
+        return []
+
+    alerts = (
+        InstitutionAlert.objects.filter(institution=institution)
+        .select_related("station", "rule")
+        .order_by("-triggered_at", "-id")
+    )
+    broadcasts = (
+        PushBroadcast.objects.filter(institution=institution)
+        .exclude(scope=PushBroadcast.SCOPE_ALL)
+        .select_related("station")
+        .order_by("-sent_at", "-id")
+    )
+
+    notifications = [_notification_from_alert(alert) for alert in alerts]
+    notifications += [
+        _notification_from_broadcast(broadcast) for broadcast in broadcasts
+    ]
+
+    # Newest first, with the id breaking ties so two notifications stamped in
+    # the same instant still come back in a stable order — the same guarantee
+    # `ActionLog.Meta.ordering` gives the action history, which a merged list
+    # has to reproduce by hand.
+    notifications.sort(key=lambda item: (item["sent_at"], item["id"]), reverse=True)
+    return notifications
+
+
 def _absolute_for_email(request, configured: str) -> str:
     """Resolves a configured path (or URL) against the request being served.
 
@@ -811,6 +921,11 @@ class InstitutionViewSet(ReadOnlyModelViewSet):
     # is not already an attribute of the viewset. `None` leaves every other
     # route unthrottled, which is what `ScopedRateThrottle` does with no scope.
     throttle_scope = None
+    # Unpaginated by default — an institution has one of itself to list. Named
+    # here for the same reason as `throttle_scope`: `as_view` rejects an
+    # initkwarg that is not already an attribute, and the `notifications`
+    # action sets its own.
+    pagination_class = None
     # "get" for list/retrieve/me, "post" for the login/logout actions below —
     # this viewset otherwise offers no write access to Institution itself.
     http_method_names = ["get", "post"]
@@ -887,6 +1002,57 @@ class InstitutionViewSet(ReadOnlyModelViewSet):
             return self.get_paginated_response(serializer.data)
 
         serializer = self.get_serializer(queryset, many=True)
+        return Response(serializer.data)
+
+    @extend_schema(
+        summary="List the notifications sent about the caller's own sensor",
+        description=(
+            "Every notification sent about the institution's own sensor, most "
+            "recent first: the AQI-triggered alerts its configured rules fired "
+            "and the general, manually sent announcements, merged into one "
+            "feed. Read-only — notifications are produced by the platform's "
+            "scheduled sender or by an operator, never authored here.\n\n"
+            "`type` says which kind each one is. Everything AQI-specific "
+            "(`aqi`, `aqi_category`, `alert_threshold`, `alert`) is null on a "
+            "general notification, so clients must key off `type` rather than "
+            "assume those fields are present.\n\n"
+            "The institution is resolved from the authenticated user — never "
+            "from a request parameter — so a caller can only ever see "
+            "notifications about their own sensor. Platform-wide announcements "
+            "are excluded: they belong to every follower, not to this sensor."
+        ),
+        responses=InstitutionNotificationSerializer(many=True),
+    )
+    @action(
+        detail=False,
+        methods=["get"],
+        serializer_class=InstitutionNotificationSerializer,
+        # Set on this action alone rather than on the viewset: the viewset has
+        # no `pagination_class`, and giving it one here would silently start
+        # paginating `list`, `retrieve` and `alerts` as well. This feed is the
+        # one that grows without bound — a sensor accumulates notifications for
+        # as long as it is leased — so it is the one that has to be cut into
+        # pages.
+        pagination_class=StandardResultsSetPagination,
+    )
+    def notifications(self, request, *args, **kwargs):
+        """Scoped from the session, like ``alerts``.
+
+        Paginated over an already-merged list rather than a queryset: the two
+        sources are separate tables, so the merge has to happen before the page
+        is cut or a page would only ever hold one kind. ``paginate_queryset``
+        takes a list just as happily as a queryset.
+        """
+        notifications = _institution_notifications(
+            get_institution_for_user(request.user)
+        )
+
+        page = self.paginate_queryset(notifications)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            return self.get_paginated_response(serializer.data)
+
+        serializer = self.get_serializer(notifications, many=True)
         return Response(serializer.data)
 
     @extend_schema(

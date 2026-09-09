@@ -20,6 +20,7 @@ import {
   type Institution,
   type InstitutionAlert,
   type InstitutionDashboard,
+  type InstitutionNotification,
   type Paginated,
 } from "../data/institution";
 import { getBackendUrl } from "./runtime-config";
@@ -334,6 +335,31 @@ export const fetchInstitutionAlerts = async (
   >(INSTITUTION_ENDPOINTS.alerts, { cookie, treat404AsUnavailable: true });
 
   return Array.isArray(payload) ? payload : payload.results;
+};
+
+/**
+ * The notifications sent about the institution's sensor, newest first.
+ *
+ * Both response shapes are accepted, like `fetchInstitutionAlerts`: the
+ * endpoint is a router action on a viewset that sets no `pagination_class`, so
+ * today it answers a plain array and only starts wrapping results in a page
+ * object if one is configured later. Normalised here so the panel's paging
+ * logic has one shape to read either way.
+ */
+export const fetchInstitutionNotifications = async (
+  page = 1,
+  cookie?: string,
+): Promise<Paginated<InstitutionNotification>> => {
+  const payload = await requestJson<
+    Paginated<InstitutionNotification> | InstitutionNotification[]
+  >(`${INSTITUTION_ENDPOINTS.notifications}?page=${page}`, {
+    cookie,
+    treat404AsUnavailable: true,
+  });
+
+  return Array.isArray(payload)
+    ? { count: payload.length, next: null, previous: null, results: payload }
+    : payload;
 };
 
 export const createActionLog = (draft: ActionLogDraft): Promise<ActionLog> =>

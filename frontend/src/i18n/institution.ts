@@ -144,7 +144,11 @@ const es = {
     "{days} días con mediciones, entre {min} y {max} de AQI diario.",
 
   // --- Alerts --------------------------------------------------------------
-  alertsTitle: "Alertas",
+  // "Configuración de alertas", not "Alertas": this card is the standing
+  // configuration — the threshold in force and who it is watched for — while
+  // the notifications section below is the history of what was actually sent.
+  // Naming both "alertas" left two sections that sounded like the same thing.
+  alertsTitle: "Configuración de alertas",
   alertsOn: "Activas",
   alertsOff: "Desactivadas",
   alertsThresholdSuffix: "AQI o más",
@@ -188,6 +192,27 @@ const es = {
   actionFormError: "No pudimos guardar la acción. Intentá de nuevo.",
   actionFormNoStation:
     "Necesitás un sensor asignado para registrar acciones. Escribinos si creés que es un error.",
+
+  // --- Sensor notifications ------------------------------------------------
+  notificationsTitle: "Notificaciones del sensor",
+  notificationsEmptyTitle: "Todavía no hay notificaciones",
+  notificationsEmptyBody:
+    "Acá vas a ver los avisos que enviamos sobre tu sensor: las alertas por calidad del aire y los mensajes que te mandemos.",
+  notificationsLoadMore: "Ver más notificaciones",
+  notificationsLoadingMore: "Cargando…",
+  notificationsUnavailableTitle:
+    "Las notificaciones todavía no están disponibles",
+  notificationsUnavailableBody:
+    "Se habilitan en cuanto se publique la próxima versión de la plataforma.",
+  // The two kinds of notification, as the badge on each row reads.
+  notificationTypeAqi: "Calidad del aire",
+  notificationTypeGeneral: "General",
+  notificationThreshold: "Umbral",
+  // The standing rule, stated above the history it produced — reads as one
+  // sentence: "Te avisamos cuando el aire supere 100 AQI".
+  notificationsRuleLead: "Te avisamos cuando el aire supere",
+  notificationsRuleUnit: "AQI",
+  notificationsRuleGroups: "Pensado para:",
 
   // --- Downloads -----------------------------------------------------------
   downloadsTitle: "Descargas",
@@ -343,7 +368,7 @@ const en: Translation = {
     "{days} days with readings, between {min} and {max} daily AQI.",
 
   // --- Alerts --------------------------------------------------------------
-  alertsTitle: "Alerts",
+  alertsTitle: "Alert settings",
   alertsOn: "On",
   alertsOff: "Off",
   alertsThresholdSuffix: "AQI or above",
@@ -387,6 +412,23 @@ const en: Translation = {
   actionFormError: "We couldn't save the action. Try again.",
   actionFormNoStation:
     "You need an assigned sensor to log actions. Write to us if you think this is a mistake.",
+
+  // --- Sensor notifications ------------------------------------------------
+  notificationsTitle: "Sensor notifications",
+  notificationsEmptyTitle: "No notifications yet",
+  notificationsEmptyBody:
+    "This is where you'll see the alerts we send about your sensor: air quality warnings and any messages we send you.",
+  notificationsLoadMore: "See more notifications",
+  notificationsLoadingMore: "Loading…",
+  notificationsUnavailableTitle: "Notifications aren't available yet",
+  notificationsUnavailableBody:
+    "They're enabled as soon as the next version of the platform ships.",
+  notificationTypeAqi: "Air quality",
+  notificationTypeGeneral: "General",
+  notificationThreshold: "Threshold",
+  notificationsRuleLead: "We'll let you know when the air goes above",
+  notificationsRuleUnit: "AQI",
+  notificationsRuleGroups: "Watched for:",
 
   // --- Downloads -----------------------------------------------------------
   downloadsTitle: "Downloads",
@@ -537,7 +579,7 @@ const pt: Translation = {
     "{days} dias com medições, entre {min} e {max} de AQI diário.",
 
   // --- Alerts --------------------------------------------------------------
-  alertsTitle: "Alertas",
+  alertsTitle: "Configuração de alertas",
   alertsOn: "Ativos",
   alertsOff: "Desativados",
   alertsThresholdSuffix: "AQI ou mais",
@@ -581,6 +623,23 @@ const pt: Translation = {
   actionFormError: "Não conseguimos salvar a ação. Tente de novo.",
   actionFormNoStation:
     "Você precisa de um sensor atribuído para registrar ações. Escreva para nós se achar que é um erro.",
+
+  // --- Sensor notifications ------------------------------------------------
+  notificationsTitle: "Notificações do sensor",
+  notificationsEmptyTitle: "Ainda não há notificações",
+  notificationsEmptyBody:
+    "Aqui você verá os avisos que enviamos sobre o seu sensor: os alertas de qualidade do ar e as mensagens que mandarmos.",
+  notificationsLoadMore: "Ver mais notificações",
+  notificationsLoadingMore: "Carregando…",
+  notificationsUnavailableTitle: "As notificações ainda não estão disponíveis",
+  notificationsUnavailableBody:
+    "Elas são habilitadas assim que a próxima versão da plataforma for publicada.",
+  notificationTypeAqi: "Qualidade do ar",
+  notificationTypeGeneral: "Geral",
+  notificationThreshold: "Limite",
+  notificationsRuleLead: "Avisamos você quando o ar passar de",
+  notificationsRuleUnit: "AQI",
+  notificationsRuleGroups: "Pensado para:",
 
   // --- Downloads -----------------------------------------------------------
   downloadsTitle: "Downloads",

@@ -521,6 +521,56 @@ class InstitutionAlertSerializer(serializers.ModelSerializer):
         return obj.resolved_at is not None
 
 
+class InstitutionNotificationSerializer(serializers.Serializer):
+    """One notification sent about an institution's own sensor.
+
+    A plain ``Serializer`` rather than a ``ModelSerializer`` because there is no
+    single model behind it: what an institution experiences as "a notification"
+    is produced by two different tables with two different shapes —
+    :class:`InstitutionAlert` for the AQI-triggered ones and
+    :class:`PushBroadcast` for the manual, operational ones. The view normalises
+    both into the dicts this serializes, so the dashboard reads one ordered list
+    instead of having to merge two feeds itself.
+
+    Read-only throughout: notifications are produced by the platform (the
+    scheduled sender, or an operator in the admin) and only ever consulted by an
+    institution — never authored by one from the dashboard.
+
+    Everything specific to the AQI path (``aqi``, ``aqi_category``,
+    ``aqi_category_label``, ``alert_threshold``, ``alert``) is nullable, because
+    a manual announcement — "no hay clases mañana" — has no reading behind it.
+    Clients must key off ``type`` rather than assume any of those are present.
+    """
+
+    TYPE_AQI = "aqi"
+    TYPE_GENERAL = "general"
+
+    # Prefixed with its source table ("alert-12", "broadcast-7") so the merged
+    # list has stable, collision-free keys: the two tables number their rows
+    # independently, so a bare pk would repeat across the feed.
+    id = serializers.CharField(read_only=True)
+    type = serializers.ChoiceField(
+        choices=((TYPE_AQI, "AQI-triggered"), (TYPE_GENERAL, "General/manual")),
+        read_only=True,
+    )
+    title = serializers.CharField(read_only=True)
+    body = serializers.CharField(read_only=True)
+    sent_at = serializers.DateTimeField(read_only=True)
+
+    station = serializers.IntegerField(read_only=True, allow_null=True)
+    station_name = serializers.CharField(read_only=True, allow_null=True)
+
+    aqi = serializers.FloatField(read_only=True, allow_null=True)
+    aqi_category = serializers.CharField(read_only=True, allow_null=True)
+    aqi_category_label = serializers.CharField(read_only=True, allow_null=True)
+    alert_threshold = serializers.IntegerField(read_only=True, allow_null=True)
+
+    # The `InstitutionAlert` row this notification came from, when it came from
+    # one. Exposed so a client can tie a notification back to the alert an
+    # `ActionLog` entry responds to — the two features name the same event.
+    alert = serializers.IntegerField(read_only=True, allow_null=True)
+
+
 class ActionLogSerializer(serializers.ModelSerializer):
     """Create and read the actions an institution recorded.
 

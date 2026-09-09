@@ -107,9 +107,9 @@ export function HistoryChart({
 
   if (!scales) {
     return (
-      <Card>
+      <Card tone="main">
         <CardHead>
-          <CardTitle>{copy.historyTitle}</CardTitle>
+          <CardTitle level="main">{copy.historyTitle}</CardTitle>
         </CardHead>
         <StateBlock
           title={copy.historyEmptyTitle}
@@ -134,9 +134,9 @@ export function HistoryChart({
   };
 
   return (
-    <Card>
+    <Card tone="main">
       <CardHead>
-        <CardTitle>{copy.historyTitle}</CardTitle>
+        <CardTitle level="main">{copy.historyTitle}</CardTitle>
         <span className="ml-auto">
           <Pill>{copy.historySubtitle}</Pill>
         </span>
