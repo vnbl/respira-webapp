@@ -3,7 +3,11 @@ from rest_framework.routers import DefaultRouter
 
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from .exports import InstitutionMonthlyReportView, InstitutionRawExportView
+from .exports import (
+    InstitutionMonthlyReportView,
+    InstitutionRawExportView,
+    InstitutionReportMonthsView,
+)
 from .views import (
     ActionLogViewSet,
     AdminUserViewSet,
@@ -49,6 +53,11 @@ urlpatterns = [
     # Ahead of the router on purpose: it maps `institution/<pk>/` with a
     # permissive pk pattern, so registered after these it would swallow
     # `institution/export/` as a lookup for an institution called "export".
+    path(
+        r"institution/report/months/",
+        InstitutionReportMonthsView.as_view(),
+        name="institution-report-months",
+    ),
     path(
         r"institution/report/monthly/",
         InstitutionMonthlyReportView.as_view(),

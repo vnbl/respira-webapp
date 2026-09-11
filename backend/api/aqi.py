@@ -6,6 +6,7 @@ same category, interpretive message and recommendations as the mobile app for
 a given AQI value.
 """
 
+from decimal import ROUND_HALF_UP, Decimal
 from typing import TypedDict
 
 
@@ -112,6 +113,76 @@ AQI_LEVELS: list[AqiLevel] = [
         ],
     },
 ]
+
+
+# EPA breakpoint tables, mirrored from the pipeline's `dbt/macros/aqi.sql` so an
+# AQI computed here matches the one the warehouse publishes for the same
+# concentration. Each entry is (concentration_high, index_low, index_high); the
+# concentration_low of a band is the previous band's high plus one step.
+_PM25_BREAKPOINTS = [
+    (Decimal("12.0"), 0, 50),
+    (Decimal("35.4"), 51, 100),
+    (Decimal("55.4"), 101, 150),
+    (Decimal("150.4"), 151, 200),
+    (Decimal("250.4"), 201, 300),
+    (Decimal("350.4"), 301, 400),
+    (Decimal("500.4"), 401, 500),
+]
+
+_PM10_BREAKPOINTS = [
+    (Decimal("54"), 0, 50),
+    (Decimal("154"), 51, 100),
+    (Decimal("254"), 101, 150),
+    (Decimal("354"), 151, 200),
+    (Decimal("424"), 201, 300),
+    (Decimal("504"), 301, 400),
+    (Decimal("604"), 401, 500),
+]
+
+
+def _truncate(value: float | int, places: int) -> Decimal:
+    """Drop digits beyond ``places`` without rounding, as SQL ``trunc`` does."""
+    quantum = Decimal(1).scaleb(-places)
+    return Decimal(str(value)).quantize(quantum, rounding="ROUND_DOWN")
+
+
+def _aqi_from_breakpoints(
+    value: float | int | None, breakpoints, places: int
+) -> int | None:
+    """Piecewise-linear AQI, matching ``aqi_linear`` in the dbt macro.
+
+    Returns ``None`` for a missing or negative concentration, and caps at 500
+    above the last band — both the same as the macro.
+    """
+    if value is None:
+        return None
+    concentration = _truncate(value, places)
+    if concentration < 0:
+        return None
+
+    step = Decimal(1).scaleb(-places)
+    low = Decimal(0)
+    for high, index_low, index_high in breakpoints:
+        if concentration <= high:
+            span = high - low
+            if span <= 0:
+                return index_low
+            raw = (
+                (Decimal(index_high - index_low) / span) * (concentration - low)
+            ) + index_low
+            return int(raw.quantize(Decimal(1), rounding=ROUND_HALF_UP))
+        low = high + step
+    return 500
+
+
+def aqi_from_pm25(value: float | int | None) -> int | None:
+    """AQI for a PM2.5 concentration, truncated to one decimal first."""
+    return _aqi_from_breakpoints(value, _PM25_BREAKPOINTS, 1)
+
+
+def aqi_from_pm10(value: float | int | None) -> int | None:
+    """AQI for a PM10 concentration, truncated to a whole number first."""
+    return _aqi_from_breakpoints(value, _PM10_BREAKPOINTS, 0)
 
 
 def classify_aqi(value: float | int | None) -> AqiLevel | None:

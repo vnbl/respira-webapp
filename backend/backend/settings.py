@@ -142,6 +142,11 @@ MAX_FOLLOWS_PER_INSTALLATION = _env_int("BACKEND_MAX_FOLLOWS_PER_INSTALLATION", 
 # offers --dry-run and --force.
 SENSOR_ALERTS_ENABLED = _env_bool("BACKEND_SENSOR_ALERTS_ENABLED", False)
 
+# Token for the AirGradient public API, which serves the institutional raw
+# export (api.airgradient). Unset by default: without it the export returns a
+# clear error instead of an empty spreadsheet.
+AIRGRADIENT_API_TOKEN = _env_str("BACKEND_AIRGRADIENT_API_TOKEN", "")
+
 SPECTACULAR_SETTINGS = {
     "TITLE": "RespiraAPI",
     "DESCRIPTION": "This is the Respira API",

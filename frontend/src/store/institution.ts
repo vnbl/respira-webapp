@@ -20,6 +20,7 @@ import {
   type Institution,
   type InstitutionAlert,
   type InstitutionDashboard,
+  type InstitutionNotification,
   type Paginated,
 } from "../data/institution";
 import { getBackendUrl } from "./runtime-config";
@@ -336,6 +337,31 @@ export const fetchInstitutionAlerts = async (
   return Array.isArray(payload) ? payload : payload.results;
 };
 
+/**
+ * The notifications sent about the institution's sensor, newest first.
+ *
+ * Both response shapes are accepted, like `fetchInstitutionAlerts`: the
+ * endpoint is a router action on a viewset that sets no `pagination_class`, so
+ * today it answers a plain array and only starts wrapping results in a page
+ * object if one is configured later. Normalised here so the panel's paging
+ * logic has one shape to read either way.
+ */
+export const fetchInstitutionNotifications = async (
+  page = 1,
+  cookie?: string,
+): Promise<Paginated<InstitutionNotification>> => {
+  const payload = await requestJson<
+    Paginated<InstitutionNotification> | InstitutionNotification[]
+  >(`${INSTITUTION_ENDPOINTS.notifications}?page=${page}`, {
+    cookie,
+    treat404AsUnavailable: true,
+  });
+
+  return Array.isArray(payload)
+    ? { count: payload.length, next: null, previous: null, results: payload }
+    : payload;
+};
+
 export const createActionLog = (draft: ActionLogDraft): Promise<ActionLog> =>
   requestJson<ActionLog>(INSTITUTION_ENDPOINTS.actionLogs, {
     method: "POST",
@@ -359,22 +385,81 @@ export type DownloadKind = "monthlyReport" | "rawExport";
  * Goes through `fetch` rather than a plain link so a 401/403/404 surfaces as an
  * error in the UI instead of navigating the visitor to a JSON error page.
  */
+export type DownloadOutcome = {
+  /**
+   * How many sub-ranges the sensor API failed to serve, from
+   * `X-Respira-Partial-Export`. Zero for a complete file. The raw export is
+   * fetched live and window by window, so it can succeed with gaps — the file
+   * is still worth handing over, but the caller has to be able to say so.
+   */
+  missingRanges: number;
+};
+
+export type ReportMonth = { month: string; label: string };
+
+/**
+ * The months the institution actually has readings for, plus the one to
+ * preselect. Drives the report's month selector: offering every month since the
+ * contract began would let a visitor pick one that yields an empty report.
+ */
+export const fetchReportMonths = async (
+  cookie?: string,
+): Promise<{ months: ReportMonth[]; default: string | null }> =>
+  requestJson<{ months: ReportMonth[]; default: string | null }>(
+    INSTITUTION_ENDPOINTS.reportMonths,
+    { cookie, treat404AsUnavailable: true },
+  );
+
 export const downloadInstitutionFile = async (
   kind: DownloadKind,
-): Promise<void> => {
-  const response = await request(INSTITUTION_ENDPOINTS[kind], {
+  options: { month?: string } = {},
+): Promise<DownloadOutcome> => {
+  const endpoint = options.month
+    ? `${INSTITUTION_ENDPOINTS[kind]}?month=${encodeURIComponent(options.month)}`
+    : INSTITUTION_ENDPOINTS[kind];
+  const response = await request(endpoint, {
     treat404AsUnavailable: true,
   });
 
+  const missingRanges = Number(
+    response.headers.get("X-Respira-Partial-Export") ?? 0,
+  );
+
   const blob = await response.blob();
+  const filename = filenameFromResponse(response, kind);
+
+  // `msSaveOrOpenBlob` is the only path that works in embedded WebViews which
+  // block navigation to blob: URLs (VS Code's Simple Browser among them); the
+  // anchor click below silently does nothing there.
+  const legacySave = (
+    navigator as Navigator & {
+      msSaveOrOpenBlob?: (blob: Blob, filename: string) => boolean;
+    }
+  ).msSaveOrOpenBlob;
+  if (typeof legacySave === "function") {
+    legacySave.call(navigator, blob, filename);
+    return {
+      missingRanges: Number.isFinite(missingRanges) ? missingRanges : 0,
+    };
+  }
+
   const url = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = url;
-  link.download = filenameFromResponse(response, kind);
+  link.download = filename;
+  // `rel=noopener` matters for the fallback below, where a blocked download can
+  // fall back to opening the blob in a tab.
+  link.rel = "noopener";
   document.body.appendChild(link);
   link.click();
   link.remove();
-  URL.revokeObjectURL(url);
+  // Revoking in the same tick can invalidate the URL before the browser has
+  // started reading it — the download then fails silently, with no error to
+  // catch. One minute is far longer than any handoff needs and still bounds the
+  // memory the blob holds.
+  window.setTimeout(() => URL.revokeObjectURL(url), 60_000);
+
+  return { missingRanges: Number.isFinite(missingRanges) ? missingRanges : 0 };
 };
 
 const FALLBACK_FILENAME: Record<DownloadKind, string> = {

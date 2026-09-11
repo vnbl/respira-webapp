@@ -78,12 +78,20 @@ const lastReading =
 ---
 
 <InstitutionLayout title={copy.pageTitle} institutionName={name}>
-  <div class="mx-auto flex max-w-[1400px] flex-col gap-5 px-4 py-7 md:px-6">
-    <div class="flex flex-wrap items-end gap-4">
-      <h1 class="m-0 font-serif text-2xl font-bold">{copy.pageTitle}</h1>
+  <div class="mx-auto flex max-w-[1400px] flex-col gap-7 px-4 py-8 md:px-6">
+    {
+      /* The page title outweighs every section heading under it, so the panel
+        has one clear entry point rather than nine headings of equal rank. */
+    }
+    <div class="flex flex-wrap items-baseline gap-x-4 gap-y-1">
+      <h1
+        class="m-0 font-serif text-[28px] font-bold leading-tight md:text-[32px]"
+      >
+        {copy.pageTitle}
+      </h1>
       {
         lastReading && (
-          <span class="ml-auto text-xs text-gray tabular-nums">
+          <span class="text-xs text-gray tabular-nums sm:ml-auto">
             {copy.updatedAt} {formatDateTime(lastReading)}
           </span>
         )
@@ -99,22 +107,25 @@ const lastReading =
     />
 
     {
+      /*
+        A footer, not a card: this is where to write if something looks wrong,
+        which nobody needs on the way in. Drawn as a rule and a line of text on
+        the page's own ground, it closes the panel instead of competing with
+        the sections above it for a reading turn.
+      */
       contactMail && (
-        <section class="rounded-xl border border-bg-gray bg-white p-5">
-          <h2 class="m-0 text-xs font-bold uppercase tracking-[0.1em] text-gray">
-            {copy.contactTitle}
-          </h2>
-          <p class="m-0 mt-3 text-[13px]">
-            {copy.contactEmail}:{" "}
-            <a
-              class="font-semibold text-green_dark hover:underline"
-              href={`mailto:${contactMail}`}
-            >
-              {contactMail}
-            </a>
-          </p>
-          <p class="m-0 mt-1 text-xs text-lightgray">{copy.contactHint}</p>
-        </section>
+        <footer class="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1 border-t border-bg-gray pt-5 text-[13px] text-gray">
+          <span>{copy.contactTitle}:</span>
+          <a
+            class="font-semibold text-green_dark hover:underline"
+            href={`mailto:${contactMail}`}
+          >
+            {contactMail}
+          </a>
+          <span class="text-xs text-lightgray sm:ml-auto">
+            {copy.contactHint}
+          </span>
+        </footer>
       )
     }
   </div>

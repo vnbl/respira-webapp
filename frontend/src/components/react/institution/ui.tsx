@@ -10,16 +10,41 @@ import type { ReactNode } from "react";
 
 // --- Card -------------------------------------------------------------------
 
+/**
+ * A panel surface.
+ *
+ * `tone` is the card's rank on the page, not a colour: every surface stays
+ * white, and what separates them is padding and border weight. A dashboard
+ * where nine cards are drawn identically gives the eye no order to read them
+ * in, and the AQI of the day ends up carrying the same weight as the contact
+ * footer.
+ *
+ * - `main` — the sections the panel exists for. More air, and a slightly
+ *   stronger edge, so they read as the primary blocks.
+ * - `plain` — the default: everything else.
+ * - `quiet` — supporting matter (the contact details). Sits on the page
+ *   without asking to be read first.
+ */
+type CardTone = "main" | "plain" | "quiet";
+
+const CARD_TONE: Record<CardTone, string> = {
+  main: "gap-5 p-6 border-basedark/60",
+  plain: "gap-4 p-5 border-bg-gray",
+  quiet: "gap-3 p-5 border-bg-gray",
+};
+
 export function Card({
   children,
+  tone = "plain",
   className = "",
 }: {
   children: ReactNode;
+  tone?: CardTone;
   className?: string;
 }) {
   return (
     <section
-      className={`flex flex-col gap-4 rounded-xl border border-bg-gray bg-white p-5 ${className}`}
+      className={`flex flex-col rounded-xl border bg-white ${CARD_TONE[tone]} ${className}`}
     >
       {children}
     </section>
@@ -30,9 +55,26 @@ export function CardHead({ children }: { children: ReactNode }) {
   return <div className="flex items-center gap-3">{children}</div>;
 }
 
-export function CardTitle({ children }: { children: ReactNode }) {
+/**
+ * A section heading.
+ *
+ * `level` mirrors `Card`'s tone. The uppercase micro-label is right for a
+ * supporting card but too quiet for a section someone is meant to land on, so
+ * the main ones get the serif face the page's own title uses — the same
+ * distinction the AQI panel already makes with `category_label`.
+ */
+export function CardTitle({
+  children,
+  level = "section",
+}: {
+  children: ReactNode;
+  level?: "main" | "section";
+}) {
+  if (level === "main") {
+    return <h2 className="m-0 font-serif text-lg font-bold">{children}</h2>;
+  }
   return (
-    <h2 className="text-xs font-bold uppercase tracking-[0.1em] text-gray">
+    <h2 className="m-0 text-xs font-bold uppercase tracking-[0.1em] text-gray">
       {children}
     </h2>
   );
@@ -207,6 +249,57 @@ export function FieldLabel({
     <label htmlFor={htmlFor} className="text-xs font-semibold text-gray">
       {children}
     </label>
+  );
+}
+
+/**
+ * A `<select>` with the panel's own chevron.
+ *
+ * `appearance-none` drops the platform arrow, which is what makes a native
+ * select look like a different control on every OS, and the chevron is drawn
+ * over it instead. The element itself stays a real `<select>`, so keyboard
+ * behaviour, the mobile wheel picker and screen-reader semantics are the
+ * browser's rather than something reimplemented here.
+ */
+export function Select({
+  id,
+  value,
+  onChange,
+  children,
+  disabled = false,
+}: {
+  id?: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <select
+        id={id}
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className={`${fieldClassName} cursor-pointer appearance-none pr-9 font-semibold disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {children}
+      </select>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 16 16"
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray"
+      >
+        <path
+          d="M4 6.5 8 10.5 12 6.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
   );
 }
 
