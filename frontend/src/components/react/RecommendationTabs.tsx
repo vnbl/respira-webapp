@@ -19,17 +19,16 @@ export function RecommendationTabs() {
     <Tabs value={AQI[0].color} className="hidden md:block">
       <TabsHeader
         placeholder="HEADER"
-        className="bg-transparent rounded-xl overflow-clip"
-        indicatorProps={{
-          className: "border-2 bg-transparent text-black first:rounded-l-xl",
-        }}
+        className="bg-transparent rounded-xl overflow-visible items-stretch p-0"
+        indicatorProps={{ className: "hidden" }}
       >
         {data.map(({ id, color }) => (
           <Tab
             key={color}
             value={color}
             placeholder={""}
-            className={`bg-${color} min-h-16 text-${getTextColor(color)} font-semibold first:rounded-l-xl last:rounded-r-xl `}
+            activeClassName="ring-2 ring-inset ring-black z-10"
+            className={`bg-${color} basis-0 grow min-h-16 px-1 py-2 text-${getTextColor(color)} font-semibold first:rounded-l-xl last:rounded-r-xl text-[0.75rem] lg:text-[0.875rem] leading-tight hyphens-auto break-words`}
           >
             {t(`aqi.${id}.title` as UIKey)}
           </Tab>
