@@ -252,6 +252,57 @@ export function FieldLabel({
   );
 }
 
+/**
+ * A `<select>` with the panel's own chevron.
+ *
+ * `appearance-none` drops the platform arrow, which is what makes a native
+ * select look like a different control on every OS, and the chevron is drawn
+ * over it instead. The element itself stays a real `<select>`, so keyboard
+ * behaviour, the mobile wheel picker and screen-reader semantics are the
+ * browser's rather than something reimplemented here.
+ */
+export function Select({
+  id,
+  value,
+  onChange,
+  children,
+  disabled = false,
+}: {
+  id?: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: ReactNode;
+  disabled?: boolean;
+}) {
+  return (
+    <div className="relative">
+      <select
+        id={id}
+        value={value}
+        disabled={disabled}
+        onChange={(event) => onChange(event.target.value)}
+        className={`${fieldClassName} cursor-pointer appearance-none pr-9 font-semibold disabled:cursor-not-allowed disabled:opacity-60`}
+      >
+        {children}
+      </select>
+      <svg
+        aria-hidden="true"
+        viewBox="0 0 16 16"
+        className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray"
+      >
+        <path
+          d="M4 6.5 8 10.5 12 6.5"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="1.75"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+    </div>
+  );
+}
+
 export function DownloadIcon() {
   return (
     <svg

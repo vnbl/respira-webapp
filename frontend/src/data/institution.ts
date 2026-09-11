@@ -35,6 +35,8 @@ export const INSTITUTION_ENDPOINTS = {
   // announcements server-side, so this is one paginated, ordered feed.
   notifications: "/institution/notifications/",
 
+  // The months that actually have readings, for the report's month selector.
+  reportMonths: "/institution/report/months/",
   monthlyReport: "/institution/report/monthly/",
   rawExport: "/institution/export/",
 } as const;

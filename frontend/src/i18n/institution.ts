@@ -216,13 +216,24 @@ const es = {
 
   // --- Downloads -----------------------------------------------------------
   downloadsTitle: "Descargas",
+  // Doubles as the month field's label and as the button when no month is
+  // chosen yet, so it names the thing rather than the action.
   downloadMonthly: "Reporte mensual (PDF)",
   downloadMonthlyNote: "Resumen del último mes cerrado.",
-  downloadRaw: "Historial crudo (Excel)",
+  downloadRaw: "Historial crudo (CSV)",
   downloadRawNote: "Todas las mediciones desde el inicio del contrato.",
   downloadPreparing: "Generando…",
   downloadUnavailable: "Esta descarga todavía no está disponible.",
   downloadError: "No pudimos generar el archivo. Intentá de nuevo.",
+  downloadPartial:
+    "Descargamos el archivo, pero faltan algunos períodos que el sensor no pudo entregar.",
+
+  // `{month}` is filled in by the card; see `formatMonthNote`.
+  reportDownloadPdf: "Descargar PDF",
+  reportMonthsLoading: "Cargando meses disponibles…",
+  reportNoMonths: "Todavía no hay meses con mediciones.",
+  reportMonthsError:
+    "No pudimos cargar los meses disponibles. Se descargará el último mes cerrado.",
 
   // --- Contact -------------------------------------------------------------
   contactTitle: "Tu contacto en Respira",
@@ -434,11 +445,19 @@ const en: Translation = {
   downloadsTitle: "Downloads",
   downloadMonthly: "Monthly report (PDF)",
   downloadMonthlyNote: "Summary of the last completed month.",
-  downloadRaw: "Raw history (Excel)",
+  downloadRaw: "Raw history (CSV)",
   downloadRawNote: "Every reading since the contract started.",
   downloadPreparing: "Generating…",
   downloadUnavailable: "This download isn't available yet.",
   downloadError: "We couldn't generate the file. Try again.",
+  downloadPartial:
+    "The file downloaded, but some periods are missing because the sensor could not provide them.",
+
+  reportDownloadPdf: "Download PDF",
+  reportMonthsLoading: "Loading available months…",
+  reportNoMonths: "No months with measurements yet.",
+  reportMonthsError:
+    "We couldn't load the available months. The last complete month will be downloaded.",
 
   // --- Contact -------------------------------------------------------------
   contactTitle: "Your contact at Respira",
@@ -645,11 +664,19 @@ const pt: Translation = {
   downloadsTitle: "Downloads",
   downloadMonthly: "Relatório mensal (PDF)",
   downloadMonthlyNote: "Resumo do último mês fechado.",
-  downloadRaw: "Histórico bruto (Excel)",
+  downloadRaw: "Histórico bruto (CSV)",
   downloadRawNote: "Todas as medições desde o início do contrato.",
   downloadPreparing: "Gerando…",
   downloadUnavailable: "Este download ainda não está disponível.",
   downloadError: "Não conseguimos gerar o arquivo. Tente de novo.",
+  downloadPartial:
+    "Baixamos o arquivo, mas faltam alguns períodos que o sensor não conseguiu entregar.",
+
+  reportDownloadPdf: "Baixar PDF",
+  reportMonthsLoading: "Carregando meses disponíveis…",
+  reportNoMonths: "Ainda não há meses com medições.",
+  reportMonthsError:
+    "Não conseguimos carregar os meses disponíveis. Será baixado o último mês fechado.",
 
   // --- Contact -------------------------------------------------------------
   contactTitle: "Seu contato na Respira",

@@ -78,6 +78,41 @@ export const formatTime = format(timeFormatter);
 /** `ago.` — axis ticks on the history chart. */
 export const formatMonth = (date: Date): string => monthFormatter.format(date);
 
+const MONTH_LOCALE: Record<string, string> = {
+  es: "es-PY",
+  en: "en-GB",
+  pt: "pt-BR",
+};
+
+/**
+ * A `YYYY-MM` month, named in the reader's own language.
+ *
+ * The API labels months in Spanish — it serves the PDF, which is Spanish
+ * whatever the panel is set to. In the interface the month is read as a word,
+ * so a Spanish label inside an English sentence reads as a bug; the string is
+ * rebuilt here instead. Falls back to whatever the API sent if the value is not
+ * a month, so a format change degrades to the server's wording rather than to
+ * an empty control.
+ */
+export const formatMonthName = (
+  month: string,
+  lang: string,
+  fallback: string,
+): string => {
+  const match = /^(\d{4})-(\d{2})$/.exec(month);
+  if (!match) return fallback;
+  const [, year, monthNumber] = match;
+  // Day 1 at noon, like `parseApiDate`: far from either day boundary.
+  const date = new Date(Number(year), Number(monthNumber) - 1, 1, 12, 0, 0);
+  const formatted = new Intl.DateTimeFormat(MONTH_LOCALE[lang] ?? LOCALE, {
+    month: "long",
+    year: "numeric",
+  }).format(date);
+  // Spanish and Portuguese give "agosto de 2026" lowercase; sentence case reads
+  // better as a standalone label in a control.
+  return formatted.charAt(0).toUpperCase() + formatted.slice(1);
+};
+
 /**
  * A `YYYY-MM-DD` API date as a Date at local noon.
  *

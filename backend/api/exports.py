@@ -1,11 +1,24 @@
 """File exports for the institutional dashboard (RES-328).
 
-Two downloads, both scoped to the caller's own institution and both built from
-``station_readings_gold`` — the same readings the dashboard aggregates, so a
-number in a report can always be traced back to the panel it came from:
+Two downloads, both scoped to the caller's own institution:
 
-* a monthly PDF report, summarising one calendar month;
-* a raw XLSX export of every reading in a date range.
+* a monthly PDF report, summarising one calendar month, built from
+  ``station_readings_gold`` — the same readings the dashboard aggregates, so a
+  number in a report can always be traced back to the panel it came from;
+* a raw CSV export of every reading in a date range, read live from the
+  AirGradient API (see ``airgradient.py``).
+
+The raw export deliberately bypasses the warehouse: gold keeps only the
+particulate columns the forecast needs, while the sensor also reports CO2,
+temperature, humidity and VOC/NOx indices, and institutions asked for all of it.
+
+It reproduces AirGradient's own export format byte for byte — their column
+names and order, their row order, their timestamp formats, a UTF-8 BOM — so a
+file downloaded from the panel and one downloaded from AirGradient's portal can
+be used interchangeably, and an institution already working with theirs does not
+have to rewrite anything. Deviating would make the panel's file the odd one out,
+so ``_CSV_COLUMNS`` is a specification, not a preference: it is worth checking
+against a fresh AirGradient export before changing it.
 
 Kept in its own module rather than in ``views.py``: the PDF and spreadsheet
 machinery has nothing to do with the JSON API, and isolating it keeps that file
@@ -18,7 +31,9 @@ first. The API's JSON keeps sending UTC; only these human-facing files localise.
 
 from __future__ import annotations
 
+import csv
 import io
+import logging
 import zoneinfo
 from datetime import date, datetime, time, timedelta
 from datetime import timezone as dt_timezone
@@ -26,13 +41,12 @@ from typing import Any
 
 from dateutil.relativedelta import relativedelta
 from django.db.models import Avg, Count, Max, Min
-from django.db.models.functions import TruncDate
+from django.db.models.functions import TruncDate, TruncMonth
 from django.http import HttpResponse
 from django.utils import timezone
 from django.utils.text import slugify
 from drf_spectacular.types import OpenApiTypes
 from drf_spectacular.utils import OpenApiParameter, extend_schema
-from openpyxl import Workbook
 from reportlab.lib import colors
 from reportlab.lib.enums import TA_LEFT
 from reportlab.lib.pagesizes import A4
@@ -48,11 +62,20 @@ from reportlab.platypus import (
 )
 from rest_framework.exceptions import NotFound, ValidationError
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from .airgradient import (
+    AirGradientError,
+    fetch_past_measures,
+    location_id_for_station,
+    location_type,
+)
 from .aqi import AQI_LEVELS, classify_aqi
 from .models import ActionLog, StationReadingsGold, get_institution_for_user
 from .permissions import IsInstitutionUser
+
+logger = logging.getLogger(__name__)
 
 REPORT_TIME_ZONE = zoneinfo.ZoneInfo("America/Asuncion")
 
@@ -73,10 +96,12 @@ AQI_BAND_COLORS = {
     "hazardous": colors.HexColor("#98334F"),
 }
 
-# A guard, not a product decision: an unbounded range on a busy station would
-# build a workbook far larger than a browser will happily download. Callers who
-# hit it are told to narrow the range rather than being handed a truncated file.
-MAX_EXPORT_ROWS = 200_000
+# A guard, not a product decision: the sensor API serves 10 days per call, so an
+# unbounded range would fan out into hundreds of upstream requests inside one
+# HTTP response. A year of 5-minute buckets is ~105k rows, which a browser still
+# downloads happily; callers past that are told to narrow the range rather than
+# being handed a truncated file.
+MAX_EXPORT_DAYS = 366
 
 
 # --- shared helpers ---------------------------------------------------------
@@ -120,6 +145,36 @@ def _parse_month(raw: str | None) -> date:
         )
 
 
+def _available_months(station_id: int, contract_start: date) -> list[date]:
+    """The months the station actually recorded readings in, oldest first.
+
+    Drives the month selector: offering a month with no readings would hand the
+    institution an empty report and no explanation. Months before the contract
+    started are excluded even when the station has older readings — those
+    predate the institution's relationship with the sensor.
+    """
+    rows = (
+        StationReadingsGold.objects.filter(
+            station_id=station_id, aqi_pm2_5__isnull=False
+        )
+        .annotate(month=TruncMonth("date_utc"))
+        .values("month")
+        .annotate(readings=Count("id"))
+        .order_by("month")
+    )
+    first_of_contract = contract_start.replace(day=1)
+    months = []
+    for row in rows:
+        month = row["month"]
+        if month is None:
+            continue
+        month = month.date() if isinstance(month, datetime) else month
+        month = month.replace(day=1)
+        if month >= first_of_contract:
+            months.append(month)
+    return months
+
+
 def _parse_date(raw: str | None, field: str) -> date | None:
     if not raw:
         return None
@@ -150,6 +205,22 @@ def _readings(station_id: int, start: datetime, end: datetime):
 def _filename(prefix: str, institution, suffix: str, extension: str) -> str:
     name = slugify(institution.display_name or institution.legal_name) or "institucion"
     return f"{prefix}-{name}-{suffix}.{extension}"
+
+
+def _airgradient_filename(station, start: date, end: date) -> str:
+    """A filename shaped like AirGradient's own export.
+
+    Theirs reads ``export_Encarnación_-_Costanera_10m_2026-08-01_2026-08-31.csv``
+    — the location name with spaces as underscores (accents intact), the bucket
+    width, then the range. The bucket is reported by the API per row rather than
+    chosen by us, and mixed widths are possible across a long range, so the
+    interval segment is omitted rather than stated wrongly.
+    """
+    name = (station.name or "").strip() or "sensor"
+    # Their file keeps the accents and only swaps spaces; `_attachment` sends an
+    # RFC 5987 header, so non-ASCII survives the download.
+    name = name.replace(" ", "_")
+    return f"export_{name}_{start.isoformat()}_{end.isoformat()}.csv"
 
 
 def _attachment(content: bytes, filename: str, content_type: str) -> HttpResponse:
@@ -510,6 +581,15 @@ class InstitutionMonthlyReportView(APIView):
         institution, contract = _contract_for_request(request)
         month_start = _parse_month(request.query_params.get("month"))
 
+        # A month that has not happened yet is a mistake, not an empty report:
+        # answering 200 with a blank PDF looks like the sensor recorded nothing,
+        # which is a different and much more alarming statement.
+        today = timezone.now().astimezone(REPORT_TIME_ZONE).date()
+        if month_start > today.replace(day=1):
+            raise ValidationError(
+                {"month": "That month has not started yet; pick an earlier one."}
+            )
+
         alert_config = getattr(institution, "alert_config", None)
         threshold = (
             alert_config.alert_threshold
@@ -530,44 +610,208 @@ class InstitutionMonthlyReportView(APIView):
         )
 
 
-# --- raw XLSX export --------------------------------------------------------
+@extend_schema(
+    tags=["Institutional Dashboard"],
+    summary="List the months the institution has a report for",
+    description=(
+        "The months the institution's own sensor recorded readings in, oldest "
+        "first, each as `YYYY-MM` with its reading count. Drives the month "
+        "selector: a month absent from this list would produce an empty "
+        "report. Scoped to the caller's institution and to months on or after "
+        "its contract start. Returns 404 when the institution has no assigned "
+        "sensor."
+    ),
+    responses={200: OpenApiTypes.OBJECT},
+)
+class InstitutionReportMonthsView(APIView):
+    permission_classes = [IsAuthenticated, IsInstitutionUser]
+    http_method_names = ["get"]
 
-_EXPORT_COLUMNS = [
-    ("Fecha y hora (Asunción)", "date_utc"),
-    ("PM1", "pm1"),
-    ("PM2.5", "pm2_5"),
-    ("PM10", "pm10"),
-    ("AQI PM2.5", "aqi_pm2_5"),
-    ("AQI PM10", "aqi_pm10"),
+    def get(self, request, *args, **kwargs):
+        _institution, contract = _contract_for_request(request)
+        months = _available_months(contract.station_id, contract.start_date)
+        return Response(
+            {
+                "months": [
+                    {"month": month.strftime("%Y-%m"), "label": _month_label(month)}
+                    for month in months
+                ],
+                # The one the panel should preselect: the most recent complete
+                # month that actually has data, falling back to the newest month
+                # available when the current one is all there is.
+                "default": _default_month(months).strftime("%Y-%m") if months else None,
+            }
+        )
+
+
+def _default_month(months: list[date]) -> date:
+    """The month a freshly opened selector should show.
+
+    Prefers the newest *complete* month, matching the report endpoint's own
+    default — a report for a month still in progress changes between downloads.
+    """
+    if not months:
+        raise ValueError("no months available")
+    today = timezone.now().astimezone(REPORT_TIME_ZONE).date().replace(day=1)
+    complete = [month for month in months if month < today]
+    return complete[-1] if complete else months[-1]
+
+
+# --- raw CSV export ---------------------------------------------------------
+
+# The column set AirGradient's own portal exports, in its order and with its
+# labels, so a file downloaded here opens interchangeably with one downloaded
+# from them. Note the micro sign: their header uses U+03BC (GREEK SMALL LETTER
+# MU), not U+00B5 (MICRO SIGN), and a diffing tool would flag the difference.
+#
+# Three of their columns cannot be filled from the public API and are written
+# empty rather than guessed: "Location Group" and "Place Open" are portal-side
+# metadata the API never returns, and "TVOC (ppb)" is empty in their own export
+# too (the sensor reports only the index). "Heat Index (°C)" is theirs to
+# compute — see `_HEAT_INDEX_NOTE` below.
+_CSV_COLUMNS: list[str] = [
+    "Location ID",
+    "Location Name",
+    "Location Group",
+    "Location Type",
+    "Sensor ID",
+    "Place Open",
+    "Local Date/Time",
+    "UTC Date/Time",
+    "# of aggregated records",
+    "PM2.5 (μg/m³) raw",
+    "PM2.5 (μg/m³) corrected",
+    "0.3μm particle count",
+    "CO2 (ppm) raw",
+    "CO2 (ppm) corrected",
+    "Temperature (°C) raw",
+    "Temperature (°C) corrected",
+    "Heat Index (°C)",
+    "Humidity (%) raw",
+    "Humidity (%) corrected",
+    "TVOC (ppb)",
+    "TVOC index",
+    "NOX index",
+    "PM1 (μg/m³)",
+    "PM10 (μg/m³)",
 ]
 
+# "Heat Index (°C)" is left empty on purpose. AirGradient's values match neither
+# the NWS/Rothfusz heat index nor Steadman's apparent temperature (checked
+# against 2789 rows of their own export: best fit still missed by up to 5.5 °C,
+# and their figure can sit below the dry-bulb temperature, which Rothfusz never
+# does). Writing a plausible-looking number that disagreed with theirs would be
+# worse than leaving the cell blank, so the column is kept for shape and left
+# for them to fill.
+_HEAT_INDEX_NOTE = "not derivable from the public API"
 
-def build_raw_export_xlsx(institution, contract, rows) -> bytes:
-    # `write_only` streams rows to the archive instead of holding a cell object
-    # per value: a year of hourly readings is ~9k rows, and this keeps the
-    # memory flat if a station ever reports far more often than that.
-    workbook = Workbook(write_only=True)
-    sheet = workbook.create_sheet(title="Mediciones")
-    sheet.append([label for label, _ in _EXPORT_COLUMNS])
+def _number(value: Any) -> Any:
+    """Coerce an API value to a real number.
+
+    AirGradient sends some fields as strings (``batteryVoltage`` is ``"10.40"``,
+    ``datapoints`` is ``"2"``); left as text they sort and chart wrongly.
+    """
+    if value is None or value == "":
+        return None
+    if isinstance(value, bool):
+        return value
+    if isinstance(value, (int, float)):
+        return value
+    try:
+        number = float(value)
+    except (TypeError, ValueError):
+        return value
+    return int(number) if number.is_integer() else number
+
+
+def _parse_timestamp(raw: str | None) -> datetime | None:
+    if not raw:
+        return None
+    try:
+        # `Z` is not accepted by `fromisoformat` before 3.11.
+        return datetime.fromisoformat(raw.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+
+
+def _stamp_rows(rows: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Parse each row's timestamp once, into ``_moment``."""
+    for row in rows:
+        row["_moment"] = _parse_timestamp(row.get("timestamp"))
+    return rows
+
+
+def _csv_value(value: Any) -> str:
+    """Render a value the way AirGradient's own export does.
+
+    Whole numbers lose their decimal point (their CO2 column is ``447``, not
+    ``447.0``) and missing values are written as an empty field rather than as
+    ``None``.
+    """
+    number = _number(value)
+    if number is None:
+        return ""
+    if isinstance(number, float) and number.is_integer():
+        return str(int(number))
+    return str(number)
+
+
+def build_raw_export_csv(location_type: str, rows) -> bytes:
+    """The measurements as a CSV matching AirGradient's own export byte for byte.
+
+    Written with CRLF-free ``\\n`` line endings, no trailing newline and a UTF-8
+    BOM, all three copied from their file: the BOM is what makes Excel open the
+    accented column headers correctly on Windows.
+    """
+    buffer = io.StringIO()
+    # `lineterminator` overrides csv's default CRLF; quoting matches theirs,
+    # which only quotes a field when it holds a comma.
+    writer = csv.writer(buffer, lineterminator="\n")
+    writer.writerow(_CSV_COLUMNS)
 
     for row in rows:
-        moment = _localise(row["date_utc"])
-        sheet.append(
+        moment = row.get("_moment")
+        local = _localise(moment)
+        serial = row.get("serialno") or ""
+        writer.writerow(
             [
-                # Naive local time: Excel has no time-zone type, and a value
-                # carrying an offset shows up as text in most spreadsheets.
-                moment.replace(tzinfo=None) if moment else None,
-                row["pm1"],
-                row["pm2_5"],
-                row["pm10"],
-                row["aqi_pm2_5"],
-                row["aqi_pm10"],
+                _csv_value(row.get("locationId")),
+                row.get("locationName") or "",
+                "",  # Location Group — portal metadata, not in the API
+                (location_type or "").capitalize(),
+                f"airgradient:{serial}" if serial else "",
+                "",  # Place Open — portal metadata, not in the API
+                local.strftime("%Y-%m-%d %H:%M:%S") if local else "",
+                (
+                    moment.astimezone(dt_timezone.utc).strftime(
+                        "%Y-%m-%dT%H:%M:%S.000Z"
+                    )
+                    if moment
+                    else ""
+                ),
+                _csv_value(row.get("datapoints")),
+                _csv_value(row.get("pm02")),
+                _csv_value(row.get("pm02_corrected")),
+                _csv_value(row.get("pm003Count")),
+                _csv_value(row.get("rco2")),
+                _csv_value(row.get("rco2_corrected")),
+                _csv_value(row.get("atmp")),
+                _csv_value(row.get("atmp_corrected")),
+                "",  # Heat Index — see `_HEAT_INDEX_NOTE`
+                _csv_value(row.get("rhum")),
+                _csv_value(row.get("rhum_corrected")),
+                _csv_value(row.get("tvoc")),
+                _csv_value(row.get("tvocIndex")),
+                _csv_value(row.get("noxIndex")),
+                _csv_value(row.get("pm01")),
+                _csv_value(row.get("pm10")),
             ]
         )
 
-    buffer = io.BytesIO()
-    workbook.save(buffer)
-    return buffer.getvalue()
+    body = buffer.getvalue()
+    if body.endswith("\n"):
+        body = body[:-1]
+    return body.encode("utf-8-sig")
 
 
 @extend_schema(
@@ -575,11 +819,16 @@ def build_raw_export_xlsx(institution, contract, rows) -> bytes:
     summary="Download the institution's raw measurement history",
     description=(
         "Every reading recorded by the institution's own sensor in the "
-        "requested range, as an XLSX spreadsheet. Defaults to the whole "
-        "contract, from its start date to today. Timestamps are converted to "
-        "Asunción local time. Returns 404 when the institution has no "
-        "assigned sensor, and 400 when the range holds more rows than a "
-        "single file should carry."
+        "requested range, read live from the AirGradient API and written as "
+        "a CSV in exactly the format AirGradient's own portal exports — same "
+        "columns, same order, same labels, newest row first — so the two "
+        "files are interchangeable. Defaults to the whole contract, from its "
+        "start date to today. Timestamps are given in both sensor-local time "
+        "and UTC. Returns 404 when the institution has no assigned sensor or "
+        "the sensor is not linked to the provider, and 400 when the range is "
+        "longer than a single export may carry or the provider is "
+        "unreachable. An `X-Respira-Partial-Export` header on a 200 counts "
+        "the sub-ranges the provider failed to serve."
     ),
     parameters=[
         OpenApiParameter(
@@ -619,36 +868,83 @@ class InstitutionRawExportView(APIView):
         if end < start:
             raise ValidationError({"to": "The end date cannot precede the start date."})
 
-        # `end` is inclusive for the caller; the query bound is exclusive.
-        lower, upper = _range_bounds(start, end + timedelta(days=1))
-
-        queryset = (
-            _readings(contract.station_id, lower, upper)
-            .order_by("date_utc")
-            .values("date_utc", "pm1", "pm2_5", "pm10", "aqi_pm2_5", "aqi_pm10")
-        )
-
-        total = queryset.count()
-        if total > MAX_EXPORT_ROWS:
+        span = (end - start).days + 1
+        if span > MAX_EXPORT_DAYS:
+            # Bounded by wall-clock time, not row count: every extra day is
+            # another upstream call, and the range has to be walked before its
+            # size is known. Ten days per call means this stays well inside a
+            # request timeout.
             raise ValidationError(
                 {
                     "from": (
-                        f"The selected range holds {total} readings, over the "
-                        f"{MAX_EXPORT_ROWS} a single export may carry. Narrow it "
+                        f"The selected range covers {span} days, over the "
+                        f"{MAX_EXPORT_DAYS} a single export may carry. Narrow it "
                         "with the 'from' and 'to' parameters."
                     )
                 }
             )
 
-        content = build_raw_export_xlsx(institution, contract, queryset.iterator())
+        # `end` is inclusive for the caller; the fetch bound is exclusive.
+        lower, upper = _range_bounds(start, end + timedelta(days=1))
 
-        return _attachment(
+        # The AQI of the first rows depends on the 24 hours before them, so the
+        # window is primed with a day of readings that are dropped before the
+        # file is written. Without it the export would open with a stretch of
+        # indices computed from a partial average.
+        # Two failures that would otherwise look alike, kept apart: a station
+        # with no AirGradient identity is a permanent configuration error that
+        # retrying will never fix, while a failed call is transient. Reporting
+        # the first as "try again later" sends whoever reads it looking in the
+        # wrong place.
+        try:
+            location_id = location_id_for_station(contract.station)
+        except AirGradientError:
+            logger.exception(
+                "Institution %s is bound to station %s, which has no "
+                "AirGradient location; the raw export cannot be built.",
+                institution.pk,
+                contract.station_id,
+            )
+            raise NotFound(
+                "This institution's sensor is not linked to the measurement "
+                "provider, so its history cannot be exported. Please contact "
+                "Proyecto Respira."
+            )
+
+        try:
+            result = fetch_past_measures(location_id, lower, upper)
+        except AirGradientError:
+            logger.exception(
+                "Raw export could not reach AirGradient for institution %s",
+                institution.pk,
+            )
+            raise ValidationError(
+                {
+                    "detail": (
+                        "The sensor data provider is unavailable right now. "
+                        "Please try again in a few minutes."
+                    )
+                }
+            )
+
+        rows = _stamp_rows(result.rows)
+        rows = [
+            row
+            for row in rows
+            if row.get("_moment") is not None and lower <= row["_moment"] < upper
+        ]
+        # Newest first, as AirGradient's own export orders it.
+        rows.reverse()
+
+        content = build_raw_export_csv(location_type(location_id), rows)
+
+        response = _attachment(
             content,
-            _filename(
-                "historial",
-                institution,
-                f"{start.strftime('%Y%m%d')}-{end.strftime('%Y%m%d')}",
-                "xlsx",
-            ),
-            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            _airgradient_filename(contract.station, start, end),
+            "text/csv; charset=utf-8",
         )
+        if result.failed_windows:
+            # The file is still served — a partial history beats an error — but
+            # the gap is stated rather than left for the institution to notice.
+            response["X-Respira-Partial-Export"] = str(result.failed_windows)
+        return response
