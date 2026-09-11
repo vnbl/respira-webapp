@@ -438,7 +438,9 @@ export const downloadInstitutionFile = async (
   ).msSaveOrOpenBlob;
   if (typeof legacySave === "function") {
     legacySave.call(navigator, blob, filename);
-    return { missingRanges: Number.isFinite(missingRanges) ? missingRanges : 0 };
+    return {
+      missingRanges: Number.isFinite(missingRanges) ? missingRanges : 0,
+    };
   }
 
   const url = URL.createObjectURL(blob);

@@ -13,7 +13,7 @@ different numbers for the same reading.
 
 from datetime import datetime, timedelta
 from datetime import timezone as dt_timezone
-from unittest.mock import Mock, patch
+from unittest.mock import Mock
 
 import requests
 from django.test import SimpleTestCase, override_settings

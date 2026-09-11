@@ -705,6 +705,7 @@ _CSV_COLUMNS: list[str] = [
 # for them to fill.
 _HEAT_INDEX_NOTE = "not derivable from the public API"
 
+
 def _number(value: Any) -> Any:
     """Coerce an API value to a real number.
 

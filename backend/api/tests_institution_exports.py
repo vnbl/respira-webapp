@@ -338,9 +338,7 @@ class RawExportTests(InstitutionExportTestCase):
         # Two readings a day across the same three July days the gold fixtures
         # use, so the two exports stay comparable.
         self.measures = [
-            _measure(_at(day, hour))
-            for day in self.july_days
-            for hour in (8, 20)
+            _measure(_at(day, hour)) for day in self.july_days for hour in (8, 20)
         ]
 
     def url(self):

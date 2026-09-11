@@ -66,8 +66,7 @@ def location_id_for_station(station) -> int:
     code = (getattr(station, "station_code", "") or "").strip()
     if not code.startswith(STATION_CODE_PREFIX):
         raise AirGradientError(
-            f"Station {station!s} is not an AirGradient sensor "
-            f"(station_code={code!r})."
+            f"Station {station!s} is not an AirGradient sensor (station_code={code!r})."
         )
     suffix = code[len(STATION_CODE_PREFIX) :]
     if not suffix.isdigit():
